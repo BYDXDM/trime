@@ -15,7 +15,7 @@
 
 package com.osfans.trime.data.theme
 
-import android.content.Context
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -62,7 +62,7 @@ object KeyboardBackground {
      *
      * 为避免大图导致键盘掉帧，超过 MAX_DIM 的图做降采样。
      */
-    fun loadDrawable(context: Context, scope: ThemeScope, value: String): Drawable? {
+    fun loadDrawable(scope: ThemeScope, value: String): Drawable? {
         val file = resolveImageFile(scope, value) ?: return null
 
         // GIF：用系统动图支持，不过 BitmapFactory（会丢帧）
@@ -90,7 +90,7 @@ object KeyboardBackground {
             inPreferredConfig = Bitmap.Config.RGB_565   // 背景不需要全彩，省内存
         }
         val bmp = BitmapFactory.decodeFile(file.absolutePath, decodeOpts) ?: return null
-        return bmp.toDrawable(context.resources)
+        return bmp.toDrawable(Resources.getSystem())
     }
 
     /** 背景图最长边上限（px），超过就降采样 */
