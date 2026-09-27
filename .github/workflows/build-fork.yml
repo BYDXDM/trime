@@ -12,6 +12,15 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # 只编手机真机在用的两个 ABI，跳过 x86/x86_64 模拟器版：
+      # native 层是全量 C++ 编译，少两个 ABI 能把构建时间砍掉约一半，
+      # 产物体积也减半（4 个 APK 合计 ~80MB → 2 个 ~40MB）。
+      #
+      # build-logic 的 NativeBaseConventionPlugin 用
+      # `splits.abi { include(BUILD_ABI.split(",")) }` 读取它，
+      # 未设置时回退到 Versions.supportedAbis（全部 4 个）。
+      BUILD_ABI: arm64-v8a,armeabi-v7a
     steps:
       # 只 checkout 本仓库，submodule 交给后面显式的
       # `git submodule update --init --recursive`（不带 --depth），
@@ -94,18 +103,31 @@ jobs:
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug --stacktrace
 
-      - name: Locate APK
+      # 注意：splits.abi 会为每个 ABI 生成一个独立 APK，
+      # 原先的 `find ... | head -1` 按字母序只拿到一个（x86_64），
+      # 导致 Release 里挂的是模拟器版、手机装不上。
+      # 这里改成索引全部 APK：首个作为 artifact 的展示路径，
+      # 完整列表写进 out/apk-list.txt 供下面的步骤和 Release 使用。
+      - name: Locate APKs
         id: apk
         run: |
-          APK=$(find app/build/outputs/apk -name "*.apk" -type f | head -1)
-          echo "path=$APK" >> $GITHUB_OUTPUT
-          ls -la "$(dirname "$APK")"
+          set -e
+          mkdir -p out
+          find app/build/outputs/apk/debug -name "*.apk" -type f | sort > out/apk-list.txt
+          echo "--- 产物列表 ---"
+          cat out/apk-list.txt
+          ls -la app/build/outputs/apk/debug/
+          echo "count=$(wc -l < out/apk-list.txt)" >> $GITHUB_OUTPUT
+          echo "path=app/build/outputs/apk/debug" >> $GITHUB_OUTPUT
+          # 至少要有 arm64-v8a，否则手机装不上，直接失败提醒
+          grep -q "arm64-v8a" out/apk-list.txt \
+            || { echo "ERROR: 缺少 arm64-v8a 产物"; exit 1; }
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: myime-debug-apk
-          path: ${{ steps.apk.outputs.path }}
+          path: app/build/outputs/apk/debug/*.apk
           retention-days: 30
 
   release:
@@ -119,6 +141,8 @@ jobs:
         with:
           name: myime-debug-apk
           path: apk
+      - name: List downloaded APKs
+        run: ls -la apk/
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -127,4 +151,13 @@ jobs:
           body: |
             自动化构建产物（debug 签名，仅供测试安装）。
             基于 Trime develop 分支二次开发。
+
+            ## 该下载哪个？
+
+            | 文件 | 适用设备 |
+            |---|---|
+            | `*-arm64-v8a-debug.apk` | **绝大多数手机**（近几年的 Android 机型） |
+            | `*-armeabi-v7a-debug.apk` | 老旧 32 位设备 |
+
+            装之前先在系统设置里开启「允许安装未知来源应用」。
           files: apk/*.apk

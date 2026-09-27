@@ -129,17 +129,48 @@ sh tools/all_checks.sh
 
 ### GitHub Actions（推荐）
 
-push 到 `main` 触发 `.github/workflows/build-fork.yml`，
-产物在 Actions 的 Artifacts 里下载。
+**主仓库是 [`BYDXDM/trime`](https://github.com/BYDXDM/trime)（fork 自 osfans/trime）**，
+工作流 `.github/workflows/build-fork.yml` 监听 `develop` 分支的 push。
 
-CI 会 `submodules: recursive` 拉取 librime 等 11 个 C++ 依赖，
-并安装 `platforms;android-36` / `build-tools;36.0.0` / `ndk;27.2.12479018`。
+每次 push 会自动：
+1. `git submodule update --init --recursive` 拉取 11 个 C++ 依赖
+   （**必须不带 `--depth`** —— `librime-lua-deps` 的 gitlink 指向
+   `thirdparty` 分支上的 `9c53b362`，浅克隆取不到会让目录静默留空，
+   最终在 NDK r27+ 上炸出 `fseeko` 未声明）
+2. `make patch-apply` 打上 `patches/lua.patch`（修 32 位 Android 的
+   `fseeko`/`ftello` 可用性判断）
+3. `./gradlew :app:assembleDebug`
+4. 自动创建 Release `v0.1.<run_number>`，**挂上全部 ABI 的 APK**
+
+### 产物与 ABI
+
+CI 只编 **`arm64-v8a` + `armeabi-v7a`**（真机用的两个），通过环境变量控制：
+
+```yaml
+env:
+  BUILD_ABI: arm64-v8a,armeabi-v7a
+```
+
+它由 `NativeBaseConventionPlugin` 的
+`splits.abi { include(BUILD_ABI.split(",")) }` 读取；不设则回退到
+`Versions.supportedAbis`（含 x86/x86_64 模拟器版）。
+
+| APK | 适用设备 |
+|---|---|
+| `*-arm64-v8a-debug.apk` | **绝大多数手机** |
+| `*-armeabi-v7a-debug.apk` | 老旧 32 位设备 |
+
+> ⚠️ 曾经踩过的坑：`find ... -name "*.apk" | head -1` 会按字母序
+> 拿到 `x86_64`（模拟器版），Release 里挂的就是装不上手机的那个。
+> 现在改成索引全部 APK，并断言 `arm64-v8a` 必须存在。
 
 ### 本地
 
 ```sh
-git clone --recursive https://github.com/<you>/myime.git
-cd myime
+git clone https://github.com/BYDXDM/trime.git
+cd trime
+git submodule update --init --recursive   # 必须不带 --depth
+make patch-apply                          # 必须，否则 fseeko 报错
 ./gradlew :app:assembleDebug
 ```
 
