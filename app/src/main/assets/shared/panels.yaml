@@ -1,0 +1,174 @@
+# =============================================================================
+#  myime 符号面板 / 数字面板 / 表情面板
+#  这三个键盘用 `include` 到 trime.yaml 的 preset_keyboards 下使用
+#  （Trime 的 YAML 不支持跨文件 include 键盘，实际做法是把下面内容
+#    直接贴在 preset_keyboards: 段落里。本文件是权威版本，改这里后
+#    用 tools/sync_panels.py 同步进 trime.yaml）
+#
+#  设计约束（务必遵守，否则会错位）：
+#    columns: -1      → 不按键数截断，只按权重换行
+#    每行权重和 = 100
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+#  符号面板（中文标点为主，长按出英文/变体）
+# -----------------------------------------------------------------------------
+symbols_panel:
+
+  # ---- 第 1 行：最常用中文标点 ----
+  - { click: '，', label: '，', long_click: '<', swipe_up: '〈' }
+  - { click: '。', label: '。', long_click: '>', swipe_up: '〉' }
+  - { click: '？', label: '？', long_click: '¿', swipe_up: '?' }
+  - { click: '！', label: '！', long_click: '¡', swipe_up: '!' }
+  - { click: '、', label: '、', long_click: '\\', swipe_up: '|' }
+  - { click: '；', label: '；', long_click: ';', swipe_up: ':' }
+  - { click: '：', label: '：', long_click: ':', swipe_up: '；' }
+  - { click: '“', label: '“', long_click: '‘', swipe_up: '「' }
+  - { click: '”', label: '”', long_click: '’', swipe_up: '」' }
+  - { click: '…', label: '…', long_click: '——', swipe_up: '·' }
+
+  # ---- 第 2 行：括号与书名号 ----
+  - { click: '（', label: '（', long_click: '(', swipe_up: '{' }
+  - { click: '）', label: '）', long_click: ')', swipe_up: '}' }
+  - { click: '【', label: '【', long_click: '[', swipe_up: '〈' }
+  - { click: '】', label: '】', long_click: ']', swipe_up: '〉' }
+  - { click: '《', label: '《', long_click: '<', swipe_up: '〈' }
+  - { click: '》', label: '》', long_click: '>', swipe_up: '〉' }
+  - { click: '「', label: '「', long_click: '『', swipe_up: '“' }
+  - { click: '」', label: '」', long_click: '』', swipe_up: '”' }
+  - { click: '～', label: '～', long_click: '~', swipe_up: '≈' }
+  - { click: '·', label: '·', long_click: '•', swipe_up: '◦' }
+
+  # ---- 第 3 行：数学与金额 ----
+  - { click: '¥', label: '¥', long_click: '$', swipe_up: '€' }
+  - { click: '￥', label: '￥', long_click: '£', swipe_up: '₩' }
+  - { click: '+', label: '+', long_click: '±', swipe_up: '⊕' }
+  - { click: '-', label: '-', long_click: '_', swipe_up: '－' }
+  - { click: '×', label: '×', long_click: '*', swipe_up: '✕' }
+  - { click: '÷', label: '÷', long_click: '/', swipe_up: '∕' }
+  - { click: '=', label: '=', long_click: '≠', swipe_up: '≈' }
+  - { click: '%', label: '%', long_click: '‰', swipe_up: '‱' }
+  - { click: '°', label: '°', long_click: '℃', swipe_up: '∠' }
+  - { click: '√', label: '√', long_click: '∞', swipe_up: '∝' }
+
+  # ---- 第 4 行：编程与网络常用 ----
+  - { click: '@', label: '@', long_click: '＠', swipe_up: '©' }
+  - { click: '#', label: '#', long_click: '＃', swipe_up: '№' }
+  - { click: '&', label: '&', long_click: '＆', swipe_up: '§' }
+  - { click: '*', label: '*', long_click: '＊', swipe_up: '☆' }
+  - { click: '/', label: '/', long_click: '\\', swipe_up: '÷' }
+  - { click: '_', label: '_', long_click: '-', swipe_up: '—' }
+  - { click: '|', label: '|', long_click: '¦', swipe_up: '‖' }
+  - { click: '`', label: '`', long_click: '~', swipe_up: '′' }
+  - { click: '^', label: '^', long_click: '＾', swipe_up: '↑' }
+  - { click: '→', label: '→', long_click: '⇒', swipe_up: '↗' }
+
+  # ---- 底栏 ----
+  - { click: Keyboard_letter, label: 'ABC', long_click: Menu }
+  - { click: Keyboard_number, label: '123' }
+  - { click: Keyboard_emoji, label: '☺' }
+  - { click: space, width: 30, label: '空格' }
+  - { click: ',', label: '，' }
+  - { click: Mode_switch, label: '中英', long_click: Menu, width: 15 }
+  - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, width: 15 }
+
+
+# -----------------------------------------------------------------------------
+#  数字面板
+# -----------------------------------------------------------------------------
+number_panel:
+
+  # ---- 第 1 行：数字 ----
+  - { click: '1', label: '1', long_click: '①', swipe_up: '¹' }
+  - { click: '2', label: '2', long_click: '②', swipe_up: '²' }
+  - { click: '3', label: '3', long_click: '③', swipe_up: '³' }
+  - { click: '4', label: '4', long_click: '④', swipe_up: '⁴' }
+  - { click: '5', label: '5', long_click: '⑤', swipe_up: '⁵' }
+  - { click: '6', label: '6', long_click: '⑥', swipe_up: '⁶' }
+  - { click: '7', label: '7', long_click: '⑦', swipe_up: '⁷' }
+  - { click: '8', label: '8', long_click: '⑧', swipe_up: '⁸' }
+  - { click: '9', label: '9', long_click: '⑨', swipe_up: '⁹' }
+  - { click: '0', label: '0', long_click: '⑩', swipe_up: '⁰' }
+
+  # ---- 第 2 行：运算 ----
+  - { click: '+', label: '+', long_click: '±' }
+  - { click: '-', label: '−', long_click: '－' }
+  - { click: '*', label: '×', long_click: '＊' }
+  - { click: '/', label: '÷', long_click: '/' }
+  - { click: '=', label: '=', long_click: '≠' }
+  - { click: '%', label: '%', long_click: '‰' }
+  - { click: '.', label: '.', long_click: '·' }
+  - { click: ',', label: ',', long_click: '，' }
+  - { click: '(', label: '(', long_click: '（' }
+  - { click: ')', label: ')', long_click: '）' }
+
+  # ---- 第 3 行：常用符号 ----
+  - { click: '¥', label: '¥', long_click: '$' }
+  - { click: '#', label: '#', long_click: '@' }
+  - { click: '&', label: '&', long_click: '＆' }
+  - { click: '"', label: '"', long_click: '“' }
+  - { click: "'", label: "'", long_click: '’' }
+  - { click: ':', label: ':', long_click: '：' }
+  - { click: ';', label: ';', long_click: '；' }
+  - { click: '!', label: '!', long_click: '！' }
+  - { click: '?', label: '?', long_click: '？' }
+  - { click: '~', label: '~', long_click: '～' }
+
+  # ---- 底栏 ----
+  - { click: Keyboard_letter, label: 'ABC', long_click: Menu }
+  - { click: Keyboard_symbols, label: '符' }
+  - { click: Keyboard_emoji, label: '☺' }
+  - { click: space, width: 30, label: '空格' }
+  - { click: '.', label: '。' }
+  - { click: Mode_switch, label: '中英', long_click: Menu, width: 15 }
+  - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, width: 15 }
+
+
+# -----------------------------------------------------------------------------
+#  表情 / 颜文字面板
+#  说明：真正要打 emoji 建议用 Trime 的液态键盘（liquid_keyboard）或系统
+#        表情面板。这里放的是高频「颜文字 + 常见 emoji」，直接上屏。
+# -----------------------------------------------------------------------------
+emoji_panel:
+
+  - { click: '☺', label: '☺' }
+  - { click: '☻', label: '☻' }
+  - { click: '☹', label: '☹' }
+  - { click: '♡', label: '♡' }
+  - { click: '♥', label: '♥' }
+  - { click: '★', label: '★' }
+  - { click: '☆', label: '☆' }
+  - { click: '✓', label: '✓' }
+  - { click: '✗', label: '✗' }
+  - { click: '✧', label: '✧' }
+
+  - { click: '😀', label: '😀' }
+  - { click: '😂', label: '😂' }
+  - { click: '🥹', label: '🥹' }
+  - { click: '😅', label: '😅' }
+  - { click: '😊', label: '😊' }
+  - { click: '😍', label: '😍' }
+  - { click: '🤔', label: '🤔' }
+  - { click: '😭', label: '😭' }
+  - { click: '😡', label: '😡' }
+  - { click: '🥺', label: '🥺' }
+
+  - { click: '👍', label: '👍' }
+  - { click: '👎', label: '👎' }
+  - { click: '🙏', label: '🙏' }
+  - { click: '👌', label: '👌' }
+  - { click: '✌', label: '✌' }
+  - { click: '💪', label: '💪' }
+  - { click: '🎉', label: '🎉' }
+  - { click: '🔥', label: '🔥' }
+  - { click: '💯', label: '💯' }
+  - { click: '✨', label: '✨' }
+
+  # ---- 底栏 ----
+  - { click: Keyboard_letter, label: 'ABC', long_click: Menu }
+  - { click: Keyboard_symbols, label: '符' }
+  - { click: Keyboard_number, label: '123' }
+  - { click: space, width: 30, label: '空格' }
+  - { click: '.', label: '。' }
+  - { click: Mode_switch, label: '中英', long_click: Menu, width: 15 }
+  - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, width: 15 }

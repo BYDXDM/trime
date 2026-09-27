@@ -1,0 +1,49 @@
+# mydomain.custom.yaml —— 用户侧补丁（升级不丢）
+#
+# 这个文件是 Rime 的「升级友好」机制：内容会 merge 进 mydomain.schema.yaml，
+# 方案本体更新时这里的改动不会被覆盖。
+#
+# 改完在 App 里点「重新部署」生效。
+#
+# encoding: utf-8
+
+patch:
+
+  # ---------- 候选数量 ----------
+  "menu/page_size": 8
+
+  # ---------- 中英切换行为 ----------
+  # 左 Shift 直接上屏当前候选（而不是只切英文）
+  "ascii_composer/switch_key/Shift_L": commit_text
+  "ascii_composer/switch_key/Shift_R": inline_ascii
+  "ascii_composer/switch_key/Caps_Lock": clear
+  "ascii_composer/good_old_caps_lock": true
+
+  # ---------- 用户词典学习强度微调 ----------
+  # initial_quality 越大，新词第一次出现时排得越靠前
+  "mymain/initial_quality": 1.0
+  # 关掉整句可以减少误学（个人习惯不同，默认开）
+  # "mymain/enable_sentence": false
+
+  # ---------- 简拼开关 ----------
+  # 觉得简拼结果太杂就把它关掉（把 mydomain_abbrev 从 translators 移除）
+  # "engine/translators/@3": table_translator@mydomain_abbrev
+  # 觉得简拼权重太高就调低
+  "mydomain_abbrev/initial_quality": 0.6
+
+  # ---------- 固定短语：把绝对不能被顶掉的词钉死 ----------
+  # 这些词放 custom_phrase（stabledb），不参与动态学习
+  # 实际词条写在 <userDataDir>/custom_phrase.txt，见下方说明
+
+  # ---------- 自定义习惯用语（示例）----------
+  # 在 custom_phrase.txt 里加：
+  #   崩铁	bengtie	2000
+  #   BA	ba	2000
+  #   卡池	ka'chi	1800
+
+# ------------------------------------------------------------
+# 附：custom_phrase.txt 写法（放在 Rime 用户目录，与 mydomain.userdb 同级）
+# ------------------------------------------------------------
+# 格式： 词语<TAB>编码<TAB>权重
+# 编码用单引号分隔音节会更精确，例如  原石	yuan'shi	2000
+# 这个文件用 stabledb，权重固定，用户怎么学都不会被顶下去。

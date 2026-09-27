@@ -1,0 +1,86 @@
+# =============================================================================
+#  关键词联想词库
+#  由 tools/gen_keywords.py 合并进 mydomain.dict.yaml
+#
+#  目的：打「youxiang」时候选里出现 qq.com / gmail.com 等；
+#        打「gmail」本身也能直接出 gmail.com。
+#
+#  实现原理：Rime 的 table_translator 支持「同编码多候选」，
+#  同一编码写多条即可。**一条词可以有多条不同编码**（双编码），
+#  所以主流邮箱域名同时挂两套编码：
+#      gmail.com	you xiang	1150   ← 打「邮箱」时联想
+#      gmail.com	gmail	1400      ← 直接打 gmail
+#
+#  ⚠ 权重规则：主词 > 角色名 > 域名联想。
+#    角色名「优香」是 1300，域名联想必须低于它，否则打 youxiang
+#    想打「邮箱」会被挤走。直接用域名拼写的那条给高权重。
+# =============================================================================
+
+--- 邮箱：主词 ---
+邮箱	you xiang	1600
+邮箱地址	you xiang	1100
+QQ邮箱	qq you xiang	1500
+网易邮箱	wang yi you xiang	1300
+谷歌邮箱	gu ge you xiang	1200
+企业邮箱	qi ye you xiang	1400
+电子邮箱	dian zi you xiang	1200
+
+--- 邮箱：域名（双编码 = 拼音联想 + 直拼）---
+qq.com	you xiang	1250
+qq.com	qqcom	1400
+163.com	you xiang	1150
+163.com	163com	1300
+gmail.com	you xiang	1150
+gmail.com	gmail	1450
+outlook.com	you xiang	1150
+outlook.com	outlook	1450
+hotmail.com	you xiang	850
+hotmail.com	hotmail	1200
+foxmail.com	you xiang	950
+foxmail.com	foxmail	1250
+126.com	you xiang	950
+126.com	126com	1150
+sina.com	you xiang	850
+sina.com	sina	1150
+yahoo.com	you xiang	800
+yahoo.com	yahoo	1100
+icloud.com	you xiang	900
+icloud.com	icloud	1200
+proton.me	you xiang	700
+proton.me	proton	1000
+zoho.com	you xiang	700
+zoho.com	zoho	950
+
+--- 邮箱：@ 符号快捷 ---
+@qq.com	atqq	1100
+@gmail.com	atgmail	1100
+@outlook.com	atoutlook	1000
+@163.com	at163	1000
+
+--- 网址：域名（双编码）---
+github.com	github	1350
+github.com	wang zhi	700
+gitlab.com	github	750
+gitee.com	github	650
+cloudflare.com	cloudflare	1250
+openai.com	openai	1150
+chatgpt.com	chatgpt	1150
+claude.ai	claude	1100
+youtube.com	youtube	1200
+bilibili.com	bilibili	1250
+
+--- 代理 / 网络类 ---
+订阅链接	ding yue	1300
+节点列表	jie dian	1200
+代理规则	dai li	1200
+clash.yaml	clash	900
+config.yaml	clash	800
+机场订阅	ji chang	1300
+免费节点	mian fei jie dian	1100
+订阅地址	ding yue	1100
+
+--- 游戏类联想 ---
+原石兑换码	yuan shi	900
+深渊螺旋	shen yuan	900
+角色培养	jiao se	900
+体力恢复	ti li	900
