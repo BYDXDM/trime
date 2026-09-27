@@ -42,7 +42,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.osfans.trime.data.DataManager
+import com.osfans.trime.data.base.DataManager
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.ThemeManager
 import kotlinx.coroutines.Dispatchers
@@ -56,6 +56,9 @@ class BackgroundPickerFragment : Fragment() {
     companion object {
         /** 与 trime.yaml 的 style/background_folder 保持一致 */
         private const val BACKGROUND_FOLDER = "mybg"
+
+        /** 主题配置名。trime.custom.yaml 里写入的就是这个 id */
+        private const val THEME_ID = "user_bg"
 
         /** 限制单张图大小，防止大 GIF 拖慢键盘渲染 */
         private const val MAX_BYTES = 4L * 1024 * 1024
@@ -301,8 +304,10 @@ class BackgroundPickerFragment : Fragment() {
             val ok = withContext(Dispatchers.IO) { doApply(file) }
             if (ok) {
                 toast("已应用背景：${file.name}")
-                // 重新部署，让 librime 重新读取 theme
-                ThemeManager.init(requireContext())
+                // 重新选一次主题，让 ColorManager 用新的 trime.custom.yaml 重建配色。
+                // ThemeManager.selectTheme 是 suspend，且内部已切到主线程，
+                // 不要用 ThemeManager.init()——那是给 Configuration 变化用的。
+                runCatching { ThemeManager.selectTheme(THEME_ID) }
             } else {
                 toast("应用失败")
             }

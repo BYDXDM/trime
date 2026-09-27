@@ -23,7 +23,7 @@ import android.graphics.drawable.AnimatedImageDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.core.graphics.drawable.toDrawable
-import com.osfans.trime.data.DataManager
+import com.osfans.trime.data.base.DataManager
 import java.io.File
 
 object KeyboardBackground {

@@ -53,7 +53,7 @@ object ClipboardCandidateInjector {
         if (consumedInSession) return null
 
         // 用户已经开始打字了，别插队
-        if (Rime.isComposing()) return null
+        if (Rime.statusCached.isComposing) return null
 
         val text = readClipboard() ?: return null
 
