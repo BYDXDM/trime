@@ -1,7 +1,6 @@
 package com.osfans.trime.ime.candidates
 
 import android.content.Context
-import android.text.TextUtils
 import com.osfans.trime.daemon.RimeSession
 import splitties.systemservices.clipboardManager
 import timber.log.Timber
@@ -89,11 +88,12 @@ object ClipboardCandidateInjector {
             if (item.uri != null && item.text.isNullOrEmpty()) {
                 null
             } else {
-                val text = item.coerceToText(context)?.toString()
-                if (TextUtils.isEmpty(text)) {
+                val text = item.coerceToText(context)?.toString()?.trim()
+                // isNullOrEmpty 会做智能转换，让 text 在分支内变成非空 String
+                if (text.isNullOrEmpty()) {
                     null
                 } else {
-                    text.trim().takeIf { it.isNotEmpty() && it.length <= MAX_LENGTH }
+                    text.takeIf { it.length <= MAX_LENGTH }
                 }
             }
         }
