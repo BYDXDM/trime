@@ -16,6 +16,7 @@ fun Project.runCmd(
 ): String {
     val output = providers.exec {
         commandLine = cmd.split(" ")
+        isIgnoreExitValue = true     // 退出码非 0 不抛异常，交给下面兜底
     }
     return if (output.result.get().exitValue == 0) {
         output.standardOutput.asText.get().trim()
