@@ -60,11 +60,14 @@ ic.endBatchEdit()
 
 **安全校验**：`deleteSurroundingText` 删的是**光标左侧**的字符。
 如果用户中途移动了光标，删掉的可能不是我们想删的词。
-所以回改前会先确认光标左侧恰好是刚上屏的那个词，对不上就放弃：
+所以回改前会确认原词位于光标左侧末尾，且原词前不是另一个英文单词的一部分；
+对不上就放弃：
 
 ```kotlin
-val before = getTextAroundCursor(original.length, before = true)
-if (before != original) return   // 宁可漏纠，绝不删错用户内容
+val before = getTextAroundCursor(original.length + 1, before = true)
+val preceding = before.dropLast(original.length).lastOrNull()
+if (!before.endsWith(original) || preceding?.isLetter() == true) return
+// 宁可漏纠，绝不删错用户内容
 ```
 
 ---

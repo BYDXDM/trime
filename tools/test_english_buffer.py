@@ -4,7 +4,7 @@ EnglishInputBuffer 状态机验证。
 把 Kotlin 的缓冲逻辑用 Python 重写，验证：
   - 字母累积、遇边界结算
   - 纠错时给出的 backspaces/replacement 正确
-  - 退格能撤销纠错
+  - 只接收 ASCII 字母
   - 切模式/焦点变化会清空
 """
 import re
@@ -75,14 +75,20 @@ class Corrector:
 class Buffer:
     def __init__(self):
         self.letters = ""
-        self.last_correction = None
-        self.events = []   # 记录 (类型, 参数) 模拟真实上屏
+        self.last_enabled = False
 
     def on_commit(self, text):
+        enabled = Corrector.enabled
+        if enabled != self.last_enabled:
+            self.letters = ""
+            self.last_enabled = enabled
+        if not enabled:
+            self.letters = ""
+            return None
         if len(text) != 1:
             return self.flush()
         ch = text[0]
-        if ch.isalpha():
+        if ("a" <= ch <= "z") or ("A" <= ch <= "Z"):
             self.letters += ch
             return None
         return self.flush()
@@ -97,19 +103,10 @@ class Buffer:
         fixed = Corrector.correct(word)
         if fixed is None:
             return None
-        self.last_correction = (word, fixed)
         return ("fix", word, word, fixed)
-
-    def on_backspace(self):
-        if self.last_correction is None:
-            return None
-        original, corrected = self.last_correction
-        self.last_correction = None
-        return ("undo", corrected, corrected, original)
 
     def clear(self):
         self.letters = ""
-        self.last_correction = None
 
 
 fails = []
@@ -132,18 +129,7 @@ for ch in "the":
     b.on_commit(ch)
 check("正确词不纠", b.on_commit(" "), None)
 
-# --- 场景3：退格撤销纠错 ---
-b = Buffer()
-for ch in "teh":
-    b.on_commit(ch)
-b.on_commit(" ")
-r = b.on_backspace()
-check("退格撤销", r, ("undo", "the", "the", "teh"))
-
-# --- 场景4：连续两次退格（第二次无纠错可撤）---
-check("再退格不再撤", b.on_backspace(), None)
-
-# --- 场景5：多字符提交（中文候选上屏）先结算 ---
+# --- 场景3：多字符提交（中文候选上屏）先结算 ---
 b = Buffer()
 for ch in "teh":
     b.on_commit(ch)
@@ -183,13 +169,29 @@ for ch in "redis":
     b.on_commit(ch)
 check("redis 不纠", b.on_commit(" "), None)
 
-# --- 场景10：clear 后不残留 ---
+# --- 场景8：clear 后不残留 ---
 b = Buffer()
 for ch in "teh":
     b.on_commit(ch)
 b.clear()
 check("clear 后缓冲空", b.letters, "")
-check("clear 后无纠错可撤", b.on_backspace(), None)
+
+# --- 场景9：非 ASCII 字母不进入英文缓冲 ---
+b = Buffer()
+for ch in "te":
+    b.on_commit(ch)
+check("非 ASCII 字母作为边界", b.on_commit("é"), None)
+check("非 ASCII 字母不残留", b.letters, "")
+
+# --- 场景10：关闭纠错时清空旧缓冲 ---
+b = Buffer()
+Corrector.enabled = True
+for ch in "teh":
+    b.on_commit(ch)
+Corrector.enabled = False
+check("关闭纠错后丢弃残留", b.on_commit(" "), None)
+check("关闭后缓冲为空", b.letters, "")
+Corrector.enabled = True
 
 # --- 场景11：短词不纠 ---
 b = Buffer()

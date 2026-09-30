@@ -608,6 +608,9 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
 
     override fun onFinishInputView(finishingInput: Boolean) {
         Timber.d("onFinishInputView: finishingInput=$finishingInput")
+        // 没有空格/标点收尾的最后一个词，也要在离开输入框前结算。
+        englishBuffer.flush()?.let { applyCorrection(it) }
+        englishBuffer.clear()
         decorLocationUpdated = false
         inputView?.dismissCandidateActionMenu()
         candidatesView?.dismissCandidateActionMenu()
@@ -626,6 +629,12 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     fun commitText(text: String) {
         val ic = currentInputConnection ?: return
 
+        // 英文纠错必须在词边界字符上屏前执行：
+        // 空格/标点一旦先提交，光标左侧就会变成「原词 + 边界字符」，
+        // 光标安全校验无法再确认原词，纠错会被跳过。
+        // 字母本身只会让缓冲增长，不会立即产生 correction。
+        englishBuffer.onCommit(text)?.let { applyCorrection(it) }
+
         // when composing text equals commit content, finish composing text as-is
         if (composingText.isNotEmpty() && composingText == text) {
             ic.finishComposingText()
@@ -635,10 +644,6 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         lastCommittedText = text
         composingText = ""
         InputFeedbackManager.textCommitSpeak(text)
-
-        // 英文纠错：攒词到边界后判断。
-        // 放在 commit 之后，因为纠错需要"删掉已上屏内容再重打"。
-        englishBuffer.onCommit(text)?.let { applyCorrection(it) }
     }
 
     /**
@@ -649,15 +654,16 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
      *
      * 安全前提：deleteSurroundingText 删的是**光标左侧**的字符。
      * 如果用户中途移动了光标（或点了别处），删掉的可能不是我们想删的词。
-     * 所以这里先确认光标左侧确实就是刚上屏的那个词，对不上就放弃纠错 ——
-     * 宁可漏纠，绝不能删错用户的内容。
+     * 所以这里先确认原词位于光标左侧末尾，且原词前不是 ASCII 字母；
+     * 对不上就放弃纠错。宁可漏纠，绝不能删错用户的内容。
      */
     private fun applyCorrection(result: EnglishInputBuffer.Result) {
         val ic = currentInputConnection ?: return
         val original = result.original
-        // 校验光标左侧恰好是原词
-        val before = getTextAroundCursor(original.length, before = true)
-        if (before != original) {
+        // 多取一个字符，检查原词前面是否仍在一个更长的英文单词中。
+        val before = getTextAroundCursor(original.length + 1, before = true) ?: return
+        val preceding = before.dropLast(original.length).lastOrNull()
+        if (!before.endsWith(original) || preceding?.isLetter() == true) {
             Timber.d("English corrector skipped: cursor context mismatch (%s != %s)", before, original)
             return
         }

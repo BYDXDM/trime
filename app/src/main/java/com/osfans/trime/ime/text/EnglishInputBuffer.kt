@@ -28,20 +28,34 @@ import timber.log.Timber
  */
 class EnglishInputBuffer {
 
-    /** 已累积的字母。只装纯字母，遇非字母立刻结算。 */
+    /** 已累积的字母。只装 ASCII 字母，遇非字母立刻结算。 */
     private val letters = StringBuilder()
+
+    /** 上一次处理提交时的开关状态，用于丢弃模式切换前的残留词。 */
+    private var lastEnabled = false
 
     /**
      * 收到一个已提交的字符。返回需要执行的纠错动作，或 null 表示无需动作。
      */
     fun onCommit(text: String): Result? {
+        // 模式切换可能没有先提交任何字符，在下一次提交时清掉旧模式残留。
+        val enabled = EnglishCorrector.enabled
+        if (enabled != lastEnabled) {
+            letters.setLength(0)
+            lastEnabled = enabled
+        }
+        if (!enabled) {
+            letters.setLength(0)
+            return null
+        }
+
         // 多字符提交（非英文模式、或候选词上屏）：先结算掉缓冲
         if (text.length != 1) {
             return flush()
         }
 
         val ch = text[0]
-        return if (ch.isLetter()) {
+        return if (ch.isAsciiLetter()) {
             letters.append(ch)
             null
         } else {
@@ -79,6 +93,9 @@ class EnglishInputBuffer {
 
     /** 当前缓冲的单词长度，调试用。 */
     val pendingLength: Int get() = letters.length
+
+    private fun Char.isAsciiLetter(): Boolean =
+        this in 'a'..'z' || this in 'A'..'Z'
 
     /**
      * 一次纠错动作。
