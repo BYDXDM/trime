@@ -12,6 +12,7 @@ import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.sync.ExternalSyncFallback
 import com.osfans.trime.data.sync.RimeDataSync
 import com.osfans.trime.ime.core.InlinePreeditMode
+import com.osfans.trime.ime.text.EnglishCorrector
 import com.osfans.trime.util.appContext
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -386,6 +387,10 @@ class Rime :
                 updateSchemaCached(status)
                 if (it.data.option == "ascii_mode") {
                     showAsciiSwitchTips(status)
+                    // 英文纠错只在英文模式生效。
+                    // 这里跟着 ascii_mode 走，是唯一可靠的同步点：
+                    // 用户按中英切换键时 Rime 必然发 OptionMessage。
+                    EnglishCorrector.enabled = status.isAsciiMode
                 }
             }
 

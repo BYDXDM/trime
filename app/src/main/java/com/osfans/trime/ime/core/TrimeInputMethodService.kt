@@ -49,6 +49,8 @@ import com.osfans.trime.data.theme.ThemeManager
 import com.osfans.trime.data.theme.ThemeScope
 import com.osfans.trime.ime.composition.CandidatesView
 import com.osfans.trime.ime.keyboard.InputFeedbackManager
+import com.osfans.trime.ime.text.EnglishCorrector
+import com.osfans.trime.ime.text.EnglishInputBuffer
 import com.osfans.trime.receiver.RimeIntentReceiver
 import com.osfans.trime.util.any
 import com.osfans.trime.util.findSectionFrom
@@ -92,6 +94,15 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     private val rimeIntentReceiver = RimeIntentReceiver()
 
     private var lastCommittedText: String = ""
+
+    /**
+     * 英文纠错缓冲。
+     *
+     * 英文模式下 Rime 对每个字母单独 CommitText（ascii_composer.cc:179），
+     * commitText() 一次只拿到一个字符，所以需要攒成单词、到词边界再判断。
+     * 逻辑见 EnglishInputBuffer。
+     */
+    private val englishBuffer = EnglishInputBuffer()
 
     private var composingText: String = ""
 
@@ -569,8 +580,14 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     ) {
         Timber.d("onStartInputView: restarting=$restarting")
         InputFeedbackManager.startInput()
+        // 切换输入目标：丢掉上一个编辑框残留的英文缓冲，
+        // 否则 A 应用里打了一半的词会跑到 B 应用里去纠错。
+        englishBuffer.clear()
         postRimeJob {
             updateRimeOption(this)
+            // 覆盖"进入输入框时已经是英文模式"的场景：
+            // 此时不会触发 OptionMessage，得主动查一次。
+            EnglishCorrector.enabled = statusCached.isAsciiMode
         }
         val (useVirtualKeyboard, useCandidatesView) =
             inputDeviceManager.evaluateOnStartInputView(attribute, this)
@@ -618,6 +635,41 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         lastCommittedText = text
         composingText = ""
         InputFeedbackManager.textCommitSpeak(text)
+
+        // 英文纠错：攒词到边界后判断。
+        // 放在 commit 之后，因为纠错需要"删掉已上屏内容再重打"。
+        englishBuffer.onCommit(text)?.let { applyCorrection(it) }
+    }
+
+    /**
+     * 执行一次英文纠错：删掉已上屏的原词，重新输入正确的。
+     *
+     * 用 deleteSurroundingText 而非循环发退格键，避免触发编辑器
+     * 的按键监听、也快得多。
+     *
+     * 安全前提：deleteSurroundingText 删的是**光标左侧**的字符。
+     * 如果用户中途移动了光标（或点了别处），删掉的可能不是我们想删的词。
+     * 所以这里先确认光标左侧确实就是刚上屏的那个词，对不上就放弃纠错 ——
+     * 宁可漏纠，绝不能删错用户的内容。
+     */
+    private fun applyCorrection(result: EnglishInputBuffer.Result) {
+        val ic = currentInputConnection ?: return
+        val original = result.original
+        // 校验光标左侧恰好是原词
+        val before = getTextAroundCursor(original.length, before = true)
+        if (before != original) {
+            Timber.d("English corrector skipped: cursor context mismatch (%s != %s)", before, original)
+            return
+        }
+        ic.beginBatchEdit()
+        try {
+            ic.deleteSurroundingText(result.backspaces, 0)
+            ic.commitText(result.replacement, 1)
+        } finally {
+            ic.endBatchEdit()
+        }
+        lastCommittedText = result.replacement
+        Timber.d("English corrector applied: -%d +%s", result.backspaces, result.replacement)
     }
 
     /**
