@@ -75,6 +75,9 @@ class KeyboardWindow(di: DI) :
 
     companion object : ResidentWindow.Key {
         lateinit var currentKeyboard: Keyboard
+
+        /** `import_preset` 的最大展开层数，防止主题写出环导致无限递归 */
+        private const val MAX_IMPORT_PRESET_DEPTH = 8
     }
 
     override val key: ResidentWindow.Key
@@ -155,11 +158,27 @@ class KeyboardWindow(di: DI) :
         return width
     }
 
-    private fun selectKeyboardConfig(name: String): TextKeyboard? {
-        val config = theme.presetKeyboards[name] ?: theme.presetKeyboards["default"]
+    /**
+     * 解析键盘名到实际的键盘配置。
+     *
+     * ★ 绝不能返回 null：调用方会用 `Keyboard(context, theme, width, null)` 构造键盘，
+     *   那样没有任何按键、键盘区域整块空白（本 fork 的 `default` 键缺失就是这样翻车的）。
+     *   所以这里多了一层「随便挑一个能画的键盘」兜底。
+     *
+     * [depth] 防止主题把 `import_preset` 写成环（a→b→a）时无限递归爆栈。
+     */
+    private fun selectKeyboardConfig(
+        name: String,
+        depth: Int = 0,
+    ): TextKeyboard? {
+        if (depth > MAX_IMPORT_PRESET_DEPTH) return null
+        val config =
+            theme.presetKeyboards[name]
+                ?: theme.presetKeyboards["default"]
+                ?: theme.presetKeyboards.values.firstOrNull { it.keys.isNotEmpty() }
         val importPreset = config?.importPreset
         if (!importPreset.isNullOrEmpty()) {
-            return selectKeyboardConfig(importPreset)
+            return selectKeyboardConfig(importPreset, depth + 1)
         }
         return config
     }
@@ -203,6 +222,16 @@ class KeyboardWindow(di: DI) :
         }
     }
 
+    /**
+     * 选出与当前 Rime 方案匹配的键盘名。
+     *
+     * ★ 末尾的兜底会返回**主题里真实存在的**键盘名，而不是字面量 `"default"`。
+     *   原因：fork 把键盘改名为 my_pinyin / my_english 等，主题里并没有
+     *   `default` / `qwerty` 这些通用名。以前这里直接 `else "default"`，
+     *   再往下 `selectKeyboardConfig` 查不到就返回 null，调用方用
+     *   `Keyboard(context, theme, width, null)` 构造出**零按键**的键盘 ——
+     *   表现就是输入法界面整块空白（首次进输入法必现）。
+     */
     private fun smartMatchKeyboard(): String {
         // 主题的布局中包含方案id，直接采用
         val currentSchema = rime.run { statusCached }.schemaId
@@ -210,20 +239,13 @@ class KeyboardWindow(di: DI) :
             return currentSchema
         }
         val alphabet = rime.run { schemaCached }.alphabet
-        val layout =
-            when {
-                alphabet.all { it.isLetter() } -> "qwerty"
+        val layout = layoutNameForAlphabet(alphabet, presetKeyboardIds, currentSchema)
+        if (layout.isNotEmpty()) return layout
 
-                // 包含 26 个字母
-                alphabet.all { it.isLetter() || ",./;".any(it::equals) } -> "qwerty_"
-
-                // 包含 26 个字母和,./;
-                alphabet.all { it.isLetterOrDigit() } -> "qwerty0"
-
-                // 包含 26 个字母和数字键
-                else -> "default"
-            }
-        return if (presetKeyboardIds.contains(layout)) layout else "default"
+        // 兜底：挑一个真实存在且真的有按键的键盘，让键盘一定能画出来
+        return pickFallbackKeyboard(presetKeyboardIds) { id ->
+            theme.presetKeyboards[id]?.keys?.size ?: 0
+        } ?: "default"
     }
 
     private fun evalKeyboard(id: String): String {

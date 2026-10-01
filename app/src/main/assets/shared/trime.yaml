@@ -208,6 +208,9 @@ preset_keys:
   Keyboard_number: { label: '123', send: Eisu_toggle, select: number }
   Keyboard_letter: { label: 字母, send: Eisu_toggle, select: my_pinyin }
   Keyboard_default: { label: 返回, send: Eisu_toggle, select: .default }
+  # emoji 面板的入口。符号/数字面板里的 `click: Keyboard_emoji` 之前引用了
+  # 一个不存在的名字 → 那两个「☺」键是哑键，已补上。
+  Keyboard_emoji: { label: '☺', send: Eisu_toggle, select: emoji }
   # ---- 自定命令 ----
   IME_switch: { label: 🌐, send: LANGUAGE_SWITCH }
   Color_switch: { label: 配色, send: PROG_RED }
@@ -233,17 +236,49 @@ preset_keys:
     functional: false
     slide_cursor: true
 
-  # ---- 退格：上滑清空输入栏，左滑整词删除 ----
+  # ---- 退格：滑动删除见键盘行内的按键条目 ----
+  # ⚠ 坑：swipe_up / swipe_left / swipe_down 这类手势字段**只有写在
+  #   preset_keyboards 的行内按键条目上才会被解析**。
+  #   写在 preset_keys 里是死配置 —— PresetKey 模型没有这些字段
+  #   （PresetKey.kt:38-55），KeyAction 从预设复制字段时也不含 swipe
+  #   （KeyAction.kt:181-197）。所以滑动定义在下面各键盘的行里。
   backspace_clear:
     label: ⌫
     send: BackSpace
     repeatable: true
-    # 上滑 = 清空输入栏（全选后删除）
-    swipe_up: Clear
-    # 左滑 = 删除光标前一个词（Ctrl+BackSpace）
-    swipe_left: BackToPreviousSyllable
-    # 下滑 = 恢复上次误删的内容（Trime 的 deletedTextBuffer 机制）
-    swipe_down: Redo
+
+  # ===========================================================================
+  #  以下预设从上游 Trime 补回（定义取自上游 trime.yaml L878-L913）
+  #
+  #  本 fork 重写 trime.yaml 时把它们删掉了，但键盘里仍在引用。
+  #  名字若既不是 preset 又不是 librime 认得的按键名，
+  #  KeyCode.parse 解析失败 → 该键**静默失效**（没有报错、没有日志）。
+  #  copy/cut/paste/undo/redo/select_all/CommitComment/Return1 都属于这种哑键，
+  #  Shift_L 则是丢了 shift_lock（自动首句大写）。
+  # ===========================================================================
+
+  # ---- 编辑类 ----
+  Shift_L: { label: Shift, send: Shift_L, shift_lock: ascii_long }
+  Return: { label: enter_labels, send: Return }
+  Return1: { label: Enter, send: Return }
+  BackSpace: { label: 退格, repeatable: true, send: BackSpace }
+  space: { repeatable: false, functional: false, send: space }
+  Escape: { label: Esc, send: Escape }
+  Insert: { label: 插入, send: Insert }
+  Delete: { label: 删除, send: Delete }
+
+  # ---- 剪贴与撤销（Z 行长按用）----
+  select_all: { label: 全选, send: Control+a }
+  Clear: { label: 清除, text: "{Control+a}{BackSpace}" } # 全选并删除
+  cut: { label: 剪切, send: Control+x }
+  copy: { label: 复制, send: Control+c }
+  paste: { label: 粘贴, send: Control+v }
+  undo: { label: 撤销, send: Control+z }
+  redo: { label: 重做, send: Control+Shift+z }
+
+  # ---- rime 组合键 ----
+  BackToPreviousSyllable: { label: 删音节, send: Control+BackSpace }
+  CommitComment: { label: 编码, send: Control+Shift+Return }
 
 # =============================================================================
 #  键盘布局
@@ -313,7 +348,7 @@ preset_keyboards:
     - { click: 'n', label: ';', swipe_down: ';', swipe_up: '；', hint: ';', width: 8.75 }
     - { click: 'm', label: '/', swipe_down: '/', swipe_up: '\\', hint: '/', width: 8.75 }
     - { click: 'l', label: '@', swipe_down: '@', swipe_up: '＠', hint: '@', width: 8.75 }
-    - { click: backspace_clear, width: 15 }           # 上滑清空 / 左滑删词
+    - { click: backspace_clear, swipe_up: Clear, swipe_left: BackToPreviousSyllable, width: 15 }
 
     # ---------------- 第 4 行：底栏 ----------------
     # 符(10) 123(10) ，(10) 空格(30) 。(10) 中英(15) 换行(15) = 100
@@ -378,7 +413,7 @@ preset_keyboards:
     - { click: 'n', label: ';', swipe_down: ';', swipe_up: '；', long_click: undo, width: 8.75 }
     - { click: 'm', label: '/', swipe_down: '/', swipe_up: '\\', long_click: redo, width: 8.75 }
     - { click: 'l', label: '@', swipe_down: '@', swipe_up: '＠', long_click: Delete, width: 8.75 }
-    - { click: backspace_clear, width: 15 }           # 上滑清空 / 左滑删词
+    - { click: backspace_clear, swipe_up: Clear, swipe_left: BackToPreviousSyllable, width: 15 }
 
     # ---- 第 4 行 ----
     - { click: Keyboard_symbols, long_click: Keyboard_number }
