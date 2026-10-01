@@ -1,1 +1,587 @@
-../../../../data/rime/myvocab/mydomain.dict.yaml
+# Rime dictionary
+# encoding: utf-8
+#
+# mydomain —— myime 内置垂直领域词库
+#
+# 格式： 词语<TAB>拼音<TAB>权重
+#   - 权重越大排序越靠前（sort: by_weight）
+#   - 专有名词建议 1200~2000，普通词 700~1000
+#   - 英文词条也走拼音编码位，用首字母小写串作编码（如 clash → "clash"）
+#     这样打 "cl" / "clash" 都能命中
+#
+# 修改后请执行： python3 tools/check_dict.py 校验格式
+#
+---
+name: mydomain
+version: "1.0.0"
+sort: by_weight
+use_preset_vocabulary: true
+...
+
+# ============================================================
+#  一、科技 / AI / 网络代理
+# ============================================================
+科技	ke ji	1000
+科学	ke xue	900
+技术	ji shu	950
+人工智能	ren gong zhi neng	1000
+机器学习	ji qi xue xi	950
+深度学习	shen du xue xi	950
+神经网络	shen jing wang luo	900
+大模型	da mo xing	980
+大语言模型	da yu yan mo xing	900
+自然语言处理	zi ran yu yan chu li	850
+算法	suan fa	850
+算力	suan li	900
+并发	bing fa	800
+分布式	fen bu shi	800
+容器	rong qi	800
+云计算	yun ji suan	850
+云端	yun duan	750
+服务器	fu wu qi	800
+客户端	ke hu duan	800
+带宽	dai kuan	850
+延迟	yan chi	880
+丢包	diu bao	800
+加密	jia mi	880
+解密	jie mi	800
+证书	zheng shu	800
+伪装	wei zhuang	800
+混淆	hun xiao	800
+代理	dai li	1250
+机场	ji chang	1200
+节点	jie dian	1050
+订阅	ding yue	1050
+落地	luo di	1000
+中转	zhong zhuan	1000
+直连	zhi lian	1000
+全局模式	quan ju mo shi	900
+规则模式	gui ze mo shi	900
+分流	fen liu	950
+测速	ce su	950
+Clash	clash	1500
+ClashMeta	clashmeta	1250
+Mihomo	mihomo	1250
+V2Ray	v2ray	1500
+v2rayN	v2rayn	1150
+Xray	xray	1350
+sing-box	singbox	1250
+Trojan	trojan	1300
+Shadowsocks	shadowsocks	1300
+ShadowsocksR	ssr	1250
+VLESS	vless	1200
+VMess	vmess	1200
+Hysteria	hysteria	1150
+TUIC	tuic	1100
+Cloudflare	cloudflare	1500
+Workers	workers	1250
+Pages	pages	1250
+WARP	warp	1200
+Vercel	vercel	1150
+Nginx	nginx	1100
+Docker	docker	1100
+Kubernetes	kubernetes	1000
+GitHub	github	1500
+GitLab	gitlab	1100
+OpenAI	openai	1250
+ChatGPT	chatgpt	1350
+Claude	claude	1250
+Gemini	gemini	1150
+DeepSeek	deepseek	1250
+Copilot	copilot	1100
+Cursor	cursor	1100
+Grok	grok	1100
+HuggingFace	huggingface	1100
+Linux	linux	1000
+Android	android	1000
+Python	python	1000
+Java	java	900
+Kotlin	kotlin	900
+Rust	rust	900
+Golang	golang	900
+NodeJs	nodejs	900
+Redis	redis	950
+MySQL	mysql	950
+SQLite	sqlite	900
+FFmpeg	ffmpeg	900
+Nmap	nmap	850
+
+# ============================================================
+#  二、游戏 —— 原神
+# ============================================================
+原神	yuan shen	2000
+原石	yuan shi	2000
+创世结晶	chuang shi jie jing	1500
+纠缠之缘	jiu chan zhi yuan	1500
+相遇之缘	xiang yu zhi yuan	1500
+圣遗物	sheng yi wu	2000
+圣遗物评分	sheng yi wu ping fen	1000
+词条	ci tiao	1200
+主词条	zhu ci tiao	1100
+副词条	fu ci tiao	1100
+双暴	shuang bao	1100
+暴击	bao ji	1150
+暴击率	bao ji lv	1150
+暴击伤害	bao ji shang hai	1150
+精通	jing tong	1100
+充能	chong neng	1100
+元素精通	yuan su jing tong	1000
+祈愿	qi yuan	1800
+抽卡	chou ka	1700
+卡池	ka chi	1650
+大保底	da bao di	1400
+小保底	xiao bao di	1400
+十连	shi lian	1400
+单抽	dan chou	1300
+歪了	wai le	1300
+体力	ti li	1400
+树脂	shu zhi	1450
+原粹树脂	yuan cui shu zhi	1300
+深渊	shen yuan	1850
+深境螺旋	shen jing luo xuan	1500
+幻想真境剧诗	huan xiang zhen jing ju shi	1100
+幻想真境	yu xiang zhen jing	1100
+幽境危战	you jing wei zhan	1100
+危战	wei zhan	1100
+周本	zhou ben	1300
+副本	fu ben	1400
+秘境	mi jing	1350
+地脉	di mai	1200
+大世界	da shi jie	1200
+蒙德	meng de	1500
+璃月	li yue	1500
+稻妻	dao qi	1500
+须弥	xu mi	1450
+枫丹	feng dan	1450
+纳塔	na ta	1400
+至冬	zhi dong	1200
+主角	zhu jue	1250
+派蒙	pai meng	1500
+旅行者	lv xing zhe	1400
+空	sora	1000
+荧	ying	1100
+温迪	wen di	1250
+可莉	ke li	1350
+琴	qin	1150
+迪卢克	di lu ke	1300
+胡桃	hu tao	1400
+钟离	zhong li	1400
+甘雨	gan yu	1300
+神里绫华	shen li ling hua	1300
+雷电将军	lei dian jiang jun	1400
+八重神子	ba chong shen zi	1300
+纳西妲	na xi da	1300
+芙宁娜	fu ning na	1250
+那维莱特	na wei lai te	1250
+仆人	pu ren	1150
+玛薇卡	ma wei ka	1150
+武器	wu qi	1300
+专武	zhuan wu	1250
+精炼	jing lian	1150
+锻造	duan zao	1100
+命之座	ming zhi zuo	1300
+命座	ming zuo	1300
+天赋	tian fu	1250
+突破材料	tu po cai liao	1150
+摩拉	mo la	1400
+冒险等阶	mao xian deng jie	1000
+尘歌壶	chen ge hu	1100
+七圣召唤	qi sheng zhao huan	1100
+风花节	feng hua jie	1000
+海灯节	hai deng jie	1050
+
+# ============================================================
+#  三、游戏 —— 崩坏：星穹铁道
+# ============================================================
+崩坏	beng huai	1800
+星穹铁道	xing qiong tie dao	1900
+崩铁	beng tie	2000
+星铁	xing tie	2000
+崩坏星穹铁道	beng huai xing qiong tie dao	1600
+星琼	xing qiong	1650
+星轨通票	xing gui tong piao	1200
+星轨专票	xing gui zhuan piao	1200
+开拓者	kai tuo zhe	1600
+命途	ming tu	1600
+毁灭	hui mie	1400
+存护	cun hu	1400
+巡猎	xun lie	1400
+智识	zhi shi	1400
+同谐	tong xie	1400
+虚无	xu wu	1400
+丰饶	feng rao	1400
+记忆	ji yi	1350
+光锥	guang zhui	1650
+遗器	yi qi	1550
+外圈	wai quan	1100
+内圈	nei quan	1100
+主属性	zhu shu xing	1100
+速度鞋	su du xie	1100
+爆伤衣	bao shang yi	1050
+模拟宇宙	mo ni yu zhou	1500
+差分宇宙	cha fen yu zhou	1200
+末日幻影	mo ri huan ying	1200
+虚构叙事	xu gou xu shi	1200
+忘却之庭	wang que zhi ting	1400
+混沌回忆	hun dun hui yi	1350
+寰宇蝗灾	huan yu huang zai	1100
+星芒战幕	xing mang zhan mu	1000
+仙舟	xian zhou	1400
+罗浮	luo fu	1300
+雅利洛	ya li luo	1200
+贝洛伯格	bei luo bo ge	1250
+匹诺康尼	pi nuo kang ni	1200
+翁法罗斯	weng fa luo si	1150
+姬子	ji zi	1350
+三月七	san yue qi	1350
+丹恒	dan heng	1350
+瓦尔特	wa er te	1250
+布洛妮娅	bu luo ni ya	1300
+希儿	xi er	1300
+银狼	yin lang	1350
+符玄	fu xuan	1250
+镜流	jing liu	1350
+卡芙卡	ka fu ka	1350
+花火	hua huo	1300
+黄泉	huang quan	1350
+流萤	liu ying	1350
+黑天鹅	hei tian e	1200
+知更鸟	zhi geng niao	1200
+砂金	sha jin	1200
+翡翠	fei cui	1200
+飞霄	fei xiao	1200
+白厄	bai e	1200
+昔涟	xi lian	1200
+长夜月	chang ye yue	1150
+刻律德菈	ke lv de la	1100
+遐蝶	xia die	1200
+万敌	wan di	1150
+乱破	luan po	1150
+波提欧	bo ti ou	1150
+阮梅	ruan mei	1250
+藿藿	huo huo	1200
+罗刹	luo cha	1200
+停云	ting yun	1200
+驭空	yu kong	1150
+寒鸦	han ya	1150
+雪衣	xue yi	1150
+桂乃芬	gui nai fen	1100
+模拟经营	mo ni jing ying	1000
+末日兽	mo ri shou	1050
+末日	pai meng	1000
+
+# ============================================================
+#  四、游戏 —— 蔚蓝档案
+# ============================================================
+蔚蓝档案	wei lan dang an	1900
+碧蓝档案	bi lan dang an	1500
+BA	ba	2000
+夏莱	xia lai	1400
+阿罗娜	a luo na	1400
+普拉娜	pu la na	1300
+小机器人	xiao ji qi ren	1100
+老师	lao shi	1150
+沙勒	sha le	1200
+千年	qian nian	1250
+格黑娜	ge hei na	1300
+三一	san yi	1300
+阿拜多斯	a bai duo si	1250
+山猫	shan mao	1000
+百鬼夜行	bai gui ye xing	1150
+红冬	hong dong	1200
+瓦尔基里	wa er ji li	1100
+阿里乌斯	a li wu si	1100
+白子	bai zi	1350
+星野	xing ye	1350
+日奈	ri nai	1300
+优香	you xiang	1300
+花凛	hua lin	1250
+泉奈	quan nai	1250
+小春	xiao chun	1250
+阿露	a lu	1250
+亚子	ya zi	1250
+伊织	yi zhi	1200
+伊吕波	yi lv bo	1200
+响	xiang	1150
+初音	miku	1150
+美游	mei you	1150
+宫子	gong zi	1150
+爱丽丝	ai li si	1200
+总力战	zong li zhan	1400
+战术对抗赛	zhan shu dui kang sai	1050
+大决战	da jue zhan	1050
+联合火力	liang he huo li	1050
+资源总力战	zi yuan zong li zhan	1000
+演习	yan xi	1100
+站位	zhan wei	1100
+编队	bian dui	1150
+培养	pei yang	1100
+神名文字	shen ming wen zi	1150
+伊甸	yi dian	1100
+圣娅	sheng ya	1100
+补习	bu xi	1000
+
+# ---------- 英文键名简拼别名（补齐 cl/cf/yt 等两字母习惯） ----------
+Clash	cl	1450
+Cloudflare	cf	1450
+ChatGPT	cgpt	1250
+Claude	cd	1200
+Gemini	gm	1100
+GitHub	gh	1450
+V2Ray	vt	1450
+V2Ray	yy	1200
+VMess	vm	1150
+VLESS	vl	1150
+Xray	xr	1300
+Trojan	tj	1250
+Shadowsocks	ss	1250
+sing-box	sb	1200
+Mihomo	mh	1200
+ClashMeta	cm	1200
+Docker	dk	1050
+Kubernetes	k8s	1000
+Python	py	950
+Linux	lx	950
+Android	ad	950
+OpenAI	oa	1200
+DeepSeek	ds	1200
+Copilot	cpl	1050
+YouTube	yt	1250
+GitLab	gl	1050
+Nginx	nx	1050
+Redis	rd	900
+
+# ---------- 易混词兜底（26 键上只差一个韵母的高频词） ----------
+原始	yuan shi	1400
+元素	yuan su	1300
+原因	yuan yin	1200
+圆石	yuan shi	900
+
+
+# ===== BEGIN keywords（由 tools/gen_keywords.py 生成，勿手改）=====
+# 关键词联想：同一编码下挂多条关联词，打拼音时可一起看到
+邮箱	you xiang	1600
+邮箱地址	you xiang	1100
+QQ邮箱	qq you xiang	1500
+网易邮箱	wang yi you xiang	1300
+谷歌邮箱	gu ge you xiang	1200
+企业邮箱	qi ye you xiang	1400
+电子邮箱	dian zi you xiang	1200
+qq.com	you xiang	1250
+qq.com	qqcom	1400
+163.com	you xiang	1150
+163.com	163com	1300
+gmail.com	you xiang	1150
+gmail.com	gmail	1450
+outlook.com	you xiang	1150
+outlook.com	outlook	1450
+hotmail.com	you xiang	850
+hotmail.com	hotmail	1200
+foxmail.com	you xiang	950
+foxmail.com	foxmail	1250
+126.com	you xiang	950
+126.com	126com	1150
+sina.com	you xiang	850
+sina.com	sina	1150
+yahoo.com	you xiang	800
+yahoo.com	yahoo	1100
+icloud.com	you xiang	900
+icloud.com	icloud	1200
+proton.me	you xiang	700
+proton.me	proton	1000
+zoho.com	you xiang	700
+zoho.com	zoho	950
+@qq.com	atqq	1100
+@gmail.com	atgmail	1100
+@outlook.com	atoutlook	1000
+@163.com	at163	1000
+github.com	github	1350
+github.com	wang zhi	700
+gitlab.com	github	750
+gitee.com	github	650
+cloudflare.com	cloudflare	1250
+openai.com	openai	1150
+chatgpt.com	chatgpt	1150
+claude.ai	claude	1100
+youtube.com	youtube	1200
+bilibili.com	bilibili	1250
+订阅链接	ding yue	1300
+节点列表	jie dian	1200
+代理规则	dai li	1200
+clash.yaml	clash	900
+config.yaml	clash	800
+机场订阅	ji chang	1300
+免费节点	mian fei jie dian	1100
+订阅地址	ding yue	1100
+原石兑换码	yuan shi	900
+深渊螺旋	shen yuan	900
+角色培养	jiao se	900
+体力恢复	ti li	900
+# ===== END keywords =====
+
+# ============================================================
+#  〇、常用字词（基础输入基座：组句/兜底；随包内置）
+# ============================================================
+我	wo	1100
+你	ni	1100
+他	ta	1000
+她	ta	950
+的	de	1300
+是	shi	1200
+了	le	1200
+不	bu	1150
+在	zai	1100
+有	you	1100
+这	zhe	1000
+那	na	900
+吗	ma	950
+呢	ne	900
+吧	ba	900
+啊	a	850
+嗯	en	900
+好	hao	1100
+很	hen	950
+就	jiu	950
+都	dou	900
+和	he	950
+被	bei	850
+把	ba	900
+让	rang	850
+说	shuo	950
+要	yao	1000
+能	neng	950
+会	hui	950
+想	xiang	950
+没	mei	1000
+去	qu	950
+来	lai	950
+做	zuo	900
+看	kan	900
+吃	chi	850
+上	shang	950
+下	xia	900
+里	li	850
+个	ge	1050
+我们	wo men	1050
+你们	ni men	950
+他们	ta men	950
+自己	zi ji	900
+什么	shen me	1100
+怎么	zen me	1050
+为什么	wei shen me	1000
+现在	xian zai	1000
+今天	jin tian	950
+明天	ming tian	900
+时间	shi jian	950
+工作	gong zuo	1000
+学习	xue xi	950
+手机	shou ji	1000
+电脑	dian nao	950
+电话	dian hua	900
+知道	zhi dao	1000
+觉得	jue de	950
+喜欢	xi huan	1000
+应该	ying gai	950
+可能	ke neng	950
+但是	dan shi	950
+还是	hai shi	950
+可以	ke yi	1050
+没有	mei you	1050
+谢谢	xie xie	1000
+再见	zai jian	950
+晚安	wan an	900
+朋友	peng you	950
+老婆	lao po	950
+老公	lao gong	950
+吃饭	chi fan	900
+睡觉	shui jiao	900
+上班	shang ban	900
+下班	xia ban	850
+加班	jia ban	850
+微信	wei xin	1050
+支付宝	zhi fu bao	1000
+抖音	dou yin	1000
+视频	shi pin	950
+直播	zhi bo	950
+游戏	you xi	1000
+问题	wen ti	950
+东西	dong xi	900
+时候	shi hou	950
+地方	di fang	900
+因为	yin wei	950
+所以	suo yi	950
+如果	ru guo	950
+一起	yi qi	900
+一下	yi xia	950
+回来	hui lai	900
+出来	chu lai	900
+这么	zhe me	900
+那么	na me	850
+
+# ============================================================
+#  五、联想搭配常用词（predict.txt 的候选目标，需在词库中存在）
+# ============================================================
+启动	qi dong	1000
+重启	chong qi	1000
+关机	guan ji	950
+配置	pei zhi	1000
+卡顿	ka dun	900
+没电	mei dian	900
+充电	chong dian	900
+连接	lian jie	950
+断开	duan kai	900
+跑路	pao lu	900
+部署	bu shu	1000
+宕机	dang ji	900
+文件	wen jian	980
+参数	can shu	950
+错误	cuo wu	950
+提交	ti jiao	1000
+审查	shen cha	950
+编译	bian yi	950
+调试	tiao shi	950
+进度	jin du	950
+需求	xu qiu	1000
+上线	shang xian	950
+延期	yan qi	880
+变更	bian geng	900
+评审	ping shen	900
+文档	wen dang	980
+解决	jie jue	980
+反馈	fan kui	950
+排查	pai cha	950
+分析	fen xi	950
+备份	bei fen	950
+丢失	diu shi	880
+同步	tong bu	950
+更新	geng xin	980
+编写	bian xie	900
+查看	cha kan	930
+训练	xun lian	980
+推理	tui li	950
+微调	wei tiao	950
+优化	you hua	950
+复杂度	fu za du	850
+消息	xiao xi	950
+支付	zhi fu	950
+聊天	liao tian	950
+早上	zao shang	950
+再说	zai shuo	900
+几点	ji dian	900
+天气	tian qi	950
+晚上	wan shang	980
+很累	hen lei	880
+大家	da jia	950
+支持	zhi chi	950
+老板	lao ban	950
+我是	wo shi	950
+请问	qing wen	950
+意思	yi si	930
+办	ban	880
+样	yang	850
+回事	hui shi	880
+满星	man xing	1000
+配队	pei dui	1000
+记录	ji lu	950
+玄学	xuan xue	900
+保底	bao di	1400

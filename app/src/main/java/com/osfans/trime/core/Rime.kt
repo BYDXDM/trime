@@ -11,6 +11,7 @@ import com.osfans.trime.data.opencc.OpenCCDictManager
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.sync.ExternalSyncFallback
 import com.osfans.trime.data.sync.RimeDataSync
+import com.osfans.trime.data.sync.RimeStartupGate
 import com.osfans.trime.ime.core.InlinePreeditMode
 import com.osfans.trime.ime.text.EnglishCorrector
 import com.osfans.trime.util.appContext

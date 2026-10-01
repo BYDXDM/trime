@@ -1,1 +1,156 @@
-../../../../data/rime/myvocab/mydomain.schema.yaml
+# Rime schema
+# encoding: utf-8
+#
+# mydomain —— myime 主方案（26 键拼音 + 英文混输 + 用户词频自学习）
+#
+# 设计要点：
+#   1. translator/mymain     主翻译器，全拼，开启 user_dict 自动学习
+#   2. translator/mydomain_abbrev  简拼翻译器，只打首字母（bt→崩铁）
+#   3. custom_phrase         固定短语，权重锁死，不受用户学习影响
+#   4. 英文词条走同一套拼音编码，中英混输无需切换（打 clash 出 Clash）
+#
+schema:
+  schema_id: mydomain
+  name: myime拼音
+  version: "1.0.0"
+  author:
+    - myime
+  description: |
+    26 键拼音方案，内置科技/AI/网络代理 + 原神/崩铁/蔚蓝档案词库。
+    支持中英混合联想与用户词频自动学习。
+
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: [ 中文, 英文 ]
+    abbrev: [ 中, EN ]
+  - name: ascii_punct
+    states: [ 。，, ．， ]
+    abbrev: [ 中, En ]
+  - name: full_shape
+    states: [ 半角, 全角 ]
+  # 简体优先：essay 预设词库（八股文）是繁体编码，靠 simplifier 默认转简体。
+  # 用户偶尔要繁体时在方案菜单/快捷键里切回（Ctrl+Shift+4 由 key_binder 提供）。
+  - name: zh_simp
+    reset: 1
+    states: [ 漢字, 汉字 ]
+
+engine:
+  processors:
+    - ascii_composer          # 中英切换（对应键盘 Mode_switch）
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - ascii_segmentor
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - table_translator@custom_phrase        # ① 固定短语，优先级最高
+    - script_translator@mymain              # ② 主翻译器（含用户词典学习）
+    - script_translator@mydomain_abbrev     # ③ 简拼/联想（首字母缩写靠它）
+  filters:
+    - simplifier
+    - uniquifier
+
+speller:
+  alphabet: 'zyxwvutsrqponmlkjihgfedcba'
+  delimiter: " '"
+  # ü 输入习惯：lv → lü，nv → nü
+  # （模糊音与简拼规则由 mydomain.custom.yaml 的 speller/algebra 补丁整体接管，
+  #   规则取自共享目录 pinyin.yaml 模板；不要在方案内用 mydomain:/ 自引用，
+  #   librime 配置编译器会因循环引用静默放弃编译本方案）
+  algebra:
+    - derive/^([nl])v/$1ü/
+
+# ★ 部署基座：librime 的 SchemaUpdate 只认「非命名空间」的
+#   translator/dictionary 才会编译词典（deployment_tasks.cc）；本方案
+#   的翻译器全是 @mymain 等命名空间形式，缺这个节点会导致部署
+#   “成功”却没有任何 table/prism 产物、方案零候选。
+translator:
+  dictionary: mydomain
+  prism: mydomain
+
+# ------------------------------------------------------------
+# ① 固定短语：stabledb，权重写死，用户学习不会顶掉它
+# ------------------------------------------------------------
+custom_phrase:
+  dictionary: ""
+  user_dict: custom_phrase
+  db_class: stabledb
+  enable_completion: false
+  enable_sentence: false
+  initial_quality: 2
+
+# ------------------------------------------------------------
+# ② 主翻译器：全拼 + 用户词频自学习
+# ------------------------------------------------------------
+mymain:
+  dictionary: mydomain
+  # ★ 核心三行：开启用户词典学习
+  enable_user_dict: true        # 用户选词上屏后自动记忆并提权
+  user_dict: mydomain.user      # 落盘为 <userDataDir>/mydomain.userdb
+  db_class: userdb              # userdb=动态词频；stabledb=静态
+  enable_completion: true       # 支持编码补全（打前几个音节就出候选）
+  enable_sentence: true         # 整句输入
+  enable_encoder: false
+  initial_quality: 1.0          # 主翻译器基准质量
+  comment_format:
+    - xform/^/ /
+  # 用户词典权重上限，防止单个词被刷到离谱位置
+  max_phrase_length: 10
+  min_phrase_weight: 1
+
+# ------------------------------------------------------------
+# ③ 简拼/联想翻译器：打首字母（bt → 崩铁）或打一半（beng → 崩铁）
+#    ★ 必须用 script_translator（拼音类翻译器）：它按音节/首字母
+#      匹配编码，才是「简拼」；table_translator 只做逐字符精确匹配，
+#      缩写永远命中不了（fork 原配置的缺陷）。
+#    与 mymain 共用词典和用户词库，用户上屏过的词会被学习并提权，
+#      于是「打首字母出最常用的词」= 用户词频的自然结果。
+# ------------------------------------------------------------
+mydomain_abbrev:
+  dictionary: mydomain
+  prism: mydomain
+  enable_user_dict: true
+  user_dict: mydomain.user
+  db_class: userdb
+  enable_completion: true
+  enable_sentence: false
+  # 简拼与全拼平权，靠词库/用户词频自然排序
+  initial_quality: 1.0
+  comment_format:
+    - xform/^/ 简拼/
+  # 打一半就能猜（如 beng → 崩铁）：补全正是 enable_completion 的作用
+
+# 易混音节兜底：26 键上 n/ng、shi/shen 这类只差一两个字母，
+# 靠 speller 的模糊音规则让它们互相可达，减少「打错查不到词」的挫败感。
+speller_extra:
+  algebra:
+    # yuan shi / yuan shen 互达
+    - derive/yuan shen$/yuan shi/
+    - derive/yuan shi$/yuan shen/
+
+punctuator:
+  import_preset: symbols
+
+key_binder:
+  import_preset: default
+
+recognizer:
+  import_preset: default
+
+# 简体优先（不依赖 opencc，用内置简繁开关）
+simplifier:
+  option_name: zh_simp
+
+# 应用用户侧补丁（升级不丢）
+__patch:
+  - mydomain.custom:/patch?
