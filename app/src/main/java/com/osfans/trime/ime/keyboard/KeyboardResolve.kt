@@ -59,3 +59,52 @@ internal fun pickLandscape(
     landscapeValue: Int,
     landscape: Boolean,
 ): Int = if (landscape && landscapeValue > 0) landscapeValue else value
+
+/**
+ * Decides which keyboard name a schema maps to, before the theme is consulted.
+ *
+ * [presetKeyboardIds] are the keyboard ids the theme actually defines. The
+ * returned value is the first candidate that exists in the theme; when none
+ * does, the last fallback is returned so the caller can still recover.
+ *
+ * The `qwerty*` names come from upstream: upstream ships keyboards literally
+ * named `qwerty` / `qwerty_` / `qwerty0`. A theme that renamed its keyboards
+ * (this fork keeps only `my_pinyin` / `my_english` / …) never matches them, so
+ * callers must fall back — see [pickFallbackKeyboard].
+ *
+ * Passing an empty [alphabet] is treated as "unknown": every `all { }` check on
+ * an empty string is vacuously true, which would otherwise pick `qwerty` for a
+ * schema whose alphabet could not be read.
+ */
+internal fun layoutNameForAlphabet(
+    alphabet: String,
+    presetKeyboardIds: Collection<String>,
+    schemaId: String,
+): String {
+    // The theme may name a keyboard exactly after the schema; that wins.
+    if (presetKeyboardIds.contains(schemaId)) return schemaId
+    if (alphabet.isEmpty()) return ""
+    if (alphabet.all { it.isLetter() }) {
+        return "qwerty".takeIf(presetKeyboardIds::contains) ?: ""
+    }
+    if (alphabet.all { it.isLetter() || it in ",./;" }) {
+        return "qwerty_".takeIf(presetKeyboardIds::contains) ?: ""
+    }
+    if (alphabet.all { it.isLetterOrDigit() }) {
+        return "qwerty0".takeIf(presetKeyboardIds::contains) ?: ""
+    }
+    return "default".takeIf(presetKeyboardIds::contains) ?: ""
+}
+
+/**
+ * Last-resort keyboard pick that is guaranteed to be drawable.
+ *
+ * `Keyboard(context, theme, width, null)` builds a keyboard with **no keys**,
+ * which renders as a blank input area — the failure this guards against. So
+ * prefer a keyboard that really has keys, then any defined id, then the
+ * literal `default` (which the caller resolves again).
+ */
+internal fun pickFallbackKeyboard(
+    ids: List<String>,
+    keyCountOf: (String) -> Int,
+): String? = ids.firstOrNull { keyCountOf(it) > 0 } ?: ids.firstOrNull()
