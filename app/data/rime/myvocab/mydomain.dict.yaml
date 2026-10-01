@@ -418,3 +418,170 @@ config.yaml	clash	800
 角色培养	jiao se	900
 体力恢复	ti li	900
 # ===== END keywords =====
+
+# ============================================================
+#  〇、常用字词（基础输入基座：组句/兜底；随包内置）
+# ============================================================
+我	wo	1100
+你	ni	1100
+他	ta	1000
+她	ta	950
+的	de	1300
+是	shi	1200
+了	le	1200
+不	bu	1150
+在	zai	1100
+有	you	1100
+这	zhe	1000
+那	na	900
+吗	ma	950
+呢	ne	900
+吧	ba	900
+啊	a	850
+嗯	en	900
+好	hao	1100
+很	hen	950
+就	jiu	950
+都	dou	900
+和	he	950
+被	bei	850
+把	ba	900
+让	rang	850
+说	shuo	950
+要	yao	1000
+能	neng	950
+会	hui	950
+想	xiang	950
+没	mei	1000
+去	qu	950
+来	lai	950
+做	zuo	900
+看	kan	900
+吃	chi	850
+上	shang	950
+下	xia	900
+里	li	850
+个	ge	1050
+我们	wo men	1050
+你们	ni men	950
+他们	ta men	950
+自己	zi ji	900
+什么	shen me	1100
+怎么	zen me	1050
+为什么	wei shen me	1000
+现在	xian zai	1000
+今天	jin tian	950
+明天	ming tian	900
+时间	shi jian	950
+工作	gong zuo	1000
+学习	xue xi	950
+手机	shou ji	1000
+电脑	dian nao	950
+电话	dian hua	900
+知道	zhi dao	1000
+觉得	jue de	950
+喜欢	xi huan	1000
+应该	ying gai	950
+可能	ke neng	950
+但是	dan shi	950
+还是	hai shi	950
+可以	ke yi	1050
+没有	mei you	1050
+谢谢	xie xie	1000
+再见	zai jian	950
+晚安	wan an	900
+朋友	peng you	950
+老婆	lao po	950
+老公	lao gong	950
+吃饭	chi fan	900
+睡觉	shui jiao	900
+上班	shang ban	900
+下班	xia ban	850
+加班	jia ban	850
+微信	wei xin	1050
+支付宝	zhi fu bao	1000
+抖音	dou yin	1000
+视频	shi pin	950
+直播	zhi bo	950
+游戏	you xi	1000
+问题	wen ti	950
+东西	dong xi	900
+时候	shi hou	950
+地方	di fang	900
+因为	yin wei	950
+所以	suo yi	950
+如果	ru guo	950
+一起	yi qi	900
+一下	yi xia	950
+回来	hui lai	900
+出来	chu lai	900
+这么	zhe me	900
+那么	na me	850
+
+# ============================================================
+#  五、联想搭配常用词（predict.txt 的候选目标，需在词库中存在）
+# ============================================================
+启动	qi dong	1000
+重启	chong qi	1000
+关机	guan ji	950
+配置	pei zhi	1000
+卡顿	ka dun	900
+没电	mei dian	900
+充电	chong dian	900
+连接	lian jie	950
+断开	duan kai	900
+跑路	pao lu	900
+部署	bu shu	1000
+宕机	dang ji	900
+文件	wen jian	980
+参数	can shu	950
+错误	cuo wu	950
+提交	ti jiao	1000
+审查	shen cha	950
+编译	bian yi	950
+调试	tiao shi	950
+进度	jin du	950
+需求	xu qiu	1000
+上线	shang xian	950
+延期	yan qi	880
+变更	bian geng	900
+评审	ping shen	900
+文档	wen dang	980
+解决	jie jue	980
+反馈	fan kui	950
+排查	pai cha	950
+分析	fen xi	950
+备份	bei fen	950
+丢失	diu shi	880
+同步	tong bu	950
+更新	geng xin	980
+编写	bian xie	900
+查看	cha kan	930
+训练	xun lian	980
+推理	tui li	950
+微调	wei tiao	950
+优化	you hua	950
+复杂度	fu za du	850
+消息	xiao xi	950
+支付	zhi fu	950
+聊天	liao tian	950
+早上	zao shang	950
+再说	zai shuo	900
+几点	ji dian	900
+天气	tian qi	950
+晚上	wan shang	980
+很累	hen lei	880
+大家	da jia	950
+支持	zhi chi	950
+老板	lao ban	950
+我是	wo shi	950
+请问	qing wen	950
+意思	yi si	930
+办	ban	880
+样	yang	850
+回事	hui shi	880
+满星	man xing	1000
+配队	pei dui	1000
+记录	ji lu	950
+玄学	xuan xue	900
+保底	bao di	1400

@@ -25,6 +25,39 @@ patch:
   # 关掉整句可以减少误学（个人习惯不同，默认开）
   # "mymain/enable_sentence": false
 
+  # ---------- 联想猜想（predictor 插件）----------
+  # 打首字母 / 打一半就猜出常用词：
+  #   · mydomain_abbrev 负责「当下输入的简拼召回」（bt → 崩铁）
+  #   · predictor 负责「上屏后接着猜下一个词」，并按当前输入把候选
+  #     分成 全拼 > 打一半 > 只打首字母 三档重排（见 predict_db.cc）。
+  # 词库 predict.db 随包发布（DataManager.mirrorPredictDb 落到用户目录）。
+  "engine/processors/@before 0": predictor
+  "engine/translators/@before 0": predict_translator
+  "switches/+":
+    - name: prediction
+      reset: 1
+      states: [ 关闭联想, 开启联想 ]
+  predictor:
+    db: predict.db
+    # 与 menu/page_size 对齐，避免联想候选把翻页挤掉
+    max_candidates: 8
+    # 连续联想次数上限，防止一路猜下去停不下来
+    max_iterations: 3
+
+  # ---------- 模糊音 + 简拼（整体接管 speller/algebra）----------
+  # 规则取自共享目录 pinyin.yaml 模板；⚠ 模糊音必须写在简拼之前，
+  # 简拼才支持模糊音。⚠ 不要在补丁里引用引用方自身的顶层节点
+  # （mydomain:/ 或 mydomain.custom:/），librime 配置编译器会因循环引用
+  # 静默放弃编译本方案。
+  "speller/algebra":
+    __patch:
+      - pinyin:/zh_z_bufen        # zh, ch, sh <=> z, c, s
+      - pinyin:/n_l_bufen         # n <=> l
+      - pinyin:/en_eng_bufen      # en/eng、in/ing 前后鼻音
+      # 注意：这里不加 pinyin:/abbreviation —— 拉丁编码词条（Clash/Nginx/
+      # gmail.com 等）会借首字母命中，把正常拼音候选顶掉；简拼由方案里
+      # 专职的 mydomain_abbrev 翻译器承担（bt → 崩铁）。
+
   # ---------- 简拼开关 ----------
   # 觉得简拼结果太杂就把它关掉（把 mydomain_abbrev 从 translators 移除）
   # "engine/translators/@3": table_translator@mydomain_abbrev

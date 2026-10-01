@@ -463,7 +463,14 @@ class Rime :
      * lifecycle was not stopped.
      */
     fun startup(): Boolean {
-        if (!RimeDataSync.isStorageAvailable(appContext)) {
+        val profile = AppPrefs.defaultInstance().profile
+        if (RimeStartupGate.shouldSkipStartup(
+                RimeDataSync.isRuntimeReady(),
+                RimeDataSync.usesExternalSync(appContext),
+                RimeDataSync.hasExternalAccess(appContext),
+                RimeDataSync.isStorageChoiceDone(appContext),
+            )
+        ) {
             Timber.w("Skip starting rime: storage not available!")
             return false
         }
@@ -517,6 +524,19 @@ class Rime :
 
         @JvmStatic
         external fun exitRime()
+
+        /**
+         * 在设备上把联想训练数据（predict.txt 的内容）编译成 predict.db。
+         *
+         * 放在 native 侧而不是只留宿主工具 build_predict：宿主工具要完整
+         * 编译 librime，CI 与开发机未必有 C++ 环境；predict 插件本就静态
+         * 链进本库，设备上直接生成最省事。
+         */
+        @JvmStatic
+        external fun buildPredictDb(
+            text: String,
+            dbPath: String,
+        ): Boolean
 
         @JvmStatic
         external fun deployRimeSchemaFile(schemaFile: String): Boolean

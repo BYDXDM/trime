@@ -4,10 +4,11 @@
 # 用户级全局配置补丁。Rime 升级/重新部署时会 merge 本文件，
 # 所以个性化设置放这里最安全（不会被方案更新覆盖）。
 patch:
-  # ---- 方案列表：只留我们的方案（按需保留明月拼音）----
+  # ---- 方案列表：mydomain 默认（内置科技/游戏词库、简体输出）----
   schema_list:
-    - schema: mydomain          # 26 键拼音，内置科技/游戏词库
+    - schema: mydomain          # 26 键拼音，内置科技/游戏词库（BA/崩铁/科学上网）
     - schema: luna_pinyin_simp  # 明月拼音·简化字（备用）
+    - schema: luna_pinyin       # 明月拼音（繁体，仅在用户主动要繁体时切）
 
   # ---- 候选数量 ----
   "menu/page_size": 9

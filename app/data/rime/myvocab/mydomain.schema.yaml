@@ -29,6 +29,11 @@ switches:
     abbrev: [ 中, En ]
   - name: full_shape
     states: [ 半角, 全角 ]
+  # 简体优先：essay 预设词库（八股文）是繁体编码，靠 simplifier 默认转简体。
+  # 用户偶尔要繁体时在方案菜单/快捷键里切回（Ctrl+Shift+4 由 key_binder 提供）。
+  - name: zh_simp
+    reset: 1
+    states: [ 漢字, 汉字 ]
 
 engine:
   processors:
@@ -50,7 +55,7 @@ engine:
     - punct_translator
     - table_translator@custom_phrase        # ① 固定短语，优先级最高
     - script_translator@mymain              # ② 主翻译器（含用户词典学习）
-    - table_translator@mydomain_abbrev      # ③ 简拼翻译器
+    - script_translator@mydomain_abbrev     # ③ 简拼/联想（首字母缩写靠它）
   filters:
     - simplifier
     - uniquifier
@@ -58,12 +63,20 @@ engine:
 speller:
   alphabet: 'zyxwvutsrqponmlkjihgfedcba'
   delimiter: " '"
-  # 全拼 + 简拼由 speller 的模糊音规则承担；不做过度 derive 以免污染全拼
+  # ü 输入习惯：lv → lü，nv → nü
+  # （模糊音与简拼规则由 mydomain.custom.yaml 的 speller/algebra 补丁整体接管，
+  #   规则取自共享目录 pinyin.yaml 模板；不要在方案内用 mydomain:/ 自引用，
+  #   librime 配置编译器会因循环引用静默放弃编译本方案）
   algebra:
-    # ü 输入习惯：lv → lü，nv → nü
     - derive/^([nl])v/$1ü/
-    # 容错：常见前后鼻音不区分（可关）
-    # - derive/([aeiou])ng$/$1n/
+
+# ★ 部署基座：librime 的 SchemaUpdate 只认「非命名空间」的
+#   translator/dictionary 才会编译词典（deployment_tasks.cc）；本方案
+#   的翻译器全是 @mymain 等命名空间形式，缺这个节点会导致部署
+#   “成功”却没有任何 table/prism 产物、方案零候选。
+translator:
+  dictionary: mydomain
+  prism: mydomain
 
 # ------------------------------------------------------------
 # ① 固定短语：stabledb，权重写死，用户学习不会顶掉它
@@ -96,26 +109,26 @@ mymain:
   min_phrase_weight: 1
 
 # ------------------------------------------------------------
-# ③ 简拼翻译器：只打首字母，bt → 崩铁
+# ③ 简拼/联想翻译器：打首字母（bt → 崩铁）或打一半（beng → 崩铁）
+#    ★ 必须用 script_translator（拼音类翻译器）：它按音节/首字母
+#      匹配编码，才是「简拼」；table_translator 只做逐字符精确匹配，
+#      缩写永远命中不了（fork 原配置的缺陷）。
+#    与 mymain 共用词典和用户词库，用户上屏过的词会被学习并提权，
+#      于是「打首字母出最常用的词」= 用户词频的自然结果。
 # ------------------------------------------------------------
 mydomain_abbrev:
   dictionary: mydomain
+  prism: mydomain
   enable_user_dict: true
   user_dict: mydomain.user
   db_class: userdb
   enable_completion: true
   enable_sentence: false
-  # ★ initial_quality 不能设太低。
-  #   0.6 会把「崩铁」(2000) 压到 1200，排在所有全拼候选后面，
-  #   用户打 bt 时首选不是崩铁 —— 体验很差。
-  #   设 1.0：简拼与全拼平权，靠词库权重自然排序。
-  #   （简拼撞车时，高权重词依然优先，正是我们要的）
+  # 简拼与全拼平权，靠词库/用户词频自然排序
   initial_quality: 1.0
-  # 简拼结果加前缀提示，与全拼候选区分开
-  preedit_format:
-    - xform/^/简拼·/
   comment_format:
     - xform/^/ 简拼/
+  # 打一半就能猜（如 beng → 崩铁）：补全正是 enable_completion 的作用
 
 # 易混音节兜底：26 键上 n/ng、shi/shen 这类只差一两个字母，
 # 靠 speller 的模糊音规则让它们互相可达，减少「打错查不到词」的挫败感。

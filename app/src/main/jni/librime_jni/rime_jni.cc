@@ -11,6 +11,7 @@
 #include "frontend.h"
 #include "jni-utils.h"
 #include "objconv.h"
+#include "predict_db.h"
 #include "session.h"
 
 #define MAX_BUFFER_LENGTH 2048
@@ -418,6 +419,23 @@ Java_com_osfans_trime_core_Rime_getRimeCandidates(JNIEnv* env, jclass clazz,
                                                   jint limit) {
   return rimeCandidateListToJObjectArray(
       env, Rime::Instance().getCandidates(start_index, limit));
+}
+
+// 在设备上把联想训练数据（predict.txt）编译成 predict.db。
+// 之所以放在这里而不是只留宿主工具 build_predict：宿主工具要完整编译
+// librime，CI 与开发机都未必有 C++ 环境；而 predict 插件本就静态链进
+// 本库（BUILD_MERGED_PLUGINS），直接在设备上生成最省事，CI 也能自动产出。
+extern "C" JNIEXPORT jboolean JNICALL
+Java_com_osfans_trime_core_Rime_buildPredictDb(JNIEnv* env, jclass /* thiz */,
+                                               jstring text, jstring db_path) {
+  if (!text || !db_path)
+    return JNI_FALSE;
+  // 本文件不在 rime 命名空间内，这些名字需要写全
+  std::string text_str = CString(env, text);
+  std::string path_str = CString(env, db_path);
+  return rime::BuildPredictDbFromText(text_str, rime::path(path_str))
+             ? JNI_TRUE
+             : JNI_FALSE;
 }
 
 extern "C" JNIEXPORT jobject JNICALL
