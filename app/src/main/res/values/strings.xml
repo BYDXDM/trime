@@ -7,8 +7,8 @@
 
 <resources xmlns:xliff="urn:oasis:names:en:xliff:document:1.2">
     <!-- Input Method Platform Tittle  -->
-    <string name="app_name_release">Trime</string>
-    <string name="app_name_debug">Trime (Debug)</string>
+    <string name="app_name_release">白州梓输入法</string>
+    <string name="app_name_debug">白州梓输入法（调试）</string>
     <!-- Preference settings -->
     <string name="qq_group_1">Trime QQ group 1</string>
     <string name="qq_group_2">Trime QQ group 2</string>
@@ -120,6 +120,8 @@
     <string name="theme_diagnostics_summary">Check the current theme for settings the runtime ignores or cannot resolve</string>
     <string name="theme_diagnostics_no_findings">No problems found in the current theme</string>
     <string name="theme_diagnostics_unchecked">The static checks could not run for this theme</string>
+    <string name="keyboard_background">Keyboard background</string>
+    <string name="keyboard_background_summary">Import a JPG / PNG / WebP / GIF image and use it behind the keys</string>
     <string name="about">About</string>
     <string name="storage">Storage</string>
     <string name="data_storage_mode">Data storage mode</string>

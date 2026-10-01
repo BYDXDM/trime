@@ -7,5 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 -->
 
 <resources>
-    <color name="ic_app_icon_background">#FFFFFF</color>
+    <!-- 自适应图标的背景层。前景是满幅位图，这里平时看不到，
+         取的是插图主色的浅色调，万一被裁出边缘也不会突兀。 -->
+    <color name="ic_app_icon_background">#F4F1F3</color>
 </resources>

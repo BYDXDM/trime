@@ -7,8 +7,8 @@
 
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <!-- 输入法平台名称  -->
-    <string name="app_name_release">同文输入法</string>
-    <string name="app_name_debug">同文输入法（调试）</string>
+    <string name="app_name_release">白州梓输入法</string>
+    <string name="app_name_debug">白州梓输入法（调试）</string>
     <string name="qq_group_1">同文 QQ 群 1</string>
     <string name="qq_group_2">同文 QQ 群 2</string>
     <string name="rime_qq_group">中州韵 QQ 群</string>
@@ -116,6 +116,8 @@
     <string name="theme_diagnostics_summary">检查当前主题中运行时忽略或无法解析的设置</string>
     <string name="theme_diagnostics_no_findings">当前主题未发现问题</string>
     <string name="theme_diagnostics_unchecked">无法对当前主题进行静态检查</string>
+    <string name="keyboard_background">键盘背景</string>
+    <string name="keyboard_background_summary">导入 JPG / PNG / WebP / GIF 图片作为键盘背景（支持动图）</string>
     <string name="profile">配置</string>
     <string name="storage">存储</string>
     <string name="data_storage_mode">数据存储模式</string>
