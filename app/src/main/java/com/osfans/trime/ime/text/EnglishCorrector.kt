@@ -326,8 +326,11 @@ object EnglishCorrector {
         // 英文缓冲本身也只收 ASCII，这里再兜底一次，避免未来新增调用路径
         // 把 Unicode 单词送进英文纠错。
         if (!trimmed.all {
-            it in 'a'..'z' || it in 'A'..'Z' || it == '\'' || it == '-'
-        }) return null
+                it in 'a'..'z' || it in 'A'..'Z' || it == '\'' || it == '-'
+            }
+        ) {
+            return null
+        }
         // 含撇号/连字符的交给已知表处理，不做编辑距离（复数和所有格容易误判）
         val corrected = correctWord(trimmed) ?: return null
         if (corrected == trimmed) return null
@@ -409,8 +412,10 @@ object EnglishCorrector {
     private fun matchCase(target: String, source: String): String = when {
         source.all { !it.isLetter() || it.isUpperCase() } && source.any { it.isLetter() } ->
             target.uppercase()
+
         source.firstOrNull()?.isUpperCase() == true ->
             target.replaceFirstChar { it.uppercase() }
+
         else -> target
     }
 }

@@ -94,8 +94,7 @@ class EnglishInputBuffer {
     /** 当前缓冲的单词长度，调试用。 */
     val pendingLength: Int get() = letters.length
 
-    private fun Char.isAsciiLetter(): Boolean =
-        this in 'a'..'z' || this in 'A'..'Z'
+    private fun Char.isAsciiLetter(): Boolean = this in 'a'..'z' || this in 'A'..'Z'
 
     /**
      * 一次纠错动作。
