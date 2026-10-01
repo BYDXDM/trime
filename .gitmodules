@@ -25,7 +25,7 @@
 	url = https://github.com/lotem/librime-octagram.git
 [submodule "librime-predict"]
 	path = app/src/main/jni/librime-predict
-	url = https://github.com/rime/librime-predict
+	url = https://github.com/BYDXDM/trime-predict.git
 [submodule "prelude"]
 	path = app/data/rime/prelude
 	url = https://github.com/rime/rime-prelude
