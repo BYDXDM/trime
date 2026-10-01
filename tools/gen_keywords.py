@@ -16,6 +16,10 @@ import os
 import re
 import sys
 
+from _console import ensure_utf8_stdout
+
+ensure_utf8_stdout()
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DICT = os.path.join(ROOT, 'app/data/rime/myvocab/mydomain.dict.yaml')
 KW = os.path.join(ROOT, 'app/data/rime/myvocab/keywords.tsv')

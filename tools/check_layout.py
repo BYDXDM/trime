@@ -25,8 +25,14 @@ check_layout.py —— Trime 键盘布局校验器
     0 = 全部通过；1 = 有问题
 """
 
+import os
 import sys
 import re
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _console import ensure_utf8_stdout  # noqa: E402
+
+ensure_utf8_stdout()
 
 MAX_TOTAL_WEIGHT = 100.0  # Keyboard.kt 里的常量
 

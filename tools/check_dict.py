@@ -14,9 +14,15 @@
     5. 简拼可达性：算首字母串，指出哪些词能被打出来
     6. 权重是否在合理区间
 """
+import os
 import sys
 import re
 import collections
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _console import ensure_utf8_stdout  # noqa: E402
+
+ensure_utf8_stdout()
 
 # Rime 编码字符集：字母（含 ü）、空格、单引号；英文品牌名词允许数字（v2ray/k8s）
 PINYIN_OK = re.compile(r"^[a-z\u00fc0-9'\s]+$")

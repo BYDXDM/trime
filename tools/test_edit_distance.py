@@ -1,6 +1,15 @@
 """
 验证修正后的 isSingleEditAway —— 换位后必须检查剩余字符是否全部相同。
 """
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _console import ensure_utf8_stdout  # noqa: E402
+
+ensure_utf8_stdout()
+
+
 def is_single_edit_away(a: str, b: str) -> bool:
     if a == b:
         return False

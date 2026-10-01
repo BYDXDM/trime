@@ -7,7 +7,14 @@ EnglishInputBuffer 状态机验证。
   - 只接收 ASCII 字母
   - 切模式/焦点变化会清空
 """
+import os
 import re
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _console import ensure_utf8_stdout  # noqa: E402
+
+ensure_utf8_stdout()
 
 KT = "app/src/main/java/com/osfans/trime/ime/text/EnglishCorrector.kt"
 src = open(KT, encoding="utf-8").read()

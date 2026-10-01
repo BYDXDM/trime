@@ -21,6 +21,10 @@ import os
 import re
 import sys
 
+from _console import ensure_utf8_stdout
+
+ensure_utf8_stdout()
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TRIME = os.path.join(ROOT, 'app/src/main/assets/shared/trime.yaml')
 PANELS = os.path.join(ROOT, 'app/src/main/assets/shared/panels.yaml')

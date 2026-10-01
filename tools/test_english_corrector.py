@@ -7,6 +7,14 @@ Kotlin 编译器跑不了（沙箱 PRoot 禁止 JVM 映射可执行内存），
 算法逻辑与 Kotlin 版一一对应，改任一边都要同步改另一边。
 """
 
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _console import ensure_utf8_stdout  # noqa: E402
+
+ensure_utf8_stdout()
+
 # ============ 与 Kotlin 版逐行对应的实现 ============
 
 

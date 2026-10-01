@@ -14,7 +14,10 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _console import ensure_utf8_stdout  # noqa: E402
 from check_dict import parse_dict  # noqa: E402
+
+ensure_utf8_stdout()
 
 # (编码, 说明, 期望首选应包含的词)
 CASES = [
