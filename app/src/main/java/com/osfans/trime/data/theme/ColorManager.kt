@@ -9,11 +9,14 @@ import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.ImageDecoder
 import android.graphics.NinePatch
 import android.graphics.Rect
+import android.graphics.drawable.AnimatedImageDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.NinePatchDrawable
+import android.os.Build
 import androidx.annotation.ColorInt
 import androidx.collection.LruCache
 import androidx.core.graphics.drawable.toDrawable
@@ -24,6 +27,8 @@ import com.osfans.trime.util.ColorUtils
 import com.osfans.trime.util.NinePatchBitmapFactory
 import com.osfans.trime.util.WeakHashSet
 import com.osfans.trime.util.isNightMode
+import java.io.File
+import kotlin.math.roundToInt
 
 /**
  * Global entry point for the colors and drawables of the active theme.
@@ -195,6 +200,13 @@ object ColorManager {
         value: String,
     ): Drawable? {
         val path = resolveImageFilePath(scope, value)
+
+        // GIF 必须走 AnimatedImageDrawable：下面的 BitmapFactory 只会解出第一帧，
+        // 动图背景会变成静态图。仅支持 Android 9+，低版本自动落到静态分支。
+        if (value.endsWith(".gif", ignoreCase = true) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            createAnimatedGif(path)?.let { return it }
+        }
+
         val bitmap =
             bitmapCache?.get(path)
                 ?: BitmapFactory.decodeFile(path)?.also {
@@ -211,6 +223,41 @@ object ColorManager {
             }
         }
         return bitmap.toDrawable(Resources.getSystem())
+    }
+
+    /**
+     * 把 GIF 解码成自动播放的 [AnimatedImageDrawable]；失败返回 null，
+     * 由调用方回落到静态解码。
+     *
+     * 用 [ImageDecoder]（API 28+）而不是 `Drawable.createFromPath`，
+     * 唯一原因是前者支持 [ImageDecoder.setTargetSize] —— 动图每帧都要重解码，
+     * 像素数直接决定 CPU 与内存带宽开销。这里按
+     * [KeyboardBackground.animatedDecodeScale] 把帧尺寸压到预算内，
+     * 于是「1920×1080 的大图」也能正常当动图播放，而不是被硬性拒绝。
+     */
+    private fun createAnimatedGif(path: String): Drawable? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return null
+        val file = File(path)
+        if (!KeyboardBackground.gifWithinSizeLimit(file)) return null
+        return runCatching {
+            val source = ImageDecoder.createSource(file)
+            val decoded =
+                ImageDecoder.decodeDrawable(source) { decoder, info, _ ->
+                    val width = info.size.width
+                    val height = info.size.height
+                    val scale = KeyboardBackground.animatedDecodeScale(width, height)
+                    if (scale < 1f) {
+                        decoder.setTargetSize(
+                            (width * scale).roundToInt().coerceAtLeast(1),
+                            (height * scale).roundToInt().coerceAtLeast(1),
+                        )
+                    }
+                }
+            (decoded as? AnimatedImageDrawable)?.apply {
+                repeatCount = AnimatedImageDrawable.REPEAT_INFINITE
+                start()
+            }
+        }.getOrNull()
     }
 
     private fun resolveImageFilePath(

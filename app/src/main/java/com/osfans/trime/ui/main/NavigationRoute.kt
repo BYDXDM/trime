@@ -11,6 +11,7 @@ import androidx.navigation.createGraph
 import androidx.navigation.fragment.fragment
 import com.osfans.trime.R
 import com.osfans.trime.ui.main.settings.AdvancedSettingsFragment
+import com.osfans.trime.ui.main.settings.BackgroundPickerFragment
 import com.osfans.trime.ui.main.settings.CandidatesSettingsFragment
 import com.osfans.trime.ui.main.settings.ClipboardSettingsFragment
 import com.osfans.trime.ui.main.settings.GeneralSettingsFragment
@@ -48,6 +49,9 @@ sealed class NavigationRoute : Parcelable {
 
     @Serializable
     data object Theme : NavigationRoute()
+
+    @Serializable
+    data object KeyboardBackground : NavigationRoute()
 
     @Serializable
     data object Clipboard : NavigationRoute()
@@ -93,6 +97,9 @@ sealed class NavigationRoute : Parcelable {
             }
             fragment<ThemeSettingsFragment, Theme> {
                 label = ctx.getString(R.string.theme)
+            }
+            fragment<BackgroundPickerFragment, KeyboardBackground> {
+                label = ctx.getString(R.string.keyboard_background)
             }
             fragment<ClipboardSettingsFragment, Clipboard> {
                 label = ctx.getString(R.string.clipboard)

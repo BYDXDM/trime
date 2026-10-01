@@ -7,11 +7,13 @@ package com.osfans.trime.ui.main.settings.theme
 
 import android.os.Bundle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceScreen
 import com.osfans.trime.R
 import com.osfans.trime.data.prefs.PreferenceDelegateFragment
 import com.osfans.trime.data.theme.ThemeManager
+import com.osfans.trime.ui.main.NavigationRoute
 import com.osfans.trime.ui.main.settings.ColorPickerDialog
 import com.osfans.trime.ui.main.settings.ThemePickerDialog
 import com.osfans.trime.util.addPreference
@@ -35,6 +37,12 @@ class ThemeSettingsFragment : PreferenceDelegateFragment(ThemeManager.prefs) {
     }
 
     override fun onPreferenceUiCreated(screen: PreferenceScreen) {
+        screen.addPreference(
+            R.string.keyboard_background,
+            R.string.keyboard_background_summary,
+        ) {
+            findNavController().navigate(NavigationRoute.KeyboardBackground)
+        }
         screen.addPreference(
             R.string.theme_diagnostics,
             R.string.theme_diagnostics_summary,

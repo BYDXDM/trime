@@ -94,7 +94,15 @@ object ThemeLoader {
      * [loadFromSource]). Never throws: returns [ThemeLoadResult.Success] or
      * [ThemeLoadResult.Failure] with a structured [ThemeLoadError].
      */
-    fun loadTheme(themeId: String): ThemeLoadResult = loadFromSource(themeId) ?: loadDeployedTheme(themeId)
+    fun loadTheme(themeId: String): ThemeLoadResult {
+        loadFromSource(themeId)?.let { return it }
+        val deployed = loadDeployedTheme(themeId)
+        if (deployed is ThemeLoadResult.Success) return deployed
+        // 最后兜底：源文件与已部署产物都读不出来时，用户的 <id>.custom.yaml
+        // 很可能是元凶（比如写了本应用不支持的 patch 路径，或被写坏）。
+        // 摘掉它再读一次源文件 —— **一份坏掉的用户补丁绝不该让输入法变成空白**。
+        return loadSourceIgnoringCustomPatch(themeId) ?: deployed
+    }
 
     /**
      * Reads [themeId] and its dependencies from source files, expands the
@@ -121,6 +129,31 @@ object ThemeLoader {
             fallBack(themeId, e, "has unresolved references (%s)")
         } catch (e: Exception) {
             fallBack(themeId, e, "cannot be decoded from its source (%s)")
+        }
+    }
+
+    /**
+     * 最后兜底：忽略 `<id>.custom.yaml`，只读主题源文件。
+     *
+     * 只在 [loadFromSource] 与 [loadDeployedTheme] 都失败之后才使用，目的是避免
+     * 「用户的补丁写坏了 → 输入法界面空白」。因此这里**不再注入自动 patch**。
+     *
+     * 带 [sources] 参数的重载是 internal 的，便于单元测试用 fixture 目录验证兜底。
+     */
+    private fun loadSourceIgnoringCustomPatch(themeId: String): ThemeLoadResult? = loadSourceIgnoringCustomPatch(themeId, SourceLoader())
+
+    internal fun loadSourceIgnoringCustomPatch(
+        themeId: String,
+        sources: SourceLoader,
+    ): ThemeLoadResult? {
+        val file = sources.findSourceFileOf(themeId) ?: return null
+        return try {
+            Timber.w("Theme '%s' is unusable; retrying without its custom patch", themeId)
+            val node = Yaml.parseToYamlNode(file.readText())
+            decodeAndReport(themeId, expandSource(themeId, node) { id -> sources.load(id, null) })
+        } catch (e: Exception) {
+            Timber.w(e, "Theme '%s' is unusable even without its custom patch", themeId)
+            null
         }
     }
 
@@ -211,6 +244,9 @@ object ThemeLoader {
     internal class SourceLoader(
         private val findSource: (String) -> File? = ::findSourceFile,
     ) {
+        /** 该 id 对应的源文件；供「忽略用户补丁重读一次」的兜底使用。 */
+        fun findSourceFileOf(resourceId: String): File? = findSource(resourceId)
+
         private val cache = HashMap<String, YamlNode?>()
 
         /**
@@ -277,7 +313,13 @@ object ThemeLoader {
     /** Loads the theme from its librime-deployed artifact. */
     private fun loadDeployedTheme(themeId: String): ThemeLoadResult {
         // Returns false when the artifact is already up to date (mtime cache), which is fine.
-        if (!Rime.deployRimeConfigFile(themeId, CONFIG_VERSION_KEY)) {
+        // 这是 JNI 调用：native 未就绪时会抛 UnsupportedLinkError 之类的错误，
+        // 绝不能让它冒出去 —— 那会让主题加载整个失败、输入法界面空白。
+        val deployed =
+            runCatching { Rime.deployRimeConfigFile(themeId, CONFIG_VERSION_KEY) }
+                .onFailure { Timber.w(it, "Deploying theme config file '$themeId.yaml' threw") }
+                .getOrDefault(false)
+        if (!deployed) {
             Timber.w("Failed to deploy theme config file '$themeId.yaml'")
         }
 
