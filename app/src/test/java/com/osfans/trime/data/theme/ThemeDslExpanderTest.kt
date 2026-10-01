@@ -12,6 +12,7 @@ import com.osfans.trime.util.mapping
 import com.osfans.trime.util.pairs
 import com.osfans.trime.util.string
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import java.io.File
@@ -226,31 +227,55 @@ class ThemeDslExpanderTest :
             }
         }
 
+        // 本段原本拿上游 trime.yaml 当 __include 的活样本（letter / scj6）。
+        // fork 删掉了那些键盘，样本不复存在，所以这里改成：
+        //   1) 用**同文件 fixture**继续覆盖 __include（能力本身不能没人守）；
+        //   2) 对 fork 内置主题只断言「展开结果能被解码器接受、键盘都有按键」。
+        Given("a theme whose keyboard uses a same-file __include") {
+            val yaml =
+                """
+                preset_keyboards:
+                  base_kb:
+                    name: base
+                    ascii_mode: 1
+                    height: 44
+                    keys:
+                      - {click: q, width: 100}
+                  child_kb:
+                    __include: /preset_keyboards/base_kb
+                    __patch: {name: child}
+                """.trimIndent()
+            val expanded = ThemeDslExpander.expand("t", Yaml.parseToYamlNode(yaml)) { null }
+
+            Then("the child keyboard inherits the base keys and overrides its own name") {
+                val keyboards = expanded.pairs!!["preset_keyboards"]!!.mapping!!
+                val base = keyboards.pairs["base_kb"]!!.mapping!!
+                val child = keyboards.pairs["child_kb"]!!.mapping!!
+                child.pairs["keys"] shouldBe base.pairs["keys"]
+                child.pairs["ascii_mode"] shouldBe base.pairs["ascii_mode"]
+                child.pairs["height"] shouldBe base.pairs["height"]
+                child.pairs["name"]!!.string shouldBe "child"
+            }
+        }
+
         Given("the built-in trime.yaml") {
             val file = File("src/main/assets/shared/trime.yaml")
             val expanded = ThemeDslExpander.expand("trime", Yaml.parseToYamlNode(file.readText())) { null }
 
-            Then("the 'letter' keyboard inherits the default keyboard") {
-                val keyboards = expanded.pairs!!["preset_keyboards"]!!.mapping!!
-                val default = keyboards.pairs["default"]!!.mapping!!
-                val letter = keyboards.pairs["letter"]!!.mapping!!
-                letter.pairs["ascii_mode"]!!.string shouldBe "1"
-                letter.pairs["keys"] shouldBe default.pairs["keys"]
-                letter.pairs["name"] shouldBe default.pairs["name"]
-                letter.pairs["height"] shouldBe default.pairs["height"]
-            }
-
-            Then("the pure include 'scj6' equals its target keyboard") {
-                val keyboards = expanded.pairs!!["preset_keyboards"]!!.mapping!!
-                keyboards.pairs["scj6"] shouldBe keyboards.pairs["cangjie5"]
-            }
-
             Then("the expansion is accepted by the theme decoder") {
                 val theme = Theme.decode(expanded.mapping!!)
-                theme.presetKeyboards.getValue("letter").keys.size shouldBe
-                    theme.presetKeyboards.getValue("default").keys.size
-                theme.presetKeyboards.getValue("scj6").keys.size shouldBe
-                    theme.presetKeyboards.getValue("cangjie5").keys.size
+                // fork 主题没有 __include 键盘，但「展开后必须可解码」这条约束仍然要守
+                theme.presetKeyboards.keys shouldBe
+                    setOf("my_pinyin", "my_english", "symbols", "number", "emoji")
+            }
+
+            Then("every fork keyboard keeps a non-empty key set after expansion") {
+                val theme = Theme.decode(expanded.mapping!!)
+                theme.presetKeyboards.forEach { (id, keyboard) ->
+                    withClue("键盘 " + id + " 展开后必须仍有按键") {
+                        keyboard.keys.isEmpty() shouldBe false
+                    }
+                }
             }
         }
     })

@@ -8,6 +8,7 @@ package com.osfans.trime.data.theme
 import com.osfans.trime.data.theme.model.KeyActionToken
 import com.osfans.trime.data.theme.model.TextKeyboard
 import com.osfans.trime.ime.keyboard.KeyBehavior
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.maps.shouldContainKey
 import io.kotest.matchers.shouldBe
@@ -98,71 +99,67 @@ class ThemeGoldenTest :
             }
         }
 
-        Given("the built-in trime.yaml (with its two __include entries expanded)") {
+        // 本段原本以上游 trime.yaml 为基准（預設 / 18 个键盘 / letter / scj6 / cangjie5）。
+        // fork 把主题重写成「5 个键盘 + myime」，那些断言永远不可能满足，
+        // 所以这里换成 **fork 自己的基准**，并保留「键盘一定能画出来」这条真正
+        // 有价值的约束。
+        Given("the built-in trime.yaml (fork theme)") {
             val theme = ThemeTestSupport.decodeBuiltinTheme("trime.yaml")
 
             When("the whole file is decoded") {
                 Then("theme header and style scalars are preserved") {
-                    theme.name shouldBe "預設"
+                    theme.name shouldBe "myime"
                     val style = theme.generalStyle
                     style.candidateTextSize shouldBe 22f
-                    style.keyHeight shouldBe 44
+                    style.keyHeight shouldBe 52
                     style.horizontalGap shouldBe 1
                 }
 
                 Then("color schemes and preset keys are decoded") {
-                    theme.colorSchemes.size shouldBe 37
-                    theme.presetKeys.size shouldBe 106
-                    val brightnessDown = theme.presetKeys.getValue("BRIGHTNESS_DOWN")
-                    brightnessDown.label shouldBe "亮度-"
-                    brightnessDown.send shouldBe "BRIGHTNESS_DOWN"
+                    // fork 只保留 4 个配色：default / dark / user_light / user_dark
+                    theme.colorSchemes.size shouldBe 4
+                    theme.colorSchemes.map { it.id } shouldBe
+                        listOf("default", "dark", "user_light", "user_dark")
+                    // fork 把 preset_keys 从 16 个补回到 34 个（见 README-FORK 坑 5）
+                    theme.presetKeys.size shouldBe 34
+                    // 补回的预设里 copy/paste 曾经是哑键，这里守住它们
+                    theme.presetKeys.getValue("copy").send shouldBe "Control+c"
+                    theme.presetKeys.getValue("paste").send shouldBe "Control+v"
+                    theme.presetKeys.getValue("BackToPreviousSyllable").send shouldBe "Control+BackSpace"
                 }
 
-                Then("all 18 plain keyboards are decoded with their keys") {
-                    theme.presetKeyboards.size shouldBe 18
-                    theme.presetKeyboards shouldContainKey "default"
-                    theme.presetKeyboards shouldContainKey "qwerty0"
-                    theme.presetKeyboards shouldContainKey "cangjie5"
-                    theme.presetKeyboards shouldContainKey "array30"
+                Then("the 5 fork keyboards are decoded with their keys") {
+                    theme.presetKeyboards.size shouldBe 5
+                    theme.presetKeyboards.keys shouldBe
+                        setOf("my_pinyin", "my_english", "symbols", "number", "emoji")
 
-                    val default = theme.presetKeyboards.getValue("default")
-                    default.name shouldBe "預設40鍵"
-                    default.width shouldBe 10f
-                    default.height shouldBe 44f
-                    default.lock shouldBe true
-                    default.asciiMode shouldBe false
-                    default.keys.size shouldBe 47
-                    default.keys.first().behaviors[KeyBehavior.CLICK] shouldBe
-                        KeyActionToken.Plain("1")
-                    default.keys.first().behaviors[KeyBehavior.LONG_CLICK] shouldBe
+                    val pinyin = theme.presetKeyboards.getValue("my_pinyin")
+                    pinyin.name shouldBe "拼音26键"
+                    pinyin.width shouldBe 10f
+                    pinyin.height shouldBe 52f
+                    pinyin.lock shouldBe true
+                    pinyin.asciiMode shouldBe false
+                    pinyin.keys.size shouldBe 38
+                    pinyin.labelTransform shouldBe TextKeyboard.LabelTransform.UPPERCASE
+                    // 首键：click=q，上滑=!（键面上的「1」是 label/hint，不是上滑内容）
+                    pinyin.keys.first().behaviors[KeyBehavior.CLICK] shouldBe
+                        KeyActionToken.Plain("q")
+                    pinyin.keys.first().behaviors[KeyBehavior.SWIPE_UP] shouldBe
                         KeyActionToken.Plain("!")
 
-                    val qwerty0 = theme.presetKeyboards.getValue("qwerty0")
-                    qwerty0.labelTransform shouldBe TextKeyboard.LabelTransform.UPPERCASE
-                }
-
-                Then("the __include 'letter' keyboard inherits the default keyboard and overrides its own keys") {
-                    val letter = theme.presetKeyboards.getValue("letter")
-                    val default = theme.presetKeyboards.getValue("default")
-                    letter.asciiMode shouldBe true
-                    letter.resetAsciiMode shouldBe true
-                    letter.lock shouldBe false
-                    letter.name shouldBe default.name
-                    letter.width shouldBe default.width
-                    letter.height shouldBe default.height
-                    letter.keys.size shouldBe default.keys.size
-                    letter.keys.first().behaviors[KeyBehavior.CLICK] shouldBe
-                        default.keys.first().behaviors[KeyBehavior.CLICK]
-                }
-
-                Then("the pure __include 'scj6' keyboard equals cangjie5") {
-                    theme.presetKeyboards.getValue("scj6") shouldBe
-                        theme.presetKeyboards.getValue("cangjie5")
+                    // 英文键盘是 ascii_mode 的载体（英文不是 Rime 方案）
+                    val english = theme.presetKeyboards.getValue("my_english")
+                    english.asciiMode shouldBe true
+                    english.labelTransform shouldBe TextKeyboard.LabelTransform.NONE
                 }
 
                 Then("every keyboard decodes a non-empty key set") {
+                    // 这条是防止「键盘区域整块空白」的关键约束：
+                    // KeyboardWindow 拿到零按键的键盘就画不出任何东西。
                     theme.presetKeyboards.forEach { (id, keyboard) ->
-                        keyboard.keys shouldNotBe emptyList<TextKeyboard.TextKey>()
+                        withClue("键盘 " + id + " 必须至少有一个按键") {
+                            keyboard.keys shouldNotBe emptyList<TextKeyboard.TextKey>()
+                        }
                     }
                 }
             }

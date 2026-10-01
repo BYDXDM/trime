@@ -29,7 +29,7 @@ class GeneralStyleTest :
                 Then("plain scalar values from the file are preserved") {
                     style shouldNotBe null
                     style.autoCaps shouldBe false
-                    style.candidatePadding shouldBe 5
+                    style.candidatePadding shouldBe 0
                     style.candidateSpacing shouldBe 0f
                     style.candidateTextSize shouldBe 22f
                     style.candidateTextVerticalBias shouldBe 1f
@@ -38,14 +38,14 @@ class GeneralStyleTest :
                     style.commentPosition shouldBe GeneralStyle.CommentPosition.RIGHT
                     style.commentTextSize shouldBe 10f
                     style.horizontalGap shouldBe 1
-                    style.keyHeight shouldBe 44
+                    style.keyHeight shouldBe 52
                     style.keyLongTextSize shouldBe 14f
                     style.keyTextSize shouldBe 22f
                     style.keyWidth shouldBe 10f
-                    style.labelTextSize shouldBe 22f
+                    style.labelTextSize shouldBe 13f
                     style.keyboardHeight shouldBe 250
                     style.keyboardHeightLand shouldBe 200
-                    style.keyboardPaddingRight shouldBe 40
+                    style.keyboardPaddingRight shouldBe 0
                     style.keyboardPaddingLand shouldBe 40
                 }
 
@@ -57,7 +57,8 @@ class GeneralStyleTest :
                 }
 
                 Then("theme header is decoded") {
-                    theme.name shouldBe "預設"
+                    // fork 把主题名改成了 myime（上游是「預設」）
+                    theme.name shouldBe "myime"
                 }
             }
         }

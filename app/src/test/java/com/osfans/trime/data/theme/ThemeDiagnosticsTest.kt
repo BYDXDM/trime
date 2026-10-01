@@ -419,13 +419,14 @@ class ThemeDiagnosticsTest :
 
         Given("the shipped themes") {
             // The settings the shipped themes carry but the runtime never reads.
+            // fork 重写主题后只剩这 4 条（原来的 /android_keys 已不存在，
+            // 且顺序由 lint 的遍历顺序决定 —— 以下为实测值）。
             val trimeYamlFindings =
                 listOf(
-                    "INFO UNKNOWN_TOP_LEVEL_KEY /android_keys",
                     "WARNING UNKNOWN_STYLE_KEY style/preview_font",
+                    "WARNING UNKNOWN_STYLE_KEY style/preview_text_size",
                     "WARNING UNKNOWN_STYLE_KEY style/preview_height",
                     "WARNING UNKNOWN_STYLE_KEY style/preview_offset",
-                    "WARNING UNKNOWN_STYLE_KEY style/preview_text_size",
                 )
             val tongwenfengFindings =
                 listOf(

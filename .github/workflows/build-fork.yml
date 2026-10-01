@@ -100,6 +100,16 @@ jobs:
       - name: Apply patches
         run: make patch-apply
 
+      # 上游 commit-ci.yml 本来就跑这两步，fork 把它们删掉了，
+      # 结果「单元测试有 10 个失败」「代码风格违规」都能长期潜伏 ——
+      # 因为原来的工作流只跑 assembleDebug，编译通过就算绿。
+      # 这两步放在编译 APK 之前：失败得快，也省得白编译一次 native。
+      - name: Check code style
+        run: ./gradlew spotlessCheck --stacktrace
+
+      - name: Run unit tests
+        run: ./gradlew :app:testDebugUnitTest --stacktrace
+
       - name: Build debug APK
         run: ./gradlew :app:assembleDebug --stacktrace
 
