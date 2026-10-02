@@ -249,6 +249,7 @@ class AppPrefs(
         val speakOnCommit = switch(R.string.speak_on_commit, SPEAK_ON_COMMIT, false)
         val popupOnKeyPress = switch(R.string.popup_on_key_press, POPUP_ON_KEY_PRESS, false)
         val expandKeypressArea = switch(R.string.expand_keypress_area_to_edge, EXPAND_KEYPRESS_AREA, false)
+
         // 滑动触发阈值（dp）。手势在「位移 >= swipeTravel」或「速度 >= swipeVelocity」
         // 任一满足时触发（见 GestureFrame.detectSwipe）。
         //
