@@ -475,7 +475,10 @@ app/src/main/assets/checksums.json
 app/src/main/assets/shared/opencc
 
 # boost
+# CMake's cmake/Boost.cmake downloads the tarball next to the build dir it runs
+# from (app/src/main/jni), and older revisions placed it in app/. Ignore both.
 app/boost-*.tar.xz
+app/src/main/jni/boost-*.tar.xz
 app/src/main/jni/boost/
 
 # kotlin

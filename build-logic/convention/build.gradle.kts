@@ -38,5 +38,9 @@ gradlePlugin {
             id = "com.osfans.trime.opencc-data"
             implementationClass = "OpenCCDataPlugin"
         }
+        register("rimeDataSync") {
+            id = "com.osfans.trime.rime-data-sync"
+            implementationClass = "RimeDataSyncPlugin"
+        }
     }
 }
