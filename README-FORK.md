@@ -207,6 +207,7 @@ sh tools/all_checks.sh
 | `sync_panels.py --check` | `panels.yaml` 是否已同步进 `trime.yaml` |
 | `gen_keywords.py --check` | `keywords.tsv` 是否已合并进主词库 |
 | `check_layout.py` | **每行权重和 = 100**、行内键名重复、`columns` 设置 |
+| `check_key_refs.py` | **键名引用能否解析**（见下方「哑键」）、`send` 拼写、手势字段位置 |
 | `check_dict.py` | 编码合法性、(词,编码) 完全重复、简拼可达性 |
 | `test_input_sim.py` | 模拟 librime 排序，验证全拼/简拼/用户学习 |
 | `check_keywords.py` | 关键词联想可达性 |
@@ -215,7 +216,33 @@ sh tools/all_checks.sh
 | `test_english_buffer.py` | 英文纠错：输入缓冲状态机（12 个场景）|
 | `test_english_corrector.py` | 英文纠错：核心算法（Kotlin 逻辑的 Python 镜像）|
 
-`all_checks.sh` 按上面顺序跑完整 10 个脚本（共 9 个步骤），任一失败即中断。
+`all_checks.sh` 按上面顺序跑完整 10 个步骤（第 1 步含 2 个脚本），任一失败即中断。
+
+### 哑键：`check_key_refs.py` 防的那个坑
+
+`click` / `long_click` / `swipe_*` 的值要经 `KeyAction` 四级解析
+（`KeyAction.kt` init 块）：
+
+1. `preset_keys` 里的预设名
+2. `KeyCode.parse` —— 带修饰键的 `Control+BackSpace`
+3. `KeyCode.nameToKeyCode` —— `Return` / `space` / `Eisu_toggle` …
+4. 键盘名 `Keyboard_xxx` —— 切到另一块键盘
+
+**四级全落空时按键静默失效**：不抛异常、不打日志、外观无差别，只是点了没反应。
+`preset_keys` 自身的 `send` 拼错时只在 logcat 留一行 `Timber.e`，用户照样无感。
+
+`check_key_refs.py` 把上面四级在 Python 里镜像一遍，并**直接从
+`RimeKeyMapping` 的生成源码抽键名表**（178 个），避免手抄白名单漂移；
+生成源码还没产出时退回到内置快照并提示。
+
+两个容易误判的点，脚本已按源码放行：
+
+- `SWITCH_CHARSET` / `LANGUAGE_SWITCH` / `SETTINGS` / `PROG_RED`
+  **不在** librime 的 `key_table` 里，走的是 Android 那一级
+  （`KeyEvent.keyCodeFromString("KEYCODE_$name")`），由
+  `CommonKeyboardActionListener.kt:138-143` 处理，所以这样写是对的。
+- 非 ASCII 的纯文字值（如 `long_click: '——'`）是「长按输入这个符号」，
+  由 `KeyAction` 的 `text = token.token` 分支直接上屏，同样合法。
 
 ### 四个反直觉的坑
 
@@ -233,8 +260,11 @@ sh tools/all_checks.sh
    `column >= maxColumns || x + widthPx > allowedWidth`。
    含半键占位（`{width: 5}`）的行键个数 > 10，设 `columns: 10` 会被提前换行。
 
-3. **每行权重和必须严格等于 100**。Z 行 8 个字母键要用 `width: 8.75` 而非 10，
-   否则差 5 导致错位。
+3. **每行权重和必须严格等于 100，删键后要同步补宽度**。Z 行是
+   `Shift(15) + 7 个字母键 + BackSpace(15)`，中间 70 权重由 7 键等分，
+   所以每键 `width: 10`。**删掉行内某个键时（例如与上一行重复的 `l/@`），
+   必须把这 70 权重重新摊给剩下的键** —— 否则行宽不足 100，整行错位。
+   `tools/check_layout.py` 会直接报出来。
 
 4. **简拼 `initial_quality` 不能设 0.6**。会把「崩铁」(2000) 压到 1200，
    排在所有全拼候选之后。设 1.0 与全拼平权。
@@ -252,9 +282,10 @@ sh tools/all_checks.sh
    **已全部从上游补回**（`preset_keys` 从 16 个增至 34 个），
    现在所有引用都能解析。
 
-   排查方法（改动主题后建议跑一遍）：把 `preset_keys` 段定义的名字收集起来，
-   与键盘段里 `click` / `long_click` / `swipe_*` 的取值求差集，
-   差集里再排除掉键盘名，剩下的就是哑键。
+   **排查已自动化**：`python3 tools/check_key_refs.py <trime.yaml>`
+   （已接入 `all_checks.sh` 第 3 步）—— 它把上述四级解析镜像一遍，
+   键名表直接取自 `RimeKeyMapping` 的生成源码，比手抄白名单可靠。
+   改动主题后跑一遍即可，不必再手工求差集。
 
 ## 构建
 
