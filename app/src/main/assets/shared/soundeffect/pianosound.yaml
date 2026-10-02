@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# 钢琴按键音效（白洲梓输入法内置）
+#
+# 音源：Salamander Grand Piano (CC-BY 3.0)，经由 Tone.js 采样子集取得，
+#       仅取 A / C / D# / F# 四组音名，每个目标音一律从最近的采样移调
+#       （最多 ±1 半音），保证音质。生成脚本见 tools/make_piano.py。
+#
+# 音阶：C 大调五声音阶 C5 → A6，共 10 音。
+#   五声音阶里没有小二度和三全音，快速连打不会出现刺耳的音程，
+#   而全音阶或半音阶连打会听起来像在乱按。
+#
+# 文件名必须以 sound.yaml 结尾，否则 SoundEffectManager.listSounds() 扫不到。
+name: piano
+folder: piano
+
+sound:
+  - 00_C5.ogg
+  - 01_D5.ogg
+  - 02_E5.ogg
+  - 03_G5.ogg
+  - 04_A5.ogg
+  - 05_C6.ogg
+  - 06_D6.ogg
+  - 07_E6.ogg
+  - 08_G6.ogg
+  - 09_A6.ogg
+
+melody: []
+
+# inOrder 为 true 时取 sounds[(keyCode - min) % sounds.size]，
+# 所以 A→Z 会按键盘顺序依次升高，打字听起来像在弹音阶；
+# 26 个字母对 10 个音，自然循环 2 轮多。
+keyset:
+  - min: A
+    max: Z
+    inOrder: true
+    sounds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+  - min: "0"
+    max: "9"
+    inOrder: true
+    sounds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+  # 空格用一个稳定的低音收尾，不参与随机，手感更实。
+  - keys: [SPACE]
+    inOrder: false
+    sounds: [0]
+
+  # 其余功能键与标点：固定取第 5 音（C6），清亮但不抢戏。
+  - keys: [DEL, ENTER, COMMA, PERIOD, SEMICOLON, SLASH, APOSTROPHE, MINUS,
+           EQUALS, LEFT_BRACKET, RIGHT_BRACKET, GRAVE, BACKSLASH, TAB]
+    inOrder: false
+    sounds: [5]

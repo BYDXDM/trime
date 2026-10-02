@@ -184,26 +184,33 @@ class AppPrefs(
         val hideKeySymbol = switch(R.string.hide_key_symbol, HIDE_KEY_SYMBOL, false)
         val hideKeyHint = switch(R.string.hide_key_hint, HIDE_KEY_HINT, false)
 
-        val soundOnKeyPress = switch(R.string.sound_on_keypress, SOUND_ON_KEYPRESS, false)
+        // 默认开启按键音：本分支内置了钢琴音效包
+        // （assets/shared/soundeffect/，随 DataManager.mirrorPackagedDirs 部署），
+        // 不开就等于白带一份 53 KB 资源。不想要的用户可在此关掉。
+        val soundOnKeyPress = switch(R.string.sound_on_keypress, SOUND_ON_KEYPRESS, true)
         val soundVolume = int(
             R.string.sound_volume,
             KEY_SOUND_VOLUME,
-            10,
+            // 音量按 soundVolume/100 直接作为 SoundPool 的播放音量。
+            // 原来是 10，实测太轻（钢琴样本本身只有 -16dB 均值），提到 55。
+            55,
             0,
             100,
             "%",
             defaultLabel = R.string.system_default,
         ) { soundOnKeyPress.getValue() }
 
+        // 自定义音效默认开，并指向内置的钢琴包；
+        // 找不到该音效时 SoundEffectManager.init() 会静默回退，不会崩。
         val useCustomSoundEffect = switch(
             R.string.custom_sound_effect_enabled,
             USE_CUSTOM_SOUND_EFFECT,
-            false,
+            true,
         ) { soundOnKeyPress.getValue() }
         val customSoundEffect = string(
             R.string.custom_sound_effect_name,
             CUSTOM_SOUND_EFFECT,
-            "",
+            "piano",
         ) { soundOnKeyPress.getValue() && useCustomSoundEffect.getValue() }
 
         val vibrateOnKeyPress = switch(R.string.vibrate_on_key_press, VIBRATE_ON_KEY_PRESS, false)
@@ -242,10 +249,16 @@ class AppPrefs(
         val speakOnCommit = switch(R.string.speak_on_commit, SPEAK_ON_COMMIT, false)
         val popupOnKeyPress = switch(R.string.popup_on_key_press, POPUP_ON_KEY_PRESS, false)
         val expandKeypressArea = switch(R.string.expand_keypress_area_to_edge, EXPAND_KEYPRESS_AREA, false)
+        // 滑动触发阈值（dp）。手势在「位移 >= swipeTravel」或「速度 >= swipeVelocity」
+        // 任一满足时触发（见 GestureFrame.detectSwipe）。
+        //
+        // 默认从 60dp 降到 20dp：60dp 需要滑出小半个键宽才认，用起来像「按住拖」；
+        // 20dp 约等于轻轻一蹭，符合「按住时间极短即可」的预期。
+        // 下限仍保留 0（= 禁用位移判定，只按速度判定）。
         val swipeTravel = int(
             R.string.key_swipe_travel,
             SWIPE_TRAVEL,
-            60,
+            20,
             0,
             400,
             "dp",
@@ -254,10 +267,13 @@ class AppPrefs(
             useMinAsDefault = true,
         )
 
+        // 速度阈值（dp/s）。与 swipeTravel 是「或」的关系：快速轻扫即使位移很小
+        // 也能触发。默认 0 = 不启用速度判定；这里给一个温和的默认值，让
+        // 「极短时间的一蹭」也能出符号。设回 0 可关闭此项、只按位移判定。
         val swipeVelocity = int(
             R.string.key_swipe_velocity,
             SWIPE_VELOCITY,
-            0,
+            800,
             0,
             10000,
             "dp/s",

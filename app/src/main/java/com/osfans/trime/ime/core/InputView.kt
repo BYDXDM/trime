@@ -192,7 +192,10 @@ class InputView(
                 isMotionEventSplittingEnabled = true
                 add(
                     keyboardBackground,
-                    lParams {
+                    // 必须显式 matchParent：背景图靠 CENTER_CROP 铺满键盘区，
+                    // 不写尺寸会按 wrap_content 量成图片自身的像素尺寸
+                    // （192×192 的 GIF 就只会在中间显示一个 192px 的小方块）。
+                    lParams(matchParent, matchParent) {
                         centerInParent()
                     },
                 )
