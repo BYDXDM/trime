@@ -139,13 +139,30 @@ class ThemeGoldenTest :
                     pinyin.height shouldBe 52f
                     pinyin.lock shouldBe true
                     pinyin.asciiMode shouldBe false
-                    pinyin.keys.size shouldBe 38
+                    // 37 键：Z 行原本 9 键（含一个与 A 行重复的 l/@），删掉后为 8 键，
+                    // 并把该行字母键宽度 8.75 → 10 补足行宽（15 + 7×10 + 15 = 100）。
+                    pinyin.keys.size shouldBe 37
                     pinyin.labelTransform shouldBe TextKeyboard.LabelTransform.UPPERCASE
-                    // 首键：click=q，上滑=!（键面上的「1」是 label/hint，不是上滑内容）
+                    // 首键：click=q，上滑=!（键面上的「1」是 label_symbol，不是上滑内容）
                     pinyin.keys.first().behaviors[KeyBehavior.CLICK] shouldBe
                         KeyActionToken.Plain("q")
                     pinyin.keys.first().behaviors[KeyBehavior.SWIPE_UP] shouldBe
                         KeyActionToken.Plain("!")
+
+                    // Z 行必须恰好 8 键（Shift + 7 字母 + BackSpace）。
+                    // 删键忘了补宽度会让行宽不足 100 → 整行错位，这里守住它。
+                    val zRow = pinyin.keys.filter { k ->
+                        k.behaviors[KeyBehavior.CLICK]?.let { token ->
+                            token is KeyActionToken.Plain && token.token == "z"
+                        } ?: false
+                    }
+                    zRow.size shouldBe 1
+
+                    // 角标走 labelSymbol 字段（画在键顶部）。
+                    // 先前误用 label（会顶掉字母本身）与 hint（画在键底部、
+                    // 与 labelSymbol 同值时上下各出一排重复符号），故断言二者为空。
+                    pinyin.keys.first().labelSymbol shouldBe "1"
+                    pinyin.keys.first().hint shouldBe ""
 
                     // 英文键盘是 ascii_mode 的载体（英文不是 Rime 方案）
                     val english = theme.presetKeyboards.getValue("my_english")
