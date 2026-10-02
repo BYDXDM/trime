@@ -29,8 +29,10 @@ switches:
     abbrev: [ 中, En ]
   - name: full_shape
     states: [ 半角, 全角 ]
-  # 简体优先：essay 预设词库（八股文）是繁体编码，靠 simplifier 默认转简体。
-  # 用户偶尔要繁体时在方案菜单/快捷键里切回（Ctrl+Shift+4 由 key_binder 提供）。
+  # 简体优先：simplifier 走 opencc t2s（繁→简），在候选**显示层**把繁体转成简体。
+  # 注意 essay.txt 本身是简体编码（启 在 啟 之前），繁体候选来自词典中确实存在
+  # 且 opencc 转换不了的词条；simplifier 是 Filter，不参与排序，只替换显示文字。
+  # 用户偶尔要繁体时在方案菜单/快捷键里切回（快捷键见文件末尾 key_binder）。
   - name: zh_simp
     reset: 1
     states: [ 漢字, 汉字 ]
@@ -143,11 +145,19 @@ punctuator:
 
 key_binder:
   import_preset: default
+  # preset 里 Ctrl+Shift+4 / Ctrl+Shift+dollar 绑的是 toggle: simplification，
+  # 但本方案的简繁开关叫 zh_simp（见 switches），名字对不上会导致快捷键空转。
+  # 这里按 luna_pinyin_simp.schema.yaml 的写法补上指向 zh_simp 的绑定。
+  bindings/+:
+    - { when: always, accept: Control+Shift+4, toggle: zh_simp }
+    - { when: always, accept: Control+Shift+dollar, toggle: zh_simp }
 
 recognizer:
   import_preset: default
 
-# 简体优先（不依赖 opencc，用内置简繁开关）
+# 简体优先：opencc t2s（繁→简）在显示层替换候选文字。
+# 注意 simplifier 是 Filter，只改显示文本、继承原候选 quality，不参与排序，
+# 因此它无法"降低繁体权重"。开关 zh_simp 由上面的 switches 定义。
 simplifier:
   option_name: zh_simp
 
