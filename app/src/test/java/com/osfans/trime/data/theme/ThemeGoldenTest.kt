@@ -143,10 +143,15 @@ class ThemeGoldenTest :
                     // 并把该行字母键宽度 8.75 → 10 补足行宽（15 + 7×10 + 15 = 100）。
                     pinyin.keys.size shouldBe 37
                     pinyin.labelTransform shouldBe TextKeyboard.LabelTransform.UPPERCASE
-                    // 首键：click=q，上滑=!（键面上的「1」是 label_symbol，不是上滑内容）
+                    // 首键：click=q，上滑=1（键顶角标那个符号），下滑=!（备选符号）。
+                    // 角标画在键顶部，用户自然朝角标方向（向上）滑，所以上滑必须出角标
+                    // 那个符号。早前是反的（上滑=!、下滑=1）：用户上滑拿到的是「另一个」
+                    // 符号，问号键 l 上滑会得到倒问号 ¿，看起来像 bug（用户实测报障）。
                     pinyin.keys.first().behaviors[KeyBehavior.CLICK] shouldBe
                         KeyActionToken.Plain("q")
                     pinyin.keys.first().behaviors[KeyBehavior.SWIPE_UP] shouldBe
+                        KeyActionToken.Plain("1")
+                    pinyin.keys.first().behaviors[KeyBehavior.SWIPE_DOWN] shouldBe
                         KeyActionToken.Plain("!")
 
                     // Z 行必须恰好 8 键（Shift + 7 字母 + BackSpace）。
