@@ -320,31 +320,32 @@ preset_keyboards:
     # label 是「替换键中央文字」的字段，会让字母本身消失。
     # 不要再写 hint：hint 画在键**底部**，与 labelSymbol 取值相同时会在
     # 字母上下各出现一排同样的符号。只保留顶部角标。
-    # swipe_down = 下滑输入该数字
+    # swipe_up   = 上滑输入键顶角标那个符号（搜狗/百度同款习惯）
+    # swipe_down = 下滑输入备选符号
     # click 在中文模式走拼音编码；ascii 模式下走 my_english
-    - { click: 'q', label_symbol: '1', swipe_down: '1', swipe_up: '!' }
-    - { click: 'w', label_symbol: '2', swipe_down: '2', swipe_up: '@' }
-    - { click: 'e', label_symbol: '3', swipe_down: '3', swipe_up: '#' }
-    - { click: 'r', label_symbol: '4', swipe_down: '4', swipe_up: '$' }
-    - { click: 't', label_symbol: '5', swipe_down: '5', swipe_up: '%' }
-    - { click: 'y', label_symbol: '6', swipe_down: '6', swipe_up: '^' }
-    - { click: 'u', label_symbol: '7', swipe_down: '7', swipe_up: '&' }
-    - { click: 'i', label_symbol: '8', swipe_down: '8', swipe_up: '*' }
-    - { click: 'o', label_symbol: '9', swipe_down: '9', swipe_up: '(' }
-    - { click: 'p', label_symbol: '0', swipe_down: '0', swipe_up: ')' }
+    - { click: 'q', label_symbol: '1', swipe_up: '1', swipe_down: '!' }
+    - { click: 'w', label_symbol: '2', swipe_up: '2', swipe_down: '@' }
+    - { click: 'e', label_symbol: '3', swipe_up: '3', swipe_down: '#' }
+    - { click: 'r', label_symbol: '4', swipe_up: '4', swipe_down: '$' }
+    - { click: 't', label_symbol: '5', swipe_up: '5', swipe_down: '%' }
+    - { click: 'y', label_symbol: '6', swipe_up: '6', swipe_down: '^' }
+    - { click: 'u', label_symbol: '7', swipe_up: '7', swipe_down: '&' }
+    - { click: 'i', label_symbol: '8', swipe_up: '8', swipe_down: '*' }
+    - { click: 'o', label_symbol: '9', swipe_up: '9', swipe_down: '(' }
+    - { click: 'p', label_symbol: '0', swipe_up: '0', swipe_down: ')' }
 
     # ---------------- 第 2 行：A S D F G H J K L ----------------
     # 左右各 5 权重半键让 9 键居中（参考图 A 行确实内缩）
     - { width: 5 }                                   # 左占位半键
-    - { click: 'a', label_symbol: '~', swipe_down: '~', swipe_up: '`' }
-    - { click: 's', label_symbol: '!', swipe_down: '!', swipe_up: '¡' }
-    - { click: 'd', label_symbol: '@', swipe_down: '@', swipe_up: '#' }
-    - { click: 'f', label_symbol: '#', swipe_down: '#', swipe_up: '¥' }
-    - { click: 'g', label_symbol: '%', swipe_down: '%', swipe_up: '‰' }
-    - { click: 'h', label_symbol: '“', swipe_down: '“', swipe_up: '”' }
-    - { click: 'j', label_symbol: '”', swipe_down: '”', swipe_up: '‘' }
-    - { click: 'k', label_symbol: '*', swipe_down: '*', swipe_up: '×' }
-    - { click: 'l', label_symbol: '?', swipe_down: '?', swipe_up: '¿' }
+    - { click: 'a', label_symbol: '~', swipe_up: '~', swipe_down: '`' }
+    - { click: 's', label_symbol: '!', swipe_up: '!', swipe_down: '¡' }
+    - { click: 'd', label_symbol: '@', swipe_up: '@', swipe_down: '#' }
+    - { click: 'f', label_symbol: '#', swipe_up: '#', swipe_down: '¥' }
+    - { click: 'g', label_symbol: '%', swipe_up: '%', swipe_down: '‰' }
+    - { click: 'h', label_symbol: '“', swipe_up: '“', swipe_down: '”' }
+    - { click: 'j', label_symbol: '”', swipe_up: '”', swipe_down: '‘' }
+    - { click: 'k', label_symbol: '*', swipe_up: '*', swipe_down: '×' }
+    - { click: 'l', label_symbol: '?', swipe_up: '?', swipe_down: '¿' }
     - { width: 5 }                                   # 右占位半键
 
     # ---------------- 第 3 行：Shift Z X C V B N M BackSpace ----------------
@@ -352,13 +353,13 @@ preset_keyboards:
     # ⚠ 行尾原本还有一个 click: 'l' 的 @ 键，因与第 2 行的 l 重复已删；
     #   删键必须同步把剩下的字母键宽度补回来，否则行宽不足 100 会错位。
     - { click: Shift_L, label_symbol: '⬆', send_bindings: false, width: 15 }
-    - { click: 'z', label_symbol: '(', swipe_down: '(', swipe_up: '（', width: 10 }
-    - { click: 'x', label_symbol: ')', swipe_down: ')', swipe_up: '）', width: 10 }
-    - { click: 'c', label_symbol: '-', swipe_down: '-', swipe_up: '_', width: 10 }
-    - { click: 'v', label_symbol: '=', swipe_down: '=', swipe_up: '+', width: 10 }
-    - { click: 'b', label_symbol: ':', swipe_down: ':', swipe_up: '：', width: 10 }
-    - { click: 'n', label_symbol: ';', swipe_down: ';', swipe_up: '；', width: 10 }
-    - { click: 'm', label_symbol: '/', swipe_down: '/', swipe_up: '\\', width: 10 }
+    - { click: 'z', label_symbol: '(', swipe_up: '(', swipe_down: '（', width: 10 }
+    - { click: 'x', label_symbol: ')', swipe_up: ')', swipe_down: '）', width: 10 }
+    - { click: 'c', label_symbol: '-', swipe_up: '-', swipe_down: '_', width: 10 }
+    - { click: 'v', label_symbol: '=', swipe_up: '=', swipe_down: '+', width: 10 }
+    - { click: 'b', label_symbol: ':', swipe_up: ':', swipe_down: '：', width: 10 }
+    - { click: 'n', label_symbol: ';', swipe_up: ';', swipe_down: '；', width: 10 }
+    - { click: 'm', label_symbol: '/', swipe_up: '/', swipe_down: "\\", width: 10 }
     - { click: backspace_clear, swipe_up: Clear, swipe_left: BackToPreviousSyllable, width: 15 }
 
     # ---------------- 第 4 行：底栏 ----------------
@@ -389,40 +390,40 @@ preset_keyboards:
 
     keys:
     # ---- 第 1 行 ----
-    - { click: 'q', label_symbol: '1', swipe_down: '1', swipe_up: '!' }
-    - { click: 'w', label_symbol: '2', swipe_down: '2', swipe_up: '@' }
-    - { click: 'e', label_symbol: '3', swipe_down: '3', swipe_up: '#' }
-    - { click: 'r', label_symbol: '4', swipe_down: '4', swipe_up: '$' }
-    - { click: 't', label_symbol: '5', swipe_down: '5', swipe_up: '%' }
-    - { click: 'y', label_symbol: '6', swipe_down: '6', swipe_up: '^' }
-    - { click: 'u', label_symbol: '7', swipe_down: '7', swipe_up: '&' }
-    - { click: 'i', label_symbol: '8', swipe_down: '8', swipe_up: '*' }
-    - { click: 'o', label_symbol: '9', swipe_down: '9', swipe_up: '(' }
-    - { click: 'p', label_symbol: '0', swipe_down: '0', swipe_up: ')' }
+    - { click: 'q', label_symbol: '1', swipe_up: '1', swipe_down: '!' }
+    - { click: 'w', label_symbol: '2', swipe_up: '2', swipe_down: '@' }
+    - { click: 'e', label_symbol: '3', swipe_up: '3', swipe_down: '#' }
+    - { click: 'r', label_symbol: '4', swipe_up: '4', swipe_down: '$' }
+    - { click: 't', label_symbol: '5', swipe_up: '5', swipe_down: '%' }
+    - { click: 'y', label_symbol: '6', swipe_up: '6', swipe_down: '^' }
+    - { click: 'u', label_symbol: '7', swipe_up: '7', swipe_down: '&' }
+    - { click: 'i', label_symbol: '8', swipe_up: '8', swipe_down: '*' }
+    - { click: 'o', label_symbol: '9', swipe_up: '9', swipe_down: '(' }
+    - { click: 'p', label_symbol: '0', swipe_up: '0', swipe_down: ')' }
 
     # ---- 第 2 行 ----
     - { width: 5 }
-    - { click: 'a', label_symbol: '~', swipe_down: '~', swipe_up: '`', long_click: select_all }
-    - { click: 's', label_symbol: '!', swipe_down: '!', swipe_up: '¡', long_click: '~' }
-    - { click: 'd', label_symbol: '@', swipe_down: '@', swipe_up: '#', long_click: '-' }
-    - { click: 'f', label_symbol: '#', swipe_down: '#', swipe_up: '¥', long_click: '+' }
-    - { click: 'g', label_symbol: '%', swipe_down: '%', swipe_up: '‰', long_click: '=' }
-    - { click: 'h', label_symbol: '“', swipe_down: '“', swipe_up: '”', long_click: '"' }
-    - { click: 'j', label_symbol: '”', swipe_down: '”', swipe_up: '‘', long_click: "'" }
-    - { click: 'k', label_symbol: '*', swipe_down: '*', swipe_up: '×', long_click: '&' }
-    - { click: 'l', label_symbol: '?', swipe_down: '?', swipe_up: '¿', long_click: '_' }
+    - { click: 'a', label_symbol: '~', swipe_up: '~', swipe_down: '`', long_click: select_all }
+    - { click: 's', label_symbol: '!', swipe_up: '!', swipe_down: '¡', long_click: '~' }
+    - { click: 'd', label_symbol: '@', swipe_up: '@', swipe_down: '#', long_click: '-' }
+    - { click: 'f', label_symbol: '#', swipe_up: '#', swipe_down: '¥', long_click: '+' }
+    - { click: 'g', label_symbol: '%', swipe_up: '%', swipe_down: '‰', long_click: '=' }
+    - { click: 'h', label_symbol: '“', swipe_up: '“', swipe_down: '”', long_click: '"' }
+    - { click: 'j', label_symbol: '”', swipe_up: '”', swipe_down: '‘', long_click: "'" }
+    - { click: 'k', label_symbol: '*', swipe_up: '*', swipe_down: '×', long_click: '&' }
+    - { click: 'l', label_symbol: '?', swipe_up: '?', swipe_down: '¿', long_click: '_' }
     - { width: 5 }
 
     # ---- 第 3 行 ----
     # 15 + 7×10 + 15 = 100  （同上：删掉重复的 l/@ 键后必须补足行宽）
     - { click: Shift_L, label_symbol: '⇧', send_bindings: false, width: 15 }
-    - { click: 'z', label_symbol: '(', swipe_down: '(', swipe_up: '（', long_click: cut, width: 10 }
-    - { click: 'x', label_symbol: ')', swipe_down: ')', swipe_up: '）', long_click: copy, width: 10 }
-    - { click: 'c', label_symbol: '-', swipe_down: '-', swipe_up: '_', long_click: paste, width: 10 }
-    - { click: 'v', label_symbol: '=', swipe_down: '=', swipe_up: '+', long_click: paste, width: 10 }
-    - { click: 'b', label_symbol: ':', swipe_down: ':', swipe_up: '：', long_click: Insert, width: 10 }
-    - { click: 'n', label_symbol: ';', swipe_down: ';', swipe_up: '；', long_click: undo, width: 10 }
-    - { click: 'm', label_symbol: '/', swipe_down: '/', swipe_up: '\\', long_click: redo, width: 10 }
+    - { click: 'z', label_symbol: '(', swipe_up: '(', swipe_down: '（', long_click: cut, width: 10 }
+    - { click: 'x', label_symbol: ')', swipe_up: ')', swipe_down: '）', long_click: copy, width: 10 }
+    - { click: 'c', label_symbol: '-', swipe_up: '-', swipe_down: '_', long_click: paste, width: 10 }
+    - { click: 'v', label_symbol: '=', swipe_up: '=', swipe_down: '+', long_click: paste, width: 10 }
+    - { click: 'b', label_symbol: ':', swipe_up: ':', swipe_down: '：', long_click: Insert, width: 10 }
+    - { click: 'n', label_symbol: ';', swipe_up: ';', swipe_down: '；', long_click: undo, width: 10 }
+    - { click: 'm', label_symbol: '/', swipe_up: '/', swipe_down: "\\", long_click: redo, width: 10 }
     - { click: backspace_clear, swipe_up: Clear, swipe_left: BackToPreviousSyllable, width: 15 }
 
     # ---- 第 4 行 ----

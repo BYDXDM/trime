@@ -191,9 +191,11 @@ class AppPrefs(
         val soundVolume = int(
             R.string.sound_volume,
             KEY_SOUND_VOLUME,
-            // 音量按 soundVolume/100 直接作为 SoundPool 的播放音量。
-            // 原来是 10，实测太轻（钢琴样本本身只有 -16dB 均值），提到 55。
-            55,
+            // 音量按 soundVolume/100 直接作为 SoundPool 的播放音量（线性振幅）。
+            // 原来是 10，实测太轻（钢琴样本本身只有 -16dB 均值），一度提到 55，
+            // 但用户反馈「键盘声音太大」——55 相当于 -5.2dB，接近满幅。改回 25
+            // （约 -12dB），明显变轻又不至于听不见；仍可用滑块自行调整。
+            25,
             0,
             100,
             "%",

@@ -118,16 +118,20 @@ open class GestureFrame(context: Context) : FrameLayout(context) {
 
                 onMove?.invoke(x, y, isLongPressed)
 
+                // swipeTravel / slideStepSize 在偏好里以 dp 为单位，这里的 dx 是像素，
+                // 必须先按屏幕密度换算，否则高密度屏上阈值会缩水成 1/3 左右。
+                val density = resources.displayMetrics.density
+
                 if ((isSlideCursor || isSlideDelete) && onSlide != null && !isLongPressed && swipeTravel > 0) {
                     if (!slideActivated) {
-                        if (abs(dx) >= swipeTravel) {
+                        if (abs(dx) >= swipeTravel * density) {
                             slideActivated = true
                             lastX = startX
                         }
                     }
 
                     if (slideActivated) {
-                        val step = getNStep(lastX, x, slideStepSize.toFloat())
+                        val step = getNStep(lastX, x, slideStepSize * density)
                         if (step != 0) {
                             onSlide?.invoke(step, x, y)
                             lastX = x
@@ -264,9 +268,19 @@ open class GestureFrame(context: Context) : FrameLayout(context) {
             0f
         }
 
+        // swipeTravel（dp）与 swipeVelocity（dp/s）是偏好里的单位，而 distance/velocity
+        // 由像素位移算出，必须按屏幕密度换算；否则 20dp 只按 20px 比（高密度屏上约 7dp），
+        // 轻点一下就会被误判成滑动：字母键滑出角标符号导致打不出中文，
+        // 修饰键（Shift）的点击被静默吞掉导致大小写切换失效。
+        val density = resources.displayMetrics.density
+        val travelPx = swipeTravel * density
+        val velocityPx = swipeVelocity * density
+        // 速度判定同样要求一个最小真实位移，避免轻点抖动被当成「快速轻扫」。
+        val minSwipePx = MIN_SWIPE_DISTANCE_DP * density
+
         val isSwipe =
-            (swipeTravel > 0 && distance >= swipeTravel) ||
-                (swipeVelocity > 0 && velocity >= swipeVelocity)
+            (swipeTravel > 0 && distance >= travelPx) ||
+                (swipeVelocity > 0 && distance >= minSwipePx && velocity >= velocityPx)
         swipeTriggered = isSwipe
 
         if (!isSwipe) return KeyBehavior.CLICK
@@ -321,6 +335,9 @@ open class GestureFrame(context: Context) : FrameLayout(context) {
     }
 
     companion object {
+        /** 走速度判定时也必须满足的最小位移（dp），防止轻点抖动被判成快速轻扫。 */
+        private const val MIN_SWIPE_DISTANCE_DP = 8f
+
         private val swipeTravel by AppPrefs.defaultInstance().keyboard.swipeTravel
         private val swipeVelocity by AppPrefs.defaultInstance().keyboard.swipeVelocity
         private val longPressTimeout by AppPrefs.defaultInstance().keyboard.longPressTimeout
