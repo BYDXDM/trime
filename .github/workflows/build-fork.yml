@@ -52,8 +52,14 @@ jobs:
           [ -x "$SDKMGR" ] || SDKMGR=$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | head -1)
           echo "sdkmanager: $SDKMGR"
           yes | "$SDKMGR" --licenses > /dev/null 2>&1 || true
-          # cmake 版本与上游 commit-ci.yml 对齐；NDK 由 AGP 按 ndkVersion 自动装。
-          "$SDKMGR" --install "platform-tools" "cmake;3.31.6"
+          # 版本对齐：build-logic/convention/src/main/kotlin/Versions.kt 的
+          # DEFAULT_CMAKE / DEFAULT_NDK，以及 app/build.gradle.kts 的
+          # compileSdk = 36 / buildToolsVersion = "36.0.0"。
+          #
+          # NDK 必须在这里预装。交给 AGP 在 Gradle daemon 里按 ndkVersion 自动下载时，
+          # 会在配置阶段报 java.net.ConnectException: Connection refused，
+          # 直接 "Failed to install the following SDK components: ndk;28.0.13004108" 而 BUILD FAILED。
+          "$SDKMGR" --install "platform-tools" "cmake;3.31.6" "ndk;28.0.13004108" "platforms;android-36" "build-tools;36.0.0"
           echo "sdk.dir=$ANDROID_HOME" > local.properties
 
       # 上游 commit-ci.yml 在编译前显式同步 submodule（无 --depth，
