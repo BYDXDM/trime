@@ -182,17 +182,16 @@ class RimeDataSyncPlugin : Plugin<Project> {
             )
         }
 
-        private fun sha256(file: File): String =
-            MessageDigest.getInstance("SHA-256").run {
-                file.inputStream().use { input ->
-                    val buf = ByteArray(1 shl 16)
-                    while (true) {
-                        val n = input.read(buf)
-                        if (n <= 0) break
-                        update(buf, 0, n)
-                    }
+        private fun sha256(file: File): String = MessageDigest.getInstance("SHA-256").run {
+            file.inputStream().use { input ->
+                val buf = ByteArray(1 shl 16)
+                while (true) {
+                    val n = input.read(buf)
+                    if (n <= 0) break
+                    update(buf, 0, n)
                 }
-                digest().joinToString("") { "%02x".format(it) }
             }
+            digest().joinToString("") { "%02x".format(it) }
+        }
     }
 }
