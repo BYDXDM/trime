@@ -338,7 +338,16 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         navBarManager.evaluate(window.window!!, inputDeviceManager.useVirtualKeyboard, scope.colors)
         replaceInputView(scope)
         replaceCandidateView(scope)
-        inputView?.updateEnterKeyLabel(currentInputEditorInfo)
+        // ★ currentInputEditorInfo 是框架属性，**在 onStartInput 之前为 null**。
+        //   「Rime 就绪后补建输入视图」的时机可能早于 onStartInput（首次启用输入法
+        //   即进入输入场景时），此时读 imeOptions 会 NPE。真机实测
+        //   （HUAWEI ANA-TN00 / HarmonyOS 4.2 / API 31）直接进入崩溃循环：
+        //     NullPointerException: Attempt to read from field
+        //     'int android.view.inputmethod.EditorInfo.imeOptions' on a null object reference
+        //       at InputView.updateEnterKeyLabel
+        //       at TrimeInputMethodService.replaceInputViews
+        //   回车键标签稍后由 onStartInput → InputView.startInput 补上，这里跳过即可。
+        currentInputEditorInfo?.let { inputView?.updateEnterKeyLabel(it) }
     }
 
     override fun onDestroy() {
@@ -356,7 +365,14 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     }
 
     private fun handleReturnKey() {
-        currentInputEditorInfo.run {
+        // 同一处 null 风险的第二个入口：`run` 作用在可空平台上，null 时同样会 NPE。
+        // 拿不到 EditorInfo 就退化成普通回车，别让整个输入法崩掉。
+        val info =
+            currentInputEditorInfo ?: run {
+                sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
+                return
+            }
+        info.run {
             if (inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_NULL ||
                 imeOptions.hasFlag(EditorInfo.IME_FLAG_NO_ENTER_ACTION)
             ) {
