@@ -188,6 +188,10 @@ class CompactCandidateDelegate(override val di: DI) :
             itemAnimator = null
             isFocusable = false
             isFocusableInTouchMode = false
+            // ★ 关掉横向滚动条。放开 canScrollHorizontally() 之后，候选槽会默认在
+            //   底部画一条灰色滚动条（实测 y≈1580、x=9..395、rgb(144,144,156)）——
+            //   它贴着候选栏下沿，看着就是一道「边框」。滑动照旧可用，只是不再画这条。
+            isHorizontalScrollBarEnabled = false
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
                 defaultFocusHighlightEnabled = false
             }

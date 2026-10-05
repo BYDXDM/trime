@@ -128,9 +128,12 @@ preset_color_schemes:
     hilited_key_text_color: 0xFFFFFF
     hilited_key_symbol_color: 0xE8F0FF
     hilited_text_color: 0x3975CE
-    key_back_color: 0x66FFFFFF            # 按键：白色 40% 透明，背景图能透出来
-    # ★ 无边框：靠 40% 白色键面与背景图自然分层，不再描边。
-    #   想恢复轮廓把 alpha 调回 0x40 即可（0x40FFFFFF）。
+    # ★ 按键不要底框：alpha=0 让键盘区域只剩背景图（GIF）本身。
+    #   之前是 0x66FFFFFF（白色 40%），键面看着像一格格圆角瓷砖。
+    #   可见性靠 key_text_color / key_symbol_color 的深色字压在图上。
+    #   按下反馈仍由 hilited_key_back_color 提供，不受这里影响。
+    key_back_color: 0x00000000
+    # ★ 无边框：靠深色字与背景图自然分层，不再描边。
     key_border_color: 0x00FFFFFF          # 无边框（alpha=0）
     key_symbol_color: 0xF23C4043          # 角标：深灰(95%)，压在动图上仍要看得清
     key_text_color: 0xFF1A1A1A            # 字母：近黑不透明，保证可读性
@@ -140,8 +143,10 @@ preset_color_schemes:
     # 由 DataManager.mirrorPackagedDirs() 自动镜像到用户目录，重装不丢。
     keyboard_back_color: preview.gif
     label_color: 0x9AA0A6
-    off_key_back_color: 0xD8DBE0
+    # 非激活态的开关键（Shift / 中英 / 方案…）同样不要底框，与普通按键一致。
+    off_key_back_color: 0x00000000
     off_key_text_color: 0x1A1A1A
+    # 激活态保留蓝底：它是「当前开着」的唯一视觉信号，去掉就分不清中英/大小写。
     on_key_back_color: 0x3975CE
     on_key_text_color: 0xFFFFFF
     preview_back_color: 0xCC1A1A1A

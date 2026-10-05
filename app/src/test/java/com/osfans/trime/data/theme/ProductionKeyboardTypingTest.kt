@@ -144,11 +144,12 @@ class ProductionKeyboardTypingTest :
             val theme = ThemeTestSupport.decodeBuiltinTheme("trime.yaml")
             val default = theme.colorSchemes.first { it.id == "default" }
             default.colors["keyboard_back_color"] shouldBe "preview.gif"
-            // 键面必须是半透明蒙层（0xAARRGGBB 且 alpha < 0xFF），否则背景图被完全盖住
+            // 键面必须完全透明（alpha = 0），键盘区域只留背景图本身，
+            // 不要那层圆角底框。字迹可读性靠 key_text_color 的深色字保证。
             val keyBack = default.colors["key_back_color"].orEmpty()
             keyBack.startsWith("0x") shouldBe true
             keyBack.length shouldBe 10
-            (keyBack.substring(2, 4).toInt(16) < 0xFF) shouldBe true
+            keyBack.substring(2, 4).toInt(16) shouldBe 0
             File("src/main/assets/shared/backgrounds/mybg/preview.gif").isFile shouldBe true
         }
 
