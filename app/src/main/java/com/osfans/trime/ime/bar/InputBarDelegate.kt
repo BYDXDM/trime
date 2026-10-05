@@ -10,6 +10,7 @@ import android.util.Size
 import android.view.ContextThemeWrapper
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InlineSuggestion
 import android.view.inputmethod.InlineSuggestionsResponse
@@ -260,6 +261,11 @@ class InputBarDelegate(override val di: DI) :
             add(alwaysUi.root, lParams(matchParent, matchParent))
             add(candidateUi.root, lParams(matchParent, matchParent))
             add(tabUi.root, lParams(matchParent, matchParent))
+
+            // 工具条 / 候选栏 / 页签栏之间切换原本是直接跳变（没设 in/out 动画），
+            // 观感上"闪一下"。加 150ms 淡入淡出，切换是"溶"过去。
+            inAnimation = AnimationUtils.loadAnimation(context, R.anim.bar_fade_in)
+            outAnimation = AnimationUtils.loadAnimation(context, R.anim.bar_fade_out)
 
             evalAlwaysUiState()
             ClipboardHelper.addOnUpdateListener(onClipboardUpdateListener)

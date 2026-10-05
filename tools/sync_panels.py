@@ -36,6 +36,36 @@ PANEL_MAP = {
         'label': '符号',
         'ascii_mode': 1,
     },
+    'symbols_cn_panel': {
+        'name': 'symbols_cn',
+        'label': '中文',
+        'ascii_mode': 1,
+    },
+    'symbols_en_panel': {
+        'name': 'symbols_en',
+        'label': '英文',
+        'ascii_mode': 1,
+    },
+    'symbols_net_panel': {
+        'name': 'symbols_net',
+        'label': '网络',
+        'ascii_mode': 1,
+    },
+    'symbols_math_panel': {
+        'name': 'symbols_math',
+        'label': '数学',
+        'ascii_mode': 1,
+    },
+    'symbols_arrow_panel': {
+        'name': 'symbols_arrow',
+        'label': '箭头',
+        'ascii_mode': 1,
+    },
+    'symbols_num_panel': {
+        'name': 'symbols_num',
+        'label': '序号',
+        'ascii_mode': 1,
+    },
     'number_panel': {
         'name': 'number',
         'label': '数字',

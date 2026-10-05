@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ SPDX-FileCopyrightText: 2026 myime
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  ~
+  ~ 应用界面背景：插画 + 半透明白色蒙版。
+  ~ 直接铺原图会让设置项文字压在花纹上难以辨读，加一层 55% 白蒙版后
+  ~ 既保留二次元氛围，又保证深色正文在浅色区域也够对比度。
+  ~ 想更「重口味」就把第二层的 alpha 调低（例如 0x66）。
+  -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <!-- <bitmap> 不支持 centerCrop（那是 ImageView 的 scaleType）。
+             clip_horizontal + fill_vertical 是竖图铺竖屏最接近 centerCrop 的组合：
+             纵向拉满、横向裁掉溢出部分，不变形。 -->
+        <bitmap
+            android:src="@drawable/ui_background"
+            android:gravity="clip_horizontal|fill_vertical" />
+    </item>
+    <item>
+        <color android:color="#8CFFFFFF" />
+    </item>
+</layer-list>

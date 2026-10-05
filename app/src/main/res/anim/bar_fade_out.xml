@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ SPDX-FileCopyrightText: 2026 myime
+  ~
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  ~
+  ~ 候选栏/工具条/页签栏之间切换时的淡出，与 bar_fade_in 对称。
+  -->
+<alpha xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="150"
+    android:fromAlpha="1.0"
+    android:toAlpha="0.0"
+    android:interpolator="@android:interpolator/accelerate_quad" />

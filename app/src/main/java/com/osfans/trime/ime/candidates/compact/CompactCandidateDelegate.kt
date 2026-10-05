@@ -11,6 +11,7 @@ import android.graphics.drawable.shapes.RectShape
 import android.view.ContextThemeWrapper
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.osfans.trime.R
 import com.osfans.trime.core.Candidates
@@ -112,7 +113,19 @@ class CompactCandidateDelegate(override val di: DI) :
 
     val layoutManager by lazy {
         object : FlexboxLayoutManager(context) {
-            override fun canScrollHorizontally(): Boolean = false
+            init {
+                // ★ 候选栏改为「单行 + 横向滚动」，右滑即可看更多候选。
+                //   原本是默认的 FlexWrap.WRAP：候选多于列数时换到第二行，
+                //   而候选栏高度固定成一行 → 多出来的整行被裁掉；又因为下面
+                //   两个 canScroll* 都被写死 false，用户**永远够不着**这些候选。
+                //   改成 NOWRAP 后，可见部分的外观不变（本来就只显示一行），
+                //   多出来的候选改为横向溢出，可以滑出来。
+                flexWrap = FlexWrap.NOWRAP
+            }
+
+            // 放开横向滚动（用户要求「右滑查看更多候选词」）；
+            // 纵向仍禁止 —— NOWRAP 下不会有纵向溢出，留着只会让 bar 上下晃。
+            override fun canScrollHorizontally(): Boolean = true
 
             override fun canScrollVertically(): Boolean = false
 

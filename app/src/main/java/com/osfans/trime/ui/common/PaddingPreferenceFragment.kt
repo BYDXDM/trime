@@ -24,5 +24,8 @@ abstract class PaddingPreferenceFragment : PreferenceFragmentCompat() {
         savedInstanceState: Bundle?,
     ) = super.onCreateView(inflater, container, savedInstanceState).apply {
         listView.applyNavBarInsetsBottomPadding()
+        // 设置列表默认用 ?android:attr/colorBackground 的不透明底色，会把
+        // activity_main 的插画背景整块盖住。置为透明后背景图才透得出来。
+        listView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
     }
 }

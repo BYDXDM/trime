@@ -266,7 +266,7 @@ class ThemeDslExpanderTest :
                 val theme = Theme.decode(expanded.mapping!!)
                 // fork 主题没有 __include 键盘，但「展开后必须可解码」这条约束仍然要守
                 theme.presetKeyboards.keys shouldBe
-                    setOf("my_pinyin", "my_english", "symbols", "number", "emoji")
+                    setOf("my_pinyin", "my_english", "symbols", "symbols_cn", "symbols_en", "symbols_net", "symbols_math", "symbols_arrow", "symbols_num", "number", "emoji")
             }
 
             Then("every fork keyboard keeps a non-empty key set after expansion") {

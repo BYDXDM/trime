@@ -56,6 +56,26 @@ object InputFeedbackManager {
         }
     }
 
+    /**
+     * 首次启用时自动激活随包的钢琴音效。只在用户从未选过音效时生效
+     * （customSoundEffect 非空即视为用户已表达过选择，一律尊重）。
+     * 由输入法服务在 Rime 就绪（随包音效已同步到用户目录）后调用。
+     */
+    fun ensureBundledPianoEffect() {
+        if (keyboardPrefs.customSoundEffect.getValue().isNotEmpty()) return
+        if (SoundEffectManager.getAllSoundEffects().none { it.name == "piano" }) return
+        keyboardPrefs.soundOnKeyPress.setValue(true)
+        keyboardPrefs.useCustomSoundEffect.setValue(true)
+        // 旧版本曾把「首次激活」的音量提到 50%，实测偏吵；对这类历史值做一次性下调。
+        // 只在恰好等于旧自动值 50 时才改，用户手动调过的其它值一律尊重。
+        if (keyboardPrefs.soundVolume.getValue() == 50) {
+            keyboardPrefs.soundVolume.setValue(25)
+        }
+        // 音量默认值见 AppPrefs.keyboard.soundVolume（当前 20）。这里不再抬高它：
+        // 钢琴样本本身约 -16dB，20% 已清晰可闻，抬高只会吵。
+        SoundEffectManager.switchEffect("piano")
+    }
+
     private fun cacheSoundId() {
         if (!soundEffectEnabled) return
 

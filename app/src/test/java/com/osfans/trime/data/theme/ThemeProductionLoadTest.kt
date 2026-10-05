@@ -33,7 +33,7 @@ class ThemeProductionLoadTest :
             val theme = (result as ThemeLoader.ThemeLoadResult.Success).theme
             // fork 的 5 个键盘必须都在
             theme.presetKeyboards.keys.containsAll(
-                listOf("my_pinyin", "my_english", "symbols", "number", "emoji"),
+                listOf("my_pinyin", "my_english", "symbols", "symbols_cn", "symbols_en", "symbols_net", "symbols_math", "symbols_arrow", "symbols_num", "number", "emoji"),
             ) shouldBe true
             // 配色表必须非空（否则 ThemeLoader 会拒绝）
             (theme.colorSchemes.isNotEmpty()) shouldBe true

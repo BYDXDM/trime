@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ SPDX-FileCopyrightText: 2026 myime
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+  ~
+  ~ 候选栏/工具条/页签栏之间切换时的淡入。
+  ~ InputBarDelegate 里的 ViewAnimator 原本没设 in/out 动画，
+  ~ 内容直接跳变，观感上是"闪一下"。150ms 的淡入淡出配合
+  ~ decelerate_quad，切换时是"溶"过去而不是"跳"过去。
+  -->
+<alpha xmlns:android="http://schemas.android.com/apk/res/android"
+    android:duration="150"
+    android:fromAlpha="0.0"
+    android:toAlpha="1.0"
+    android:interpolator="@android:interpolator/decelerate_quad" />
