@@ -18,6 +18,7 @@ import com.osfans.trime.data.db.ClipboardHelper
 import com.osfans.trime.data.db.CollectionHelper
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.ColorManager
+import com.osfans.trime.ime.core.ImeSwitchHint
 import com.osfans.trime.receiver.RimeIntentReceiver
 import com.osfans.trime.ui.main.LogActivity
 import com.osfans.trime.util.isNightMode
@@ -29,12 +30,6 @@ import kotlinx.coroutines.plus
 import timber.log.Timber
 import kotlin.system.exitProcess
 
-/**
- * Custom Application class.
- * Application class will only be created once when the app run,
- * so you can init a "global" class here, whose methods serve other
- * classes everywhere.
- */
 class TrimeApplication : Application() {
     val coroutineScope = MainScope() + CoroutineName("TrimeApplication")
 
@@ -46,6 +41,22 @@ class TrimeApplication : Application() {
                 addAction(RimeIntentReceiver.ACTION_DEPLOY)
                 addAction(RimeIntentReceiver.ACTION_SYNC_USER_DATA)
             }
+        // 输入法切换广播：只记「切走了」，提示在 TrimeInputMethodService.onStartInputView 里弹。
+        // 必须 EXPORTED —— 这是系统发出的广播。
+        ContextCompat.registerReceiver(
+            this,
+            object : android.content.BroadcastReceiver() {
+                override fun onReceive(c: android.content.Context?, i: android.content.Intent?) {
+                    ImeSwitchHint.onImeChanged(
+                        this@TrimeApplication,
+                        i?.getStringExtra(ImeSwitchHint.EXTRA_IME_ID),
+                    )
+                }
+            },
+            android.content.IntentFilter(ImeSwitchHint.ACTION_IME_CHANGED),
+            ContextCompat.RECEIVER_EXPORTED,
+        )
+
         ContextCompat.registerReceiver(
             this,
             rimeIntentReceiver,

@@ -7,6 +7,7 @@ package com.osfans.trime.ime.keyboard
 
 import android.app.Dialog
 import android.content.Intent
+import android.os.SystemClock
 import android.view.ContextThemeWrapper
 import android.view.KeyEvent
 import android.widget.Toast
@@ -126,7 +127,9 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
                     }
 
                     text.isNotEmpty() -> {
-                        onText(text)
+                        // 成对符号：光标后无内容时自动补右半（“ → “”，（ → （）），
+                        // 其余情况按普通文本上屏
+                        if (!commitAutoPair(text)) onText(text)
                         false
                     }
 
@@ -136,16 +139,44 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
                 if (shouldHandle) {
                     when (action.code) {
                         KeyEvent.KEYCODE_SWITCH_CHARSET -> handleSwitchCharset(action)
+
                         KeyEvent.KEYCODE_EISU -> keyboardWindow.switchKeyboard(action.select)
+
                         KeyEvent.KEYCODE_LANGUAGE_SWITCH -> handleLanguageSwitch(action)
+
                         KeyEvent.KEYCODE_FUNCTION -> handleFunctionCommand(action)
+
                         KeyEvent.KEYCODE_SETTINGS -> handleSettings(action)
+
                         KeyEvent.KEYCODE_PROG_RED -> showColorPicker()
+
                         KeyEvent.KEYCODE_MENU -> showEnabledSchemaPicker()
+
                         KeyEvent.KEYCODE_VOICE_ASSIST -> switchToVoiceInputMethod()
+
+                        // 退格：**未上屏（还在预编辑）时一次清空全部拼音**，已上屏则维持
+                        // 原来的逐字删除。librime 原生 BackSpace 只删一个字符，所以
+                        // 这里在交给 Rime 之前先判一次。想逐字删仍可用键盘上的
+                        // swipe_left（BackToPreviousSyllable）或长按。
+                        KeyEvent.KEYCODE_DEL -> if (!clearCompositionIfAny()) handleDefaultKeyAction(action)
+
                         else -> handleDefaultKeyAction(action)
                     }
                 }
+            }
+
+            /**
+             * 有未上屏的预编辑就整体清空并返回 true；否则返回 false（走正常退格）。
+             * 用 Rime 的 Escape 语义（清空 composition），不是逐字 BackSpace。
+             */
+            private fun clearCompositionIfAny(): Boolean {
+                if (!service.hasComposition()) return false
+                // clearComposition() 是 suspend，launchOnReady 的 lambda 不是 suspend，
+                // 所以按 handleSwitchCharset 的写法在 lifecycleScope 里起协程。
+                rime.launchOnReady { api ->
+                    service.lifecycleScope.launch { api.clearComposition() }
+                }
+                return true
             }
 
             private fun handleSwitchCharset(action: KeyAction) {
@@ -347,6 +378,19 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
                     else -> false
                 }
 
+                // 双击空格补句号：非组词态下连按两次空格，第二次直接上屏“。”
+                // （组词态的空格是选候选，同样会计时，方便上屏后紧接着出句号）
+                if (action.code == KeyEvent.KEYCODE_SPACE && action.modifier == 0) {
+                    val now = SystemClock.uptimeMillis()
+                    val composing = rime.run { statusCached }.isComposing
+                    if (!composing && isDoubleSpaceTap(now, lastSpaceTapAt)) {
+                        lastSpaceTapAt = 0L
+                        service.commitText("。")
+                        return
+                    }
+                    lastSpaceTapAt = now
+                }
+
                 if (action.modifier == 0 && KeyboardWindow.currentKeyboard.isOnlyShiftOn && shouldHookShiftKey) {
                     onKey(action.code, 0)
                     return
@@ -446,7 +490,42 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
         }
     }
 
+    private var lastSpaceTapAt = 0L
+
+    /**
+     * 输入 [text] 若是成对符号的左半且光标后没有内容，则自动补上右半并把
+     * 光标留在中间；组词态不处理（交给 onText 的先上屏再输入逻辑）。
+     * @return true 表示已按成对处理，调用方不必再普通上屏。
+     */
+    private fun commitAutoPair(text: String): Boolean {
+        if (rime.run { statusCached }.isComposing) return false
+        val close = autoPairCloserFor(text) ?: return false
+        return service.commitPairedText(text, close)
+    }
+
     companion object {
+        /** 双击空格判定窗口：两次按下间隔小于该值视为双击。 */
+        private const val SPACE_DOUBLE_TAP_WINDOW_MS = 350L
+
+        /** 左半符号 → 右半符号。快捷符号与符号面板里出现的成对符号都在列。 */
+        private val AUTO_PAIR_CLOSERS: Map<String, String> =
+            mapOf(
+                "（" to "）",
+                "“" to "”",
+                "‘" to "’",
+                "《" to "》",
+                "【" to "】",
+                "「" to "」",
+                "『" to "』",
+            )
+
+        internal fun autoPairCloserFor(text: String): String? = AUTO_PAIR_CLOSERS[text]
+
+        internal fun isDoubleSpaceTap(
+            now: Long,
+            lastAt: Long,
+        ): Boolean = lastAt > 0 && now - lastAt < SPACE_DOUBLE_TAP_WINDOW_MS
+
         /**
          * Regex for combined key events.
          * group(1) captures either:

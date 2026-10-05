@@ -84,6 +84,14 @@ class KeyboardWindow(di: DI) :
         get() = KeyboardWindow
 
     private val presetKeyboardIds = theme.presetKeyboards.keys.toList()
+
+    /**
+     * 键盘名 → 它声明的 `ascii_keyboard`（未声明为空串）。
+     * 中英切换靠这一份声明推导「中文盘 ↔ 英文盘」的配对，见
+     * [resolveKeyboardForAsciiMode]。
+     */
+    private val asciiKeyboardOf = theme.presetKeyboards.mapValues { it.value.asciiKeyboard }
+
     private var currentKeyboardId = ""
     private var lastKeyboardId = ""
     private var lastLockKeyboardId = ""
@@ -117,12 +125,22 @@ class KeyboardWindow(di: DI) :
         return keyboardView
     }
 
-    private fun detachCurrentView() {
+    /**
+     * 卸载当前键盘。
+     *
+     * @param recordAsciiMode 是否把「离开这一刻的 ascii_mode」记进旧键盘的
+     *   `lastAsciiMode`。**由 `ascii_mode` 变化驱动的换键盘必须传 false**：这次模式
+     *   变化不是这个键盘造成的，记下来会污染它的记忆值；它之后在别处被重新挂载
+     *   （[refreshKeyboards]、`onStartInput`）时会按这个假记忆把模式写回去。
+     */
+    private fun detachCurrentView(recordAsciiMode: Boolean = true) {
         currentKeyboardView?.also {
             it.onDetach()
             keyboardView.removeView(it)
         }
-        activeKeyboard?.lastAsciiMode = rime.run { statusCached }.isAsciiMode
+        if (recordAsciiMode) {
+            activeKeyboard?.lastAsciiMode = rime.run { statusCached }.isAsciiMode
+        }
     }
 
     /** 计算键盘可用宽度：优先使用已测量的容器宽度，否则回退到系统窗口测量。 */
@@ -183,7 +201,18 @@ class KeyboardWindow(di: DI) :
         return config
     }
 
-    private fun attachKeyboard(target: String) {
+    /**
+     * 挂载键盘。
+     *
+     * @param syncAsciiMode 是否按目标键盘的 `reset_ascii_mode` / 记忆值回写
+     *   `ascii_mode`。**由 `ascii_mode` 变化驱动的换键盘必须传 false** —— 模式是那次
+     *   切换的「因」，再被键盘的记忆值回写就会把用户刚切到的状态打回去，中英切换键
+     *   表现为「按了没反应」。
+     */
+    private fun attachKeyboard(
+        target: String,
+        syncAsciiMode: Boolean = true,
+    ) {
         currentKeyboardId = target
         lastKeyboardId = target
 
@@ -202,12 +231,14 @@ class KeyboardWindow(di: DI) :
             dispatchCapsState(it::setShifted)
 
             val currentMode = rime.run { statusCached }.isAsciiMode
-            val targetMode = if (it.resetAsciiMode) it.asciiMode else it.lastAsciiMode
 
-            if (currentMode != targetMode) {
-                service.postRimeJob {
-                    commitComposition()
-                    setRuntimeOption("ascii_mode", targetMode)
+            if (syncAsciiMode) {
+                val targetMode = if (it.resetAsciiMode) it.asciiMode else it.lastAsciiMode
+                if (currentMode != targetMode) {
+                    service.postRimeJob {
+                        commitComposition()
+                        setRuntimeOption("ascii_mode", targetMode)
+                    }
                 }
             }
 
@@ -287,16 +318,48 @@ class KeyboardWindow(di: DI) :
         return final
     }
 
-    fun switchKeyboard(to: String) {
+    /**
+     * 切换键盘。
+     *
+     * @param syncAsciiMode 见 [attachKeyboard]；由 `ascii_mode` 变化驱动的切换
+     *   必须传 false。
+     */
+    fun switchKeyboard(
+        to: String,
+        syncAsciiMode: Boolean = true,
+    ) {
         val target = evalKeyboard(to)
         ContextCompat.getMainExecutor(service).execute {
             if (cachedKeyboards.containsKey(target)) {
                 if (target == currentKeyboardId) return@execute
             }
-            detachCurrentView()
-            attachKeyboard(target)
+            detachCurrentView(recordAsciiMode = syncAsciiMode)
+            attachKeyboard(target, syncAsciiMode)
         }
         Timber.d("Switched to keyboard: $target")
+    }
+
+    /**
+     * 由 `ascii_mode` 变化驱动的换键盘（中英切换）。
+     *
+     * 与 [switchKeyboard] 的两点关键差别：
+     *  1. **解析放进同一个主线程任务里**。[switchKeyboard] 的 detach/attach 是投递给
+     *     主队列的，`currentKeyboardId` 到那时才更新。若在通知回调里先解析再投递，
+     *     连续两次通知（快速连按中英键）会让第二次读到过期的 `currentKeyboardId`，
+     *     解析出错切 / 漏切 —— 又变成「按了没反应」。
+     *  2. **`syncAsciiMode = false`**：模式是本次切换的「因」，不能再被键盘的记忆值
+     *     回写；同时把目标键盘的记忆值对齐到新模式，免得它之后被 [refreshKeyboards]
+     *     等路径重新挂载时按旧记忆把模式写回去。
+     */
+    private fun switchKeyboardForAsciiMode(asciiMode: Boolean) {
+        ContextCompat.getMainExecutor(service).execute {
+            val target = resolveKeyboardForAsciiMode(asciiMode, currentKeyboardId, asciiKeyboardOf)
+            if (target == null || target == currentKeyboardId) return@execute
+            detachCurrentView(recordAsciiMode = false)
+            attachKeyboard(target, syncAsciiMode = false)
+            cachedKeyboards[target]?.first?.lastAsciiMode = asciiMode
+            Timber.d("Switched to keyboard for ascii_mode=$asciiMode: $target")
+        }
     }
 
     fun refreshKeyboards(isAll: Boolean = false) {
@@ -402,6 +465,12 @@ class KeyboardWindow(di: DI) :
     override fun onRimeOptionUpdated(value: RimeMessage.OptionMessage.Data) {
         val option = value.option
         when {
+            // 中英切换：Rime 的 ascii_mode 变了，键盘要跟着换。
+            // 主题用 `my_pinyin.ascii_keyboard: my_english` 声明配对，两个方向都
+            // 由这份声明推导（见 resolveKeyboardForAsciiMode），代码里不写死键盘名。
+            // 这条 OptionMessage 是唯一可靠的同步点 —— 用户按中英键时 Rime 必发它。
+            option == "ascii_mode" -> switchKeyboardForAsciiMode(value.value)
+
             option.startsWith("_keyboard_") -> {
                 val target = option.removePrefix("_keyboard_")
                 if (target.isNotEmpty()) {

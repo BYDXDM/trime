@@ -97,6 +97,44 @@ internal fun layoutNameForAlphabet(
 }
 
 /**
+ * Picks the keyboard to show after Rime's `ascii_mode` changed.
+ *
+ * The theme declares the Chinese ↔ English pairing with `ascii_keyboard`
+ * (`my_pinyin.ascii_keyboard: my_english`). Both directions are derived from
+ * that single declaration, so no keyboard id is hard-coded:
+ *  - switching to English: the current keyboard's own `ascii_keyboard`;
+ *  - switching back to Chinese: whichever keyboard declares the current one as
+ *    its `ascii_keyboard` (a reverse lookup).
+ *
+ * A keyboard that declares no pairing — the `symbols` / `number` / `emoji`
+ * panels — yields `null` in both directions, so the 中英 key there leaves the
+ * panel alone instead of yanking the user out of it. To make those panels
+ * follow the mode as well, declare an `ascii_keyboard` on them in the theme;
+ * no code change is needed.
+ *
+ * @param asciiKeyboardOf keyboard id -> its declared `ascii_keyboard`
+ *   (empty string when the keyboard declares none)
+ * @return the keyboard id to switch to, or `null` when nothing should change
+ */
+internal fun resolveKeyboardForAsciiMode(
+    asciiMode: Boolean,
+    currentKeyboardId: String,
+    asciiKeyboardOf: Map<String, String>,
+): String? {
+    // 首次挂载前 currentKeyboardId 为空串；空串会与「未声明」的空值互相匹配，
+    // 反查出任意键盘。没有当前键盘就没有配对可言。
+    if (currentKeyboardId.isEmpty()) return null
+    val target =
+        if (asciiMode) {
+            asciiKeyboardOf[currentKeyboardId]
+        } else {
+            asciiKeyboardOf.entries.firstOrNull { it.value == currentKeyboardId }?.key
+        }
+    // isNotBlank：空白串不是合法的键盘名，别把它当目标丢给调用方去兜底
+    return target?.takeIf { it.isNotBlank() && it != currentKeyboardId }
+}
+
+/**
  * Last-resort keyboard pick that is guaranteed to be drawable.
  *
  * `Keyboard(context, theme, width, null)` builds a keyboard with **no keys**,

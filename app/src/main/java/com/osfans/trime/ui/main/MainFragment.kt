@@ -12,6 +12,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.preference.PreferenceGroup
 import com.osfans.trime.R
+import com.osfans.trime.data.stats.TypedCharCounter
 import com.osfans.trime.ui.common.PaddingPreferenceFragment
 import com.osfans.trime.util.addCategory
 import com.osfans.trime.util.addPreference
@@ -45,6 +46,16 @@ class MainFragment : PaddingPreferenceFragment() {
         rootKey: String?,
     ) {
         preferenceScreen = preferenceManager.createPreferenceScreen(requireContext()).apply {
+            // 今日输入字数：只读展示，不设 onClick。
+            // 计数在 IME 侧由 TrimeInputMethodService.commitText 累加，
+            // 每次回到本页重新构建 preference 时取一次最新值即可。
+            addPreference(
+                requireContext().getString(
+                    R.string.typed_today,
+                    TypedCharCounter.todayCount(requireContext()),
+                ),
+                icon = R.drawable.ic_baseline_edit_24,
+            )
             addDestinationPreference(
                 R.string.schemata,
                 R.drawable.ic_round_view_list_24,

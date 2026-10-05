@@ -259,4 +259,6 @@
     <string name="word_segment">Word segment</string>
     <string name="star_success">Star success</string>
     <string name="ignore_system_gesture_insets">Ignore system gesture insets</string>
+    <string name="typed_today">Typed today: %1$d chars</string>
+    <string name="ime_switch_hint">Welcome back! Long-press the space bar (or tap the globe key) to switch input methods.</string>
 </resources>

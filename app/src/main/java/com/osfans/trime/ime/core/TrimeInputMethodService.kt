@@ -34,6 +34,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
+import com.osfans.trime.R
 import com.osfans.trime.core.KeyModifiers
 import com.osfans.trime.core.KeyValue
 import com.osfans.trime.core.RimeApi
@@ -44,6 +45,7 @@ import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.prefs.PreferenceDelegate
 import com.osfans.trime.data.prefs.PreferenceDelegateProvider
+import com.osfans.trime.data.stats.TypedCharCounter
 import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.data.theme.ThemeManager
 import com.osfans.trime.data.theme.ThemeScope
@@ -212,6 +214,16 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                 ThemeManager.init(resources.configuration)
                 ThemeManager.addOnChangedListener(onThemeChangeListener)
                 ColorManager.addOnChangedListener(onColorChangeListener)
+                // Rime 就绪后 ThemeScope 才可用。若 onCreateInputView 当时因
+                // “ThemeScope is not ready yet”而推迟过（首次启用输入法即进入
+                // 输入场景时必现），必须在这里补建输入视图，否则键盘永远空白。
+                ContextCompat.getMainExecutor(this@TrimeInputMethodService).execute {
+                    themeScope?.let { scope ->
+                        if (inputView == null) replaceInputViews(scope)
+                    }
+                }
+                // Rime 就绪意味着随包音效已同步到用户目录，此时才可安全激活
+                InputFeedbackManager.ensureBundledPianoEffect()
             }
         }
         InputFeedbackManager.init(this)
@@ -579,6 +591,11 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         restarting: Boolean,
     ) {
         Timber.d("onStartInputView: restarting=$restarting")
+
+        // 用户从别的输入法切回来 → 给一次切换引导（用户要求每次都给，不节流）
+        if (ImeSwitchHint.consumeSwitchedAway()) {
+            android.widget.Toast.makeText(this, getString(R.string.ime_switch_hint), android.widget.Toast.LENGTH_LONG).show()
+        }
         InputFeedbackManager.startInput()
         // 切换输入目标：丢掉上一个编辑框残留的英文缓冲，
         // 否则 A 应用里打了一半的词会跑到 B 应用里去纠错。
@@ -626,6 +643,12 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         InputFeedbackManager.finishInput()
     }
 
+    /**
+     * 当前是否有未上屏的预编辑（拼音编码）。
+     * 供退格「未上屏时一次清空全部拼音」判断用。
+     */
+    fun hasComposition(): Boolean = composingText.isNotEmpty()
+
     fun commitText(text: String) {
         val ic = currentInputConnection ?: return
 
@@ -643,7 +666,31 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         }
         lastCommittedText = text
         composingText = ""
+        // 每日字数统计：commitText 是所有上屏文本的唯一收口点
+        // （拼音候选、直接上屏的标点、成对符号都从这里过）。
+        TypedCharCounter.record(this, text)
         InputFeedbackManager.textCommitSpeak(text)
+    }
+
+    /**
+     * 成对符号提交：一次上屏 open+close，并把光标移到两者之间。
+     * 仅在光标后没有内容时使用（由 CommonKeyboardActionListener 校验）；
+     * 光标后有内容时返回 false，调用方回退为普通单字上屏。
+     */
+    fun commitPairedText(
+        open: String,
+        close: String,
+    ): Boolean {
+        val ic = currentInputConnection ?: return false
+        val after = ic.getTextAfterCursor(1, 0)
+        if (!after.isNullOrEmpty()) return false
+        ic.beginBatchEdit()
+        ic.commitText(open + close, 1)
+        // 上屏后光标在 close 之后，左移一格到成对符号中间
+        ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT))
+        ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_LEFT))
+        ic.endBatchEdit()
+        return true
     }
 
     /**
