@@ -9,8 +9,39 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/ui_background_scrim">
+    android:layout_height="match_parent">
+
+    <!--
+      背景插画：必须用 ImageView + scaleType=centerCrop。
+      早先是用 layer-list 里的 <bitmap> 当背景，而 <bitmap> 只支持
+      fill/clip 那几种 gravity，没有 centerCrop —— 结果只能
+      clip_horizontal|fill_vertical，纵向被硬拉，人物被拉长（用户实测反馈）。
+      ImageView 的 centerCrop 才是等比铺满 + 裁掉溢出。
+      这两个 View 必须放在最前面，ConstraintLayout 按声明顺序绘制。
+    -->
+    <ImageView
+        android:id="@+id/uiBackground"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ui_background"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 55% 白蒙版：插画花纹上压着设置项文字会读不清，加一层提对比度 -->
+    <View
+        android:id="@+id/uiBackgroundScrim"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#8CFFFFFF"
+        android:importantForAccessibility="no"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <include android:id="@+id/mainToolbar"
         layout="@layout/toolbar"
