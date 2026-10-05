@@ -15,8 +15,15 @@ schema:
   version: "1.0.0"
   author:
     - myime
+  # ★ 依赖 luna_pinyin：本方案的 mymain 拿它的完整拼音词典当底座，
+  #   而 librime 每个方案**只编译自己顶层 translator/dictionary 指定的那一个词典**
+  #   （deployment_tasks.cc:350 `config->GetString("translator/dictionary", ...)`）。
+  #   声明依赖可保证 luna_pinyin 的 table/prism 一定被部署（与 luna_pinyin
+  #   用 `dependencies: [stroke]` 取笔画词典是同一个套路）。
+  dependencies:
+    - luna_pinyin
   description: |
-    26 键拼音方案，内置科技/AI/网络代理 + 原神/崩铁/蔚蓝档案词库。
+    26 键拼音方案，完整拼音底座 + 科技/AI + 原神/崩铁/蔚蓝档案垂直词库。
     支持中英混合联想与用户词频自动学习。
 
 switches:
@@ -56,8 +63,9 @@ engine:
   translators:
     - punct_translator
     - table_translator@custom_phrase        # ① 固定短语，优先级最高
-    - script_translator@mymain              # ② 主翻译器（含用户词典学习）
+    - script_translator@mymain              # ② 主翻译器：完整拼音词典 + 整句 + 用户学习
     - script_translator@mydomain_abbrev     # ③ 简拼/联想（首字母缩写靠它）
+    - script_translator@mydomain_terms      # ④ 垂直领域词：完整拼音编码，低权重
   filters:
     - simplifier
     - uniquifier
@@ -95,7 +103,17 @@ custom_phrase:
 # ② 主翻译器：全拼 + 用户词频自学习
 # ------------------------------------------------------------
 mymain:
-  dictionary: mydomain
+  # ★ 底座换成完整拼音词典，而不是本方案自己那 79 条小词库。
+  #   原因：essay.txt（预置词库，44 万条）只带「词 + 权重」、**不带拼音**，
+  #   它的拼音要靠词典已收集的词条反查（ScriptEncoder::DfsEncode →
+  #   EntryCollector::TranslateWord）。79 条小词库给不出这个映射，于是
+  #   essay.txt 的绝大多数词条编码失败被丢弃（部署日志里刷屏的
+  #   `Encode failure`），最终词表只剩几十条高权重垂直领域词 ——
+  #   表现为「候选极少、组不成句子、少数词霸榜」。
+  #   luna_pinyin 词典有 ≈9 万条「词→拼音」映射，essay.txt 因此能编码入表
+  #   （对照：luna_pinyin.table.bin 13 MB，而 mydomain.table.bin 仅 56 KB）。
+  dictionary: luna_pinyin
+  prism: luna_pinyin
   # ★ 核心三行：开启用户词典学习
   enable_user_dict: true        # 用户选词上屏后自动记忆并提权
   user_dict: mydomain.user      # 落盘为 <userDataDir>/mydomain.userdb
@@ -109,6 +127,27 @@ mymain:
   # 用户词典权重上限，防止单个词被刷到离谱位置
   max_phrase_length: 10
   min_phrase_weight: 1
+
+# ------------------------------------------------------------
+# ④ 垂直领域词：科技/AI/网络代理 + 原神/崩铁/蔚蓝档案
+#    ★ 单独一个翻译器、**低 initial_quality**，是「降权」最直接的旋钮：
+#      候选权重 ≈ 词典权重 × initial_quality，乘数调低即可让这些词
+#      只在没有常用词竞争时出现（例如打 clash → Clash），
+#      而不会在打 dai li / ke xue 时把「代理 / 科学」这类常用词挤下去。
+#    词典权重本身也已在 mydomain.dict.yaml 里整体下调到 essay.txt 中位数
+#      （265）以下，两个旋钮配合，保证常用词优先。
+#    enable_user_dict: false —— 学习统一交给 mymain，避免同一份用户词典
+#      被两个翻译器重复读写。
+# ------------------------------------------------------------
+mydomain_terms:
+  dictionary: mydomain
+  prism: mydomain
+  enable_user_dict: false
+  enable_completion: false
+  enable_sentence: false
+  initial_quality: 0.5
+  comment_format:
+    - xform/^/ 领域/
 
 # ------------------------------------------------------------
 # ③ 简拼/联想翻译器：打首字母（bt → 崩铁）或打一半（beng → 崩铁）

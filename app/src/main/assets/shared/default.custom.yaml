@@ -19,13 +19,23 @@ patch:
   "ascii_composer/switch_key/Shift_R": commit_text
   "ascii_composer/switch_key/Caps_Lock": clear
 
-  # ---- 用户词典学习（全局兜底，方案里也各自配了）----
-  "translator/enable_user_dict": true
-  "translator/user_dict": mydomain.user
-  "translator/db_class": userdb
+  # ---- 用户词典学习 ----
+  # ⚠ 这三项**不要写在这里**。librime 的 DefaultConfigPlugin 对 `*.schema`
+  #   资源只从 default 引入 menu / navigator / selector 三节
+  #   （config/default_config_plugin.cc），**不含 translator**；方案也只会
+  #   `import_preset: default` 导入 key_binder / recognizer。
+  #   所以写在这里等于写进 default 配置里一个没人读的 translator 键 —— 静默无效。
+  #   真正的开关在 mydomain.schema.yaml 的 mymain / mydomain_abbrev 里。
+  #   （万一哪天它真的生效，反而会让 luna_pinyin 也把词写进 mydomain.userdb。）
 
-  # ---- 标点：中文状态下输出全角 ----
-  "punctuator/half_shape": false
+  # ---- 标点 ----
+  # mydomain 的标点来自 `punctuator: import_preset: symbols`（随包 symbols.yaml），
+  # 不读 default 的 punctuator，所以这里不需要任何补丁。
+  # ⚠ 切勿写 `"punctuator/half_shape": false`：default.yaml 里 half_shape 是
+  #   **映射表**（`__include: punctuation:/half_shape`）。赋成布尔后
+  #   Punctuator::LoadConfig 取不到 map（punctuator.cc 会打 "missing punctuation
+  #   mapping"）并回退到空表 —— 凡是走 `import_preset: default` 取标点的方案
+  #   （当前只有 stroke），半角标点会整表失效。
 
   # ---- 自动记忆新词 ----
   # 用户上屏的词若不在主词库，librime 会自动写入 mydomain.userdb 并提权。

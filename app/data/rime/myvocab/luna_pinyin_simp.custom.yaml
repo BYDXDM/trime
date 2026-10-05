@@ -1,0 +1,16 @@
+# SPDX-FileCopyrightText: 2026 myime
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# luna_pinyin_simp.custom.yaml —— 明月拼音·简化字启用模糊音。
+# 与 luna_pinyin.custom.yaml 相同的规则集（simp 通过 __include 继承
+# luna_pinyin 的配置，这里显式重申一遍，保证两方案行为一致）。
+# ⚠ 模糊音必须写在简拼（abbreviation）之前，简拼才支持模糊音。
+patch:
+  speller/algebra:
+    __patch:
+      - pinyin:/zh_z_bufen        # zh, ch, sh <=> z, c, s
+      - pinyin:/n_l_bufen         # n <=> l
+      - pinyin:/en_eng_bufen      # en/eng、in/ing 前后鼻音
+      - pinyin:/abbreviation      # 简拼（首字母 + zh/ch/sh）
+      - pinyin:/spelling_correction
+      - pinyin:/key_correction
