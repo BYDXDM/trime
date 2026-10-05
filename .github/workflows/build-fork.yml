@@ -1,9 +1,31 @@
 name: Build Fork APK
 
+# 触发方式：
+#   1. push 到 main/master/develop —— 自动编 debug 包（快，~10 分钟）
+#   2. 手动触发（Actions 页 → Run workflow）—— 可选编 debug / release / 两者
+#
+# 为什么要手动选：debug 与 release 用的是**两套 native 构建配置**
+# （CMake Debug vs RelWithDebInfo），两个都编等于把 C++ 全量编译跑两遍，
+# CI 时间翻倍。所以 push 时只编 debug，需要签名包时手动选 release。
 on:
   push:
     branches: [ main, master, develop ]
   workflow_dispatch:
+    inputs:
+      variant:
+        description: '构建变体'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+          - release
+          - both
+      publish_release:
+        description: '构建成功后创建 GitHub Release（含可下载产物）'
+        required: true
+        default: true
+        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,6 +43,9 @@ jobs:
       # `splits.abi { include(BUILD_ABI.split(",")) }` 读取它，
       # 未设置时回退到 Versions.supportedAbis（全部 4 个）。
       BUILD_ABI: arm64-v8a,armeabi-v7a
+
+      # push 事件没有 inputs，统一在这里归一化成 "debug" / "release" / "both"
+      VARIANT: ${{ github.event.inputs.variant || 'debug' }}
     steps:
       # 只 checkout 本仓库，submodule 交给后面显式的
       # `git submodule update --init --recursive`（不带 --depth），
@@ -116,8 +141,49 @@ jobs:
       - name: Run unit tests
         run: ./gradlew :app:testDebugUnitTest --stacktrace
 
+      # ── 签名配置 ────────────────────────────────────────────────
+      # build-logic 的 ProjectExtensions.kt 支持两种来源：
+      #   storeFile=<路径>   或   keyBase64=<密钥库的 base64>
+      # 这里用 keyBase64：keystore 本体不进仓库，只以 Secret 形式存在。
+      # 未配置 Secret 时跳过，release 会产出**未签名**包（装不上，仅用于验证编译）。
+      - name: Configure release signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
+          KEYSTORE_KEY_ALIAS: ${{ secrets.KEYSTORE_KEY_ALIAS }}
+          KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+        run: |
+          set -e
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::warning::未配置 KEYSTORE_BASE64 Secret —— release 包将不带签名"
+            exit 0
+          fi
+          {
+            echo "keyBase64=$KEYSTORE_BASE64"
+            echo "storePassword=$KEYSTORE_STORE_PASSWORD"
+            echo "keyAlias=$KEYSTORE_KEY_ALIAS"
+            echo "keyPassword=$KEYSTORE_KEY_PASSWORD"
+          } > keystore.properties
+          echo "keystore.properties 已写入（$(wc -c < keystore.properties) 字节，内容不回显）"
+
+      # ── 编译 ───────────────────────────────────────────────────
       - name: Build debug APK
+        if: ${{ env.VARIANT == 'debug' || env.VARIANT == 'both' }}
         run: ./gradlew :app:assembleDebug --stacktrace
+
+      - name: Build release APK
+        if: ${{ env.VARIANT == 'release' || env.VARIANT == 'both' }}
+        run: ./gradlew :app:assembleRelease --stacktrace
+
+      # 签名自检：装不上往往就是签名没生效或密钥不对，这里直接打指纹，
+      # 省得下载回去才发现。未配置 Secret 时跳过。
+      - name: Verify release signature
+        if: ${{ (env.VARIANT == 'release' || env.VARIANT == 'both') && hashFiles('keystore.properties') != '' }}
+        run: |
+          set -e
+          APK=$(find app/build/outputs/apk/release -name '*arm64-v8a*.apk' | head -1)
+          echo "校验: $APK"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$APK"
 
       # 注意：splits.abi 会为每个 ABI 生成一个独立 APK，
       # 原先的 `find ... | head -1` 按字母序只拿到一个（x86_64），
@@ -129,25 +195,33 @@ jobs:
         run: |
           set -e
           mkdir -p out
-          find app/build/outputs/apk/debug -name "*.apk" -type f | sort > out/apk-list.txt
+          : > out/apk-list.txt
+          for dir in debug release; do
+            [ -d "app/build/outputs/apk/$dir" ] || continue
+            find "app/build/outputs/apk/$dir" -name "*.apk" -type f | sort >> out/apk-list.txt
+          done
           echo "--- 产物列表 ---"
           cat out/apk-list.txt
-          ls -la app/build/outputs/apk/debug/
           echo "count=$(wc -l < out/apk-list.txt)" >> $GITHUB_OUTPUT
-          echo "path=app/build/outputs/apk/debug" >> $GITHUB_OUTPUT
-          # 至少要有 arm64-v8a，否则手机装不上，直接失败提醒
+          # 至少要有一个 arm64-v8a，否则手机装不上，直接失败提醒
           grep -q "arm64-v8a" out/apk-list.txt \
             || { echo "ERROR: 缺少 arm64-v8a 产物"; exit 1; }
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: myime-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: myime-apk-${{ env.VARIANT }}
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
           retention-days: 30
 
-  release:
+  # 只有手动触发且勾了 publish_release 才发 Release；
+  # push 触发的日常构建只留 artifact（30 天），不污染 Releases 列表。
+  publish:
     needs: build
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publish_release == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -155,7 +229,7 @@ jobs:
       - name: Download APK
         uses: actions/download-artifact@v4
         with:
-          name: myime-debug-apk
+          name: myime-apk-${{ github.event.inputs.variant }}
           path: apk
       - name: List downloaded APKs
         run: ls -la apk/
@@ -165,15 +239,17 @@ jobs:
           tag_name: v0.1.${{ github.run_number }}
           name: myime v0.1.${{ github.run_number }}
           body: |
-            自动化构建产物（debug 签名，仅供测试安装）。
-            基于 Trime develop 分支二次开发。
+            自动化构建产物（GitHub Actions）。基于 Trime develop 分支二次开发。
 
             ## 该下载哪个？
 
             | 文件 | 适用设备 |
             |---|---|
-            | `*-arm64-v8a-debug.apk` | **绝大多数手机**（近几年的 Android 机型） |
-            | `*-armeabi-v7a-debug.apk` | 老旧 32 位设备 |
+            | `*-arm64-v8a-*.apk` | **绝大多数手机**（近几年的 Android 机型） |
+            | `*-armeabi-v7a-*.apk` | 老旧 32 位设备 |
+
+            `-debug` 后缀的包名是 `com.osfans.trime.debug`（与正式包并存，可同时安装）；
+            `-release` 后缀的包名是 `com.osfans.trime`，已签名，适合长期使用。
 
             装之前先在系统设置里开启「允许安装未知来源应用」。
-          files: apk/*.apk
+          files: apk/**/*.apk
