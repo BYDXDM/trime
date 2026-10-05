@@ -62,7 +62,17 @@ open class CompactCandidateViewAdapter(
         val ui = CandidateItemUi(context, scope)
         ui.root.apply {
             minimumWidth = dp(40)
-            layoutParams = FlexboxLayoutManager.LayoutParams(wrapContent, matchParent)
+            layoutParams =
+                FlexboxLayoutManager.LayoutParams(wrapContent, matchParent).apply {
+                    // ★ Never let Flexbox shrink a candidate below its text width.
+                    //   With flexShrink > 0 the item gets squeezed (in NOWRAP mode down to
+                    //   its minimumWidth alone) and the glyphs no longer fit the cell —
+                    //   which was one half of the "candidate row renders completely blank"
+                    //   defect. Overflow is fine: the layout manager scrolls horizontally.
+                    //   Set here on the LayoutParams instance so onBindViewHolder's
+                    //   updateLayoutParams{minWidth; flexGrow} cannot reset it.
+                    flexShrink = 0f
+                }
         }
         return CandidateViewHolder(ui)
     }

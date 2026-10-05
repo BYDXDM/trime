@@ -29,14 +29,18 @@ class GeneralStyleTest :
                 Then("plain scalar values from the file are preserved") {
                     style shouldNotBe null
                     style.autoCaps shouldBe false
-                    style.candidatePadding shouldBe 0
-                    style.candidateSpacing shouldBe 0f
-                    style.candidateTextSize shouldBe 22f
+                    // 这两个原本是默认 0（主题没设），候选之间因此既无内边距也无间隔；
+                    // 用户反馈「没有间隔」后显式补上。
+                    style.candidatePadding shouldBe 6
+                    style.candidateSpacing shouldBe 6f
+                    // 字号/格子高度必须配套：候选文字不缩放（scaleMode = Mode.None），
+                    // 框比字矮就会把字上下裁掉。18sp 约 78px，配 32dp(96px) 的框。
+                    style.candidateTextSize shouldBe 18f
                     style.candidateTextVerticalBias shouldBe 1f
-                    style.candidateViewHeight shouldBe 28
+                    style.candidateViewHeight shouldBe 32
                     style.commentHeight shouldBe 12
                     style.commentPosition shouldBe GeneralStyle.CommentPosition.RIGHT
-                    style.commentTextSize shouldBe 10f
+                    style.commentTextSize shouldBe 12f
                     style.horizontalGap shouldBe 1
                     style.keyHeight shouldBe 52
                     style.keyLongTextSize shouldBe 14f

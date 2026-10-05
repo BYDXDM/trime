@@ -29,8 +29,13 @@ style:
   # symbolTextSize，不是 label_text_size —— 后者目前对本用途无效。
   # 10 太小、与字母 22 对比不明显，调到 13 让角标可辨认。
   symbol_text_size: 13
-  candidate_text_size: 22
-  comment_text_size: 10
+  # ⚠ 单位是 sp（代码里过 sp()）。字号必须和下面的 candidate_view_height 配套：
+  #   候选文字现在不缩放（scaleMode = Mode.None），框比字矮就会把字上下裁掉。
+  #   经验值是「字体像素高 ≈ sp 值 × 密度 × 1.45」，所以
+  #   candidate_view_height(px) ≥ candidate_text_size × 密度 × 1.45。
+  #   本机密度 3.0：18sp → 约 78px，配 34dp(102px) 的框，余量充足。
+  candidate_text_size: 18
+  comment_text_size: 12        # 注释/拼音，同样过 sp()
   preview_text_size: 40
 
   # ---- 尺寸 ----
@@ -42,7 +47,16 @@ style:
   shadow_radius: 0.0
   keyboard_height: 250       # 锁定键盘总高，避免切换键盘时高度跳动
   keyboard_height_land: 200
-  candidate_view_height: 28
+  candidate_padding: 6         # 候选之间的内边距（dp）
+  # ⚠ 这个值会被 max(spacing, dp(spacing)) 放大，而且**直接从每个候选格子宽度里扣**：
+  #   CompactCandidateDelegate 里 layoutMinWidth = w/列数 - separator.intrinsicWidth。
+  #   填 16 实际就是 48px，格子被扣掉 48px，文字再被等比缩放 → 候选被挤成细条甚至看不见。
+  #   填 6 → 实际 18px，既看得出间隔，又只占 1/6 的格宽。
+  candidate_spacing: 6
+  # 候选格子高度（dp）。必须容得下 candidate_text_size 的字体像素高，
+  # 否则上下会被裁掉（文字不缩放，放不下就是溢出/裁切）。
+  # 密度 3.0 下：32dp = 96px，恰好包住 18sp（约 78px）并留出余量。
+  candidate_view_height: 32
   comment_height: 12
   preview_height: 60
   preview_offset: -12
@@ -100,7 +114,10 @@ preset_color_schemes:
     author: myime
     back_color: 0xF2F3F5            # 候选区背景
     border_color: 0x33D8DBE0            # 键盘外框：调淡到 20%，近无边框
-    candidate_separator_color: 0x1AE3E6EA  # 候选分隔线：调淡到 10%
+    # 候选之间的「间隔」其实是这个颜色的**色块**（CompactCandidateDelegate 的
+    # separatorDrawable 用 candidateSpacing 当尺寸）。之前调到 10% alpha 等于看不见，
+    # 用户反馈「没有间隔」。40% 在浅底和动图上都能看出分隔，又不抢戏。
+    candidate_separator_color: 0x66E3E6EA
     candidate_text_color: 0x1A1A1A
     comment_text_color: 0x8A9099
     hilited_back_color: 0xDCE6F5

@@ -50,6 +50,11 @@ class CandidateItemUi(
     private val theme: Theme
         get() = scope.theme
 
+    // ⚠ 不要包 sp()。`TextView.textSize = x` 内部的 setTextSize(float) 已经按
+    //   COMPLEX_UNIT_SP 解释 x，再乘一次 density 就等于把字号放大 3 倍
+    //   （密度 3.0 下 18 → 54sp = 162px），字会撑爆格子被裁掉。
+    //   需要 px 的是 Paint（见 KeyView.kt:316 的 `textPaint.textSize = sp(...)`），
+    //   TextView 这边给原始主题值即可。trime 主题里这两个键的语义就是 sp。
     private val textSize = theme.generalStyle.candidateTextSize
     private val commentSize = theme.generalStyle.commentTextSize
 
@@ -67,6 +72,13 @@ class CandidateItemUi(
     private val commentVerticalBias = theme.generalStyle.commentVerticalBias
     private val candidateTextVerticalBias = theme.generalStyle.candidateTextVerticalBias
 
+    // ★ 候选文字不再等比缩放适配格子。
+    //   之前是 Mode.Proportional：格子一窄（Flexbox 压缩 / 候选太多），
+    //   缩放比例 = min(格宽/字宽, 格高/字高) 且**没有下限**，可以一路缩到 0 ——
+    //   整个候选栏因此画成空白（实测 _shot3/4/5 里候选行零墨迹）。
+    //   更早的版本里「调大字号 → 字自然更宽 → 格子被压得更狠 → 反而更小」的
+    //   越改越小闭环，也是同一个机制。
+    //   现在文字保持原尺寸，放不下就横向溢出，靠候选栏的横向滚动滑出来。
     private val text =
         view(::AutoScaleTextView) {
             id = View.generateViewId()
@@ -74,7 +86,7 @@ class CandidateItemUi(
             typeface = textFont
             isSingleLine = true
             gravity = gravityCenter
-            scaleMode = AutoScaleTextView.Mode.Proportional
+            scaleMode = AutoScaleTextView.Mode.None
         }
 
     private val comment =
@@ -84,7 +96,7 @@ class CandidateItemUi(
             typeface = commentFont
             isSingleLine = true
             gravity = gravityCenter
-            scaleMode = AutoScaleTextView.Mode.Proportional
+            scaleMode = AutoScaleTextView.Mode.None
         }
 
     private val content = constraintLayout {

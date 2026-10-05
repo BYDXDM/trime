@@ -52,6 +52,7 @@ class TabUi(
     private val titleText = textView {
         typeface = Typeface.defaultFromStyle(Typeface.BOLD)
         gravity = gravityVerticalCenter
+        // TextView.textSize 已是 sp 语义，不要再包 sp()（会乘两次 density）。
         textSize = theme.generalStyle.candidateTextSize
         setTextColor(scope.colors.keyTextColor)
     }

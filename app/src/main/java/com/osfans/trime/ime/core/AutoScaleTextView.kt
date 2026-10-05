@@ -192,6 +192,10 @@ constructor(
                 }
 
                 Mode.Proportional -> {
+                    // 注意：这里的缩放系数**没有下限**，格子被压到放不下时会一路
+                    // 缩到近 0，画布上什么都画不出来（候选栏曾因此整行空白）。
+                    // 调用方须保证格子够大：见 CandidateItemUi 的 Mode.None +
+                    // CompactCandidateViewAdapter 的 flexShrink = 0f。
                     val textXScale = contentWidth.toFloat() / textWidth.toFloat()
                     val textYScale = contentHeight.toFloat() / textHeight.toFloat()
                     val textScale = min(textXScale, textYScale)

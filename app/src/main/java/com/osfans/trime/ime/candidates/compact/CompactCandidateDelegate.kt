@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2015 - 2025 Rime community
+ * SPDX-FileCopyrightText: 2015 - 2026 Rime community
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
@@ -114,12 +114,23 @@ class CompactCandidateDelegate(override val di: DI) :
     val layoutManager by lazy {
         object : FlexboxLayoutManager(context) {
             init {
-                // ★ 候选栏改为「单行 + 横向滚动」，右滑即可看更多候选。
-                //   原本是默认的 FlexWrap.WRAP：候选多于列数时换到第二行，
-                //   而候选栏高度固定成一行 → 多出来的整行被裁掉；又因为下面
-                //   两个 canScroll* 都被写死 false，用户**永远够不着**这些候选。
-                //   改成 NOWRAP 后，可见部分的外观不变（本来就只显示一行），
-                //   多出来的候选改为横向溢出，可以滑出来。
+                // ★ 单行 + 横向滚动。
+                //   FlexWrap.WRAP 会在候选多于列数时换到第二行，而候选栏高度固定成一行 →
+                //   第二行整行被裁掉；又因为 canScrollHorizontally() 原本被写死 false，
+                //   用户永远够不着那些候选。NOWRAP 后多出来的候选改为横向溢出。
+                //
+                // ⚠ NOWRAP 下绝不能允许 flexShrink > 0：
+                //   FlexboxLayoutManager 在单行模式下按「所有子项的最小宽度之和」是否
+                //   超过容器来决定是否把 items 们 shrink。候选项的最小宽度等于
+                //   CandidateItemUi.root 的 minimumWidth（40dp = 120px），于是
+                //   6 个候选 × 120px = 720px < 996px → 判定「放得下」，不 shrink，
+                //   但随后 Flexbox 仍按 flexBasis（= 测量宽度）之和去分配空间，
+                //   flexGrow 又是 0 → 每个 item 都被压到 40dp。
+                //   而 40dp 的格子装不下候选字号 → AutoScaleTextView(Proportional)
+                //   的缩放系数 min(格宽/字宽, 格高/字高) 没有下限，一路缩到近 0，
+                //   于是画布上什么都没画。**候选栏因此整行空白。**
+                //   修法是两端一起改：这里放开单行，Adapter 里 flexShrink = 0，
+                //   CandidateItemUi 里 scaleMode = Mode.None（不再缩放文字）。
                 flexWrap = FlexWrap.NOWRAP
             }
 

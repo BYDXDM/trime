@@ -110,7 +110,7 @@ class ThemeGoldenTest :
                 Then("theme header and style scalars are preserved") {
                     theme.name shouldBe "myime"
                     val style = theme.generalStyle
-                    style.candidateTextSize shouldBe 22f
+                    style.candidateTextSize shouldBe 18f
                     style.keyHeight shouldBe 52
                     style.horizontalGap shouldBe 1
                 }
