@@ -42,7 +42,9 @@ jobs:
       # build-logic 的 NativeBaseConventionPlugin 用
       # `splits.abi { include(BUILD_ABI.split(",")) }` 读取它，
       # 未设置时回退到 Versions.supportedAbis（全部 4 个）。
-      BUILD_ABI: arm64-v8a,armeabi-v7a
+      # 只出 arm64-v8a：真机是 arm64，多出一个 armeabi-v7a 只会让产物列表变长、
+      # 每次下载都要挑。需要 32 位包时改成 "arm64-v8a,armeabi-v7a" 即可。
+      BUILD_ABI: arm64-v8a
 
       # push 事件没有 inputs，统一在这里归一化成 "debug" / "release" / "both"
       VARIANT: ${{ github.event.inputs.variant || 'debug' }}

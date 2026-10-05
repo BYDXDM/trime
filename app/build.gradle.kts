@@ -39,7 +39,10 @@ android {
 
     base {
         // https://www.norio.be/blog/archivesBaseName-removed-from-gradle9.html
-        archivesName = "${android.defaultConfig.applicationId}-$buildVersionName"
+        // 产物文件名改短：原来拼成 com.osfans.trime-v0.1.19-6-ge1bb9bcf-arm64-v8a-release.apk，
+        // 太长且没法一眼看出是什么。版本号在 APK 的 versionName 和 GitHub Release 的 tag 里都有，
+        // 文件名不必再带一遍。
+        archivesName = "trime"
     }
 
     buildFeatures {
