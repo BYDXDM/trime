@@ -27,15 +27,24 @@ internal object RimeStartupGate {
         usesExternalSync: Boolean,
         hasExternalAccess: Boolean,
         storageChoiceDone: Boolean,
-    ): Boolean {
+    ): Boolean = when {
         // Runtime dirs are required in every mode: without them nothing to load.
-        if (!runtimeReady) return true
-        // The setup wizard has not been completed yet; starting now would
-        // resolve the wrong data dir and then have to be redone.
-        if (!storageChoiceDone) return true
-        // External sync is selected but the persisted permission is missing
-        // (revoked, or restored on another device): defer until it is granted.
-        if (usesExternalSync && !hasExternalAccess) return true
-        return false
+        !runtimeReady -> true
+
+        // App-internal storage: nothing else to wait for.
+        !usesExternalSync -> false
+
+        // External sync with a live grant: good to go.
+        hasExternalAccess -> false
+
+        // ★ 关键：**「从未做过存储选择」不能当作「存储不可用」**。
+        //   存储方式是应用内向导里的一步；用户只启用输入法、从未打开过应用时，
+        //   该选择尚未完成。此时若跳过启动，Rime 永远起不来 → ThemeScope 永不就绪
+        //   → onCreateInputView 无限推迟 → **键盘整块空白、打不出中文**
+        //   （首次安装即启用输入法时必现）。
+        //   从未选择时按应用内存储直接启动，与 DataManager.deploy 的
+        //   ExternalSyncFallback 语义一致；只有「已做过选择却拿不到目录权限」
+        //   （权限被撤销、或从别的设备恢复）才继续等待。
+        else -> storageChoiceDone
     }
 }
