@@ -154,10 +154,12 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
 
                         KeyEvent.KEYCODE_VOICE_ASSIST -> switchToVoiceInputMethod()
 
-                        // 退格：**未上屏（还在预编辑）时一次清空全部拼音**，已上屏则维持
-                        // 原来的逐字删除。librime 原生 BackSpace 只删一个字符，所以
-                        // 这里在交给 Rime 之前先判一次。想逐字删仍可用键盘上的
-                        // swipe_left（BackToPreviousSyllable）或长按。
+                        // 退格（单击）：逐字删除，保持用户已习惯的行为。
+                        // ⚠ 原设计是「有预编辑时一次清空全部拼音」，但 clearCompositionIfAny()
+                        //   依赖 service.hasComposition()（composingText 非空），真机预编辑期间
+                        //   该判定实测为假 → 分支恒不生效，一直退化成逐字删。
+                        //   按用户确认：单击保持逐字删；整体清空改由删除键**上滑**
+                        //   （clear_composition）承担。
                         KeyEvent.KEYCODE_DEL -> if (!clearCompositionIfAny()) handleDefaultKeyAction(action)
 
                         else -> handleDefaultKeyAction(action)
@@ -177,6 +179,19 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
                     service.lifecycleScope.launch { api.clearComposition() }
                 }
                 return true
+            }
+
+            /**
+             * 无条件清空 Rime 的预编辑串（删除键上滑 clear_composition 用）。
+             *
+             * 不做 hasComposition() 前置判断：没有预编辑时 clearComposition() 本身就是
+             * 空操作；加判断只会像 clearCompositionIfAny() 那样被 composingText 的状态
+             * 拖累而静默失效。
+             */
+            private fun clearComposition() {
+                rime.launchOnReady { api ->
+                    service.lifecycleScope.launch { api.clearComposition() }
+                }
             }
 
             private fun handleSwitchCharset(action: KeyAction) {
@@ -210,20 +225,39 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
 
                 when (action.command) {
                     "liquid_keyboard" -> handleLiquidKeyboard(arg)
+
                     "menu_keyboard" -> windowManager.attachWindow(SwitchOptionWindow(di))
+
                     "clipboard_window" -> handleClipboardWindow(arg)
+
                     "set_color_scheme" -> handleColorScheme(arg)
+
                     "set_theme" -> handleTheme(arg)
+
                     "broadcast" -> service.sendBroadcast(Intent(arg))
+
                     "clipboard" -> handleClipboard()
+
                     "commit" -> service.commitText(arg)
+
                     "date" -> service.commitText(customFormatDateTime(arg))
+
                     "run" -> handleRunCommand(arg)
+
                     "apply" -> handleApplyCommand(arg)
+
                     "share_text" -> service.shareText()
+
                     "select_candidate" -> handleSelectCandidate(arg)
+
                     "switch_hide_key_symbol" -> switchHideKeySymbol()
+
                     "switch_hide_key_hint" -> switchHideKeyHint()
+
+                    // 删除键**上滑**：清空整个待选拼音（Rime composition）。
+                    // 与单击区分：单击走 KEYCODE_DEL 分支逐字删，上滑走这里整体清空。
+                    "clear_composition" -> clearComposition()
+
                     else -> handleIntentAction(action.command, arg)
                 }
             }

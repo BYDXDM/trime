@@ -123,11 +123,16 @@ class ThemeGoldenTest :
                     // fork 把 preset_keys 从 16 个补回到 34 个（见 README-FORK 坑 5）
                     // 34 → 41：符号面板按搜狗习惯拆成 7 组后，preset_keys 多了
                     // 7 条分组页签（SymbolsTab_*）。
-                    theme.presetKeys.size shouldBe 41
+                    // 41 → 42：新增 ClearPinyin（删除键上滑清空待选拼音）。
+                    theme.presetKeys.size shouldBe 42
                     // 补回的预设里 copy/paste 曾经是哑键，这里守住它们
                     theme.presetKeys.getValue("copy").send shouldBe "Control+c"
                     theme.presetKeys.getValue("paste").send shouldBe "Control+v"
                     theme.presetKeys.getValue("BackToPreviousSyllable").send shouldBe "Control+BackSpace"
+                    // 删除键上滑必须是 FUNCTION + clear_composition；
+                    // 不能退回旧的 text: "{Control+a}{BackSpace}"（那是全选删正文，会误删整篇）
+                    theme.presetKeys.getValue("ClearPinyin").send shouldBe "FUNCTION"
+                    theme.presetKeys.getValue("ClearPinyin").command shouldBe "clear_composition"
                 }
 
                 // 5 → 11：符号面板按搜狗习惯拆成 7 组（常用/中文/英文/网络/数学/箭头/序号），

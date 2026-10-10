@@ -286,6 +286,13 @@ preset_keys:
     send: BackSpace
     repeatable: true
 
+  # ★ 删除键上滑 = 清空整个「待选拼音」（Rime composition）。
+  #   走 FUNCTION 命令 clear_composition → CommonKeyboardActionListener
+  #   的 handleFunctionCommand → Rime 的 clearComposition()。
+  #   ⚠ 不要再用 text: "{Control+a}{BackSpace}"：那是「全选并删除」，
+  #     作用在编辑器正文上，会误删整篇笔记，对拼音毫无作用（旧 Clear 的坑）。
+  ClearPinyin: { label: 清空拼音, send: FUNCTION, command: clear_composition }
+
   # ===========================================================================
   #  以下预设从上游 Trime 补回（定义取自上游 trime.yaml L878-L913）
   #
@@ -392,7 +399,7 @@ preset_keyboards:
     - { click: 'b', label_symbol: ':', swipe_up: ':', swipe_down: '：', width: 10 }
     - { click: 'n', label_symbol: ';', swipe_up: ';', swipe_down: '；', width: 10 }
     - { click: 'm', label_symbol: '/', swipe_up: '/', swipe_down: "\\", width: 10 }
-    - { click: backspace_clear, swipe_up: Clear, swipe_left: BackToPreviousSyllable, width: 15 }
+    - { click: backspace_clear, swipe_up: ClearPinyin, swipe_left: BackToPreviousSyllable, width: 15 }
 
     # ---------------- 第 4 行：底栏 ----------------
     # 符(10) 123(10) ，(10) 空格(30) 。(10) 中英(15) 换行(15) = 100
@@ -456,7 +463,7 @@ preset_keyboards:
     - { click: 'b', label_symbol: ':', swipe_up: ':', swipe_down: '：', long_click: Insert, width: 10 }
     - { click: 'n', label_symbol: ';', swipe_up: ';', swipe_down: '；', long_click: undo, width: 10 }
     - { click: 'm', label_symbol: '/', swipe_up: '/', swipe_down: "\\", long_click: redo, width: 10 }
-    - { click: backspace_clear, swipe_up: Clear, swipe_left: BackToPreviousSyllable, width: 15 }
+    - { click: backspace_clear, swipe_up: ClearPinyin, swipe_left: BackToPreviousSyllable, width: 15 }
 
     # ---- 第 4 行 ----
     - { click: Keyboard_symbols, long_click: Keyboard_number }
