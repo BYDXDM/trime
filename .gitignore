@@ -488,3 +488,8 @@ app/src/main/jni/boost/
 __pycache__/
 *.py[cod]
 
+# 构建产物与签名材料
+# ⚠ dist/ 里有 release.jks.base64.txt（签名密钥的 base64），**绝不能入库**。
+#   *.jks 规则匹配不到 .txt，所以必须单独忽略整个目录。
+dist/
+
