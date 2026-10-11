@@ -366,6 +366,22 @@ $env:BUILD_ABI = "arm64-v8a"
 - `dist/` 当前只有 `trime-release.apk` + `release.jks.base64.txt`（**签名密钥，勿外传**）
 - **不要把产物拷到用户桌面**——用户明确要求过。只放 `dist/`。
 
+> ⚠⚠ **绝对不要一次编多个 ABI**（2026-10-11 踩到，差点把坏包发出去）：
+>
+> `BUILD_ABI=arm64-v8a,x86_64` 会让 **arm64 那个包变成坏包** —— 只有 83 个条目、
+> **没有 `AndroidManifest.xml` / `resources.arsc` / `res/`**，安装时报
+> `INSTALL_PARSE_FAILED_UNEXPECTED_EXCEPTION: ... AndroidManifest.xml`。
+> 单编 `BUILD_ABI=arm64-v8a`（**CI 就是这么编的**，所以已发布的 Release 没问题）
+> 产出的包是完整的（510 条目）。
+>
+> **要两个 ABI 就分两次编，每次只给一个 ABI。** 编完务必自检：
+>
+> ```bash
+> python -c "import zipfile,sys;n=zipfile.ZipFile(sys.argv[1]).namelist();print(len(n),'AndroidManifest.xml' in n,'resources.arsc' in n)" dist/trime-release.apk
+> ```
+>
+> 期望 `510 True True`。看到 `83 False False` 就是坏包，别发。
+
 ### CI
 
 `.github/workflows/build-fork.yml` 是唯一的 workflow。触发方式：
