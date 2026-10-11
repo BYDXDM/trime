@@ -1,213 +1,185 @@
 # NEXT-STEPS.md · 下一步交给 agent 的工作单
 
-> 写于 2026-10-10。前置：先通读 **`D:\trime-build\HANDOVER.md`**（项目现状、根因、坑位全在里面）。
+> 写于 2026-10-11。前置：先通读 **`HANDOVER.md`**（项目现状、根因、坑位全在里面）。
 > 本文档只讲「要做什么、怎么算做完、碰到岔路怎么选」。
+>
+> 上一版（10-10）的 A–E 已**全部完成**（用户确认去边框、首个签名包、真机回归、
+> 仓库清理、文档入库），本版是新一轮。
 
 ---
 
-## 0. 现在的状态（开工前必须自己复核一遍）
+## 0. 开工前必须自己复核一遍
 
-```powershell
-cd D:\trime-build
-git status -sb          # 期望：## develop...origin/develop   且无 ahead
-git rev-parse HEAD      # 期望：6fd825f7d53c695558350ad8ffe9ce52f636c788
-git log --oneline -3
+```bash
+cd D:/trime-build
+git status -sb          # 期望：## develop...origin/develop，无 ahead
+git rev-parse HEAD      # 期望：82132c907b46ad9f006ecb750d86e9fef36fc210
+git log --oneline -5
 ```
 
-- **无已知缺陷。** 崩溃、候选栏空白、去边框三项都已修完并推送。
-- **真机当前没连上**（2026-10-10 复查时 `adb devices` 为空、
-  `Get-PnpDevice` 枚举不到 Android/HDB 设备）。运到任何要动手机的步骤，
-  第一步都是让用户插好手机，然后：
-  ```powershell
-  $ADB='D:\Android\Sdk\platform-tools\adb.exe'
-  & $ADB kill-server; Start-Sleep 3; & $ADB start-server; Start-Sleep 5; & $ADB devices -l
-  ```
-  目标设备序列号应为 `EAT0220316001355`。
-- 若用户在此期间已给你新指令，**以用户为准**，本文档退为参考。
+- 上一轮（10-10～11）还做了三个功能：**颜文字面板**、**主界面近 7 天输入走势**、
+  **删除键上滑清空（拼音 + 正文）**，并修掉了 7 个符号面板的底栏权重缺陷。
+- **无已知缺陷。**
+- 若用户在此期间给了新指令，**以用户为准**，本文档退为参考。
 
 ---
 
-## 1. 任务总表
+## 1. 待办总表
 
 | # | 任务 | 依赖 | 优先级 | 能否自动做 |
 |---|---|---|---|---|
-| A | 让用户亲手确认「去边框」后的观感 | 手机连接 | ★★★ | 半自动（要用户看一眼） |
-| B | 发一个可下载的签名 APK | 无（只需网络/CI） | ★★ | 可以 |
-| C | 真机复装 + 全量回归验收 | 手机连接 | ★★ | 可以 |
-| D | 清理仓库里的历史残留文件 | 无 | ★ | **不可以，先问用户** |
-| E | 把 `HANDOVER.md` 纳入版本管理 | 无 | ★ | 可以（但先问） |
+| A | 触发 CI 发一版含新功能的签名包 | 网络/代理 | ★★★ | 可以（§2） |
+| B | 按 `PLAN-功能扩展.md` 的 P1 做下一项功能 | 无 | ★★ | 可以（§3） |
+| C | 真机连上后把三个新功能在真机上复验 | 真机 | ★★ | 可以（§4） |
+| D | 清掉 `clearCompositionIfAny()` 死代码 | 无 | ★ | 可以（§5） |
 
-**推荐顺序：A → C → B →（用户点头后）D/E。**
-A 是唯一「欠用户的」，先做；B 不必等手机。
+**推荐顺序：A → B →（真机回来后）C → D。**
 
 ---
 
-## 2. 任务 A：让用户亲眼确认外观（欠他的唯一一件）
+## 2. 任务 A：触发 CI 发签名包
 
-### 背景
-用户原话（m00814）：**「现在把去掉边框，我喜欢只看到底部的 gif」**。
-我已经改完并用像素探针验证过无回归，但**用户本人还没看到成品键盘**。
-这是当前唯一真正未闭环的事项。
+上一轮**没发成**：推送完成后代理突然全失效（10808 / 10812 / 8708 与直连都返回 000），
+全端口扫描也没找到可用代理。先探端口（见 §6），再：
 
-### 做什么
-1. 等手机连上，装当前 HEAD 的包：
-   ```powershell
-   & $ADB install -r -t D:\trime-build\dist\trime-release.apk
-   ```
-   （**必须带 `-t`**；不带时失败且报错是空字符串。）
-2. 打开任意可输入的地方（测试用 app：`com.huawei.notepad/com.example.android.notepad.NotePadActivity`），
-   切到白洲梓输入法，随便打几个字让候选栏出现。
-3. 抓图（**不能走重定向**）：
-   ```powershell
-   & $ADB shell screencap -p /sdcard/x.png
-   & $ADB pull /sdcard/x.png D:\trime-build\tools\verify-ui\proof.png
-   ```
-4. 用 `read_image` 直接把图给用户看（本模型原生识图，**不要绕 modlens**），
-   并明确问一句：**边框去掉后的观感对不对**。
+```bash
+P=http://127.0.0.1:10808      # 先探测，别照抄
+curl -s -o /dev/null -w "%{http_code}\n" --max-time 30 -x $P -X POST \
+  -H "Authorization: Bearer $GH_TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  -H "Content-Type: application/json" \
+  -d '{"ref":"develop","inputs":{"variant":"release","publish_release":"true"}}' \
+  https://api.github.com/repos/BYDXDM/trime/actions/workflows/build-fork.yml/dispatches
+# 期望 HTTP 204
+```
+
+⚠ 工作流有 `concurrency.cancel-in-progress`：**CI 在跑时别往同一分支 push**，会取消它。
+⚠ 签名 Secret 已配好（4 个），不用再动。
 
 ### 怎么算做完
-用户明确回复「可以/好看/继续」，或给出要改的地方（那就转成一个新的修复任务）。
-
-### 岔路
-- 用户说要**再调**（例如圆点大小、按键间距、背景图裁切位置）→ 走正常流程：
-  改 `app/src/main/assets/shared/trime.yaml` → 重新构建 → 装机 → 抓图确认 → 提交。
-  **改主题后必须重装 APK 才生效**（asset 打包在里面）。
-- 用户说**想恢复按键底框** → 把 `default` 方案的
-  `key_back_color` / `off_key_back_color` 从 `0x00000000` 改回带 alpha 的色值即可
-  （不要动 `on_key_back_color: 0x3975CE`，它是中英/大小写状态的唯一信号）。
+GitHub 上出现新 Release（tag `v0.1.<run_number>`），资产里有
+`trime-arm64-v8a-release.apk`，把下载链接给用户。
 
 ---
 
-## 3. 任务 B：发一个可下载的签名 APK
+## 3. 任务 B：按 `PLAN-功能扩展.md` 做下一项
 
-### 背景
-`.github/workflows/build-fork.yml` 是仓库唯一的 workflow，支持
-`workflow_dispatch`，输入项里有 `publish_release: true`，勾上就会产出可下载的签名包。
+`PLAN-功能扩展.md` §2 列了 P1 三项，建议顺序：
 
-### 做什么
-1. 确认仓库 `build-fork.yml` 里 `publish_release` 输入项的名字与默认值
-   （**不要凭本文档的记忆下手，读文件**）。
-2. 用 GitHub API 触发（本机有 curl；**注意代理**，见 §6）：
-   ```powershell
-   # token 从用户处要，不要问他贴在聊天里，让他放进环境变量
-   $H = @{ Authorization = "Bearer $env:GH_TOKEN"; Accept = "application/vnd.github+json" }
-   Invoke-RestMethod -Method Post -Headers $H `
-     -Uri "https://api.github.com/repos/BYDXDM/trime/actions/workflows/build-fork.yml/dispatches" `
-     -Body (@{ ref = "develop"; inputs = @{ publish_release = "true" } } | ConvertTo-Json)
-   ```
-3. 轮询 run 状态，成功后把 release 的下载链接给用户。
+1. **自定义短语编辑界面** —— 用户价值最高（常用语 / 地址一键上屏）
+2. **模糊音开关** —— 南方口音用户误码率显著下降
+3. **键盘高度 / 键距调节** —— 直接改善手感
+
+⚠ 三项都要往 `<主题id>.custom.yaml` 写**受管补丁**。动手前**必读**：
+
+- `HANDOVER.md` §5.1 的**单位表**（`key_text_size` / `candidate_text_size` 是 sp，
+  `candidate_view_height` / `candidate_padding` 是 dp，`candidate_spacing` 会被
+  `max(spacing, dp(spacing))` 放大）
+- `README-FORK.md` §6 的补丁坑：配色键必须写成**嵌套 `preset_color_schemes:`**，
+  **不要**用 `preset_color_schemes/<id>` 路径语法 —— 会触发 `ThemeDslExpander`
+  抛 `UnsupportedDsl`，主题加载整个失败、**键盘打不开**
 
 ### 怎么算做完
-GitHub 上出现一个新的 release，里面有 `.apk` 资产，链接给了用户。
+模拟器（或真机）实测功能可用 + `sh tools/all_checks.sh` 通过 + 单测全绿。
 
-### 岔路
-- **不能用 gh CLI**（本机没装，已确认）。
-- 没有 token → 让用户自己在网页上点一下 Actions → Run workflow，别卡住。
-- CI 失败 → 先看是不是签名 secret 缺失（`release.jks.base64.txt` 在 `dist/` 里，
-  内容是密钥的 base64，**不要外传、不要提交**）。
+> ⚠ `all_checks.sh` 第 1 步的 `gen_keywords.py --check` 是**既有失败**
+> （`app/data/` 与 `keywords.tsv` 本来就不一致，与本轮改动无关）。
+> 想让它整条绿，先跑一次 `python3 tools/gen_keywords.py` 把词库合上。
 
 ---
 
-## 4. 任务 C：真机全量回归验收
+## 4. 任务 C：真机复验三个新功能
 
-用户此前明确要求过（m00219）：**「修完你就模拟真机操作验收，尤其是那个表的输出」**——
-即要自己驱动真机、看工具输出的数据，不要只靠眼睛。
+真机 `EAT0220316001355` 回来后，把这三个在真机上再走一遍 ——
+**模拟器验不了 IME 时序与候选栏观感**（见 `HANDOVER.md` §7.1 末尾）。
 
-### 建议的验收清单
-| 项 | 期望 |
+| 功能 | 期望 |
 |---|---|
-| 全新场景不崩 | `adb logcat` 里 `FATAL EXCEPTION` 计数为 0 |
-| 候选栏有内容 | `python tools/verify-ui/_analyze_bar.py <png> 1453 1499` → `inkpx > 0` |
-| 候选字大小 ≈ 按键字母 | `_probe.py` 量字高，和按键字母比 |
-| 候选之间有可见间隔 | `_probe.py` 行扫描能看到 `candidate_separator_color` 的色段 |
-| 候选栏无滚动条 | 候选栏所在带左侧不再出现 dp(3) 起点的灰条 |
-| 按键无圆角底框 | 键面区域内 `key_back_color` 为全透明 |
-| 中英切换状态可见 | 高亮键是 `0x3975CE` |
-| 底部功能键完整 | 符/123/空格/中/Enter 都在 |
+| 颜文字面板 | 符号面板第 8 页签能进；点 kaomoji 能上屏 |
+| 近 7 天走势 | 主界面「今日已输入 N 字」下面有一行 `▁▂▃▄▅▆▇█` |
+| 删除键上滑 | 有正文 + 有待选拼音时上滑 → **两者都清空**；单击仍逐字删 |
 
-### 怎么驱动
-- **必须用 `adb shell input tap` 点 IME 自己的键**；`input text` 会绕过输入法，
-  出不来候选。
-- 坐标基线（1080 宽 / density 3.0）：`x = 77 + 108 * n`；
-  数字行 y≈1600、QWERTY y≈1709、ASDF y≈1882、ZXCV y≈2053。
-- 探针命令示例：
-  ```powershell
-  python tools/verify-ui/_probe.py tools/verify-ui/proof.png 1709
-  python tools/verify-ui/_analyze_bar.py tools/verify-ui/proof.png 1453 1499
-  ```
-
-### 怎么算做完
-上表逐项有数据支撑地为 ✅，或明确记录哪一项 ❌ 并写清复现步骤。
+真机坐标基线见 `HANDOVER.md` §7；模拟器的见 §7.1。**两者不同**
+（真机 density 480、模拟器 440），别混用。
 
 ---
 
-## 5. 任务 D / E：需要用户点头才能做
+## 5. 任务 D：清死代码
 
-### D. 清理历史残留
-`git status` 里这些**不是我这轮产生的**：
-```
-?? _arch.json _arch2.json _arch_payload.json _del.json _dict_check.yaml
-?? _fork.json _hdr.txt _newrepo.json _r.json _repo.json _schema_check.yaml
-?? _setup.png _shot1.png…_shot7.png _t1.txt _t2.txt
- T build-logic/gradle/wrapper/gradle-wrapper.properties
- T fastlane/metadata/android/en-US/images/icon.png
- m app/src/main/jni/librime-lua-deps
-```
-**⚠ `app/src/main/jni/librime-lua-deps` 是子模块工作区脏（lua 补丁），绝对不要动。**
-其余项删除前**必须问用户**——`_shot3.png` 那批是候选栏空白的关键证据图，
-`_t1.txt`/`_t2.txt` 之类可能有用户要留的内容。
+`CommonKeyboardActionListener.clearCompositionIfAny()` 依赖
+`service.hasComposition()`（= `composingText` 非空），真机预编辑期间**恒为假**，
+于是 `KEYCODE_DEL -> if (!clearCompositionIfAny())` 这个分支**从不生效** ——
+现在单击退格就是普通的逐字删。
 
-### E. 把 `HANDOVER.md` 纳入 git
-它现在未跟踪。要不要提交、提交到哪、要不要改名（例如 `docs/HANDOVER.md`），**问用户**。
+按用户确认的行为，这个分支**本来就不该生效**，所以直接删掉它
+（连同 `clearCompositionIfAny()`），让代码与实际行为一致。
+不删的隐患：日后有人「修好」`hasComposition()`，单击行为会**静默变成整体清空**，
+与「单击逐字删」的约定冲突。
+
+### 怎么算做完
+删干净 + 单测全绿 + 单击退格行为不变（仍是逐字删）。
 
 ---
 
 ## 6. 环境坑位速查（每一条都踩过）
 
 ### 代理（端口会变，**用之前先探测**）
-```powershell
-(Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings').ProxyServer
-Get-NetTCPConnection -State Listen | Where-Object { $_.LocalAddress -eq '127.0.0.1' } |
-  Select-Object -ExpandProperty LocalPort | Sort-Object -Unique
+
+```bash
+netstat -ano 2>/dev/null | grep LISTENING | grep "127.0.0.1:" | awk '{print $2}' | sed 's/.*://' | sort -n | uniq
+for P in <候选端口>; do
+  curl -s -o /dev/null -w "$P -> %{http_code}\n" --max-time 3 -x http://127.0.0.1:$P https://api.github.com
+done
 ```
-- 历史值：clash-verge 时期 `7897` → 2026-10-05 起 v2ray `10808`。**别照抄。**
-- shell 里继承的 `http_proxy`/`https_proxy` 可能是**死端口**。
-  **libcurl 只认小写**，四个大小写变量都要覆盖，或干脆单条命令指定：
-  ```powershell
-  git -c http.proxy=http://127.0.0.1:<端口> push origin develop
-  ```
-- 判断 git 实际用了哪个代理：`$env:GIT_CURL_VERBOSE="1"; git ls-remote origin HEAD`
-  → 看 `== Info: Trying 127.0.0.1:<port>...`。
-- 报 `Failed to connect to github.com:443 over proxy ... after 2xxx ms` = 用了死端口。
-- **代理救不了路由规则**：clash 规则 `DOMAIN-KEYWORD,github,良心云` 曾把 GitHub
-  全站路由到挂掉的节点组（google 通、github 全 `code=000`）。遇到这种组合往这查。
 
-### git 凭据
-`~/.gitconfig` 里若有一行**空的** `[credential] helper =`，会把系统级 `manager`
-（Git Credential Manager）覆盖成「没有 helper」，于是 push 报
-`could not read Username for 'https://github.com'`。已修（2026-10-05），
-备份在 `C:\Users\Administrator\.gitconfig.bak-before-helper-fix`。
-自查：`git config --show-origin --get-all credential.helper`。
+- 历史值：clash `7897` → v2ray `10808`（10-05～10-11）→ 之后**又变过**。**别照抄。**
+- ⚠ `reg.exe` 被安全策略黑名单拦截，**不要**再用 `reg query` 读 WinINET。
+- git 走代理：`git -c http.proxy=http://127.0.0.1:<port> push origin develop`
+- push 偶尔会挂住；**放后台写日志再 tail** 更稳：
+  `git -c http.proxy=... push --verbose origin develop > /tmp/push.log 2>&1`
 
-### 识图
-**本会话模型原生支持识图，直接用 `read_image`，不要绕 modlens。**
-需要放大时先裁小区域再读（`tools/verify-ui/_crop_png.py`）。
-`modlens` 只在确实看不到图时才作兜底，它现在只剩上游 503，不是配置问题。
+### 构建（**最容易出事的环节**）
+
+```bash
+export BUILD_ABI=arm64-v8a      # ⚠⚠ 一次只编一个 ABI！
+./gradlew.bat spotlessApply :app:testDebugUnitTest :app:assembleRelease
+```
+
+⚠⚠ **多 ABI 会产出坏包**：`BUILD_ABI=arm64-v8a,x86_64` 会让 arm64 那个包只剩
+83 个条目、**缺 `AndroidManifest.xml` / `resources.arsc` / `res/`**，装不上
+（`INSTALL_PARSE_FAILED_UNEXPECTED_EXCEPTION`）。编完**必自检**：
+
+```bash
+python -c "import zipfile,sys;n=zipfile.ZipFile(sys.argv[1]).namelist();print(len(n),'AndroidManifest.xml' in n,'resources.arsc' in n)" dist/trime-release.apk
+# 期望：510 True True
+```
+
+要 x86_64 给模拟器用，就**单独再编一次** `BUILD_ABI=x86_64`。
+
+### 模拟器（真机掉线时的替代）
+
+完整方法见 `HANDOVER.md` **§7.1**。要点：AVD 用 `smoke`（API 35 / x86_64）、
+**必须用工具的后台模式启动**（`nohup ... &` 起的进程会在本次调用结束时被回收）、
+启动前清掉 `http_proxy` 等变量、装 x86_64 包、输入目标用应用自带的
+`MainActivity` →「Test input」面板。
 
 ### 真机
+
 - `adb install -r -t <apk>`（**必须 `-t`**）。
-- 抓图用 `screencap` 到 sdcard 再 `pull`，**不要用 `exec-out ... > f.png`**
+- 抓图用 `screencap` 到 sdcard 再 `pull`，**不要** `exec-out ... > f.png`
   （PowerShell 会写成 UTF-16，PNG 损坏）。
 - **不要用 `adb reconnect offline`**（会把设备整个弄没）。
-- 系统设置里可以临时把 IME 换成别的再切回来，用来重载主题。
+- Git Bash 里 adb 命令前加 `export MSYS_NO_PATHCONV=1`，否则 `/sdcard/x.png`
+  会被误转成 Windows 路径。
+- 华为装完 APK 会弹全屏「安装成功」页挡住后续操作，先点「完成」。
 
 ### 硬约束（不要违反）
+
 - **回复一律用中文。**
-- **审批提示已禁用：永远不要设置 `sandbox_permissions`。**
+- **永远不要设置 `sandbox_permissions`。**
 - **不要把产物拷到用户桌面**，只放 `D:\trime-build\dist\`。
 - **不要动 `app/src/main/jni/librime-lua-deps` 子模块。**
-- **不要在用户手机上删 `rime/build/*.bin`**（会毁掉词典产物；
-  真需要重建词典用广播，见 HANDOVER §5.4）。
+- **不要在用户手机上删 `rime/build/*.bin`**（会毁词典产物；重建用广播，见 HANDOVER §5.4）。
 
 ---
 
