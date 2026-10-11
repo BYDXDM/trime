@@ -8,16 +8,23 @@
 ## 0. 一句话现状
 
 崩溃、候选栏空白/字号、外观（去边框、只留背景 GIF）三项已修完并推送。
-2026-10-10 接手后完成：用户**亲眼确认**去边框观感 ✅、**首次发出可下载的签名包**
-（GitHub Release `v0.1.21`）✅、真机全量回归 ✅，并**新增「删除键上滑清空待选拼音」**
-（见 §2.4）。
+2026-10-10～11 接手后完成：用户**亲眼确认**去边框观感 ✅、**首次发出可下载的签名包** ✅
+（GitHub Release）、真机全量回归 ✅。
 
-```
-接手时 HEAD = 6fd825f7d53c695558350ad8ffe9ce52f636c788（origin/develop 同值，无 ahead）
-本任新增提交：见 §3.1
-```
+**本任新增功能**：
 
-> ⚠ `dist/trime-release.apk` 已被本任重构建覆盖（含上滑修复），不再是 6fd825f7 的产物。
+- 「删除键上滑 = 清空输入框正文 + 待选拼音」（§2.4）
+- 「颜文字面板」（§2.6）
+- 「主界面近 7 天输入走势」（§2.6）
+- 顺带修掉 7 个既有符号面板的底栏权重缺陷（90 → 100，§2.6）
+
+**下一批功能的方向与优先级见 `PLAN-功能扩展.md`**（P0/P1/P2 分级 + 实施要点）。
+
+**验证环境**：真机掉线后改用 AVD `smoke`（API 35 / x86_64）完成功能验证；
+启动方法、坑与坐标见 **§7.1**。
+
+> ⚠ `dist/trime-release.apk` 已被本任重构建覆盖，不再是 `6fd825f7` 的产物。
+> 接手时基线：HEAD = `6fd825f7d53c695558350ad8ffe9ce52f636c788`。
 
 ---
 
@@ -151,21 +158,53 @@ y≈1453–1499 在 `_shot3`…`_shot7` 上 `inkpx` 全为 0（`_shot1/_shot2` �
    该判定**实测为假** → 分支恒不生效，一直退化成逐字删。
    （旧 §3 记载的「退格清空拼音」**从未真正生效**。）
 
-**修复**（用户确认的分工：**上滑清空 / 单击删 1 字**）：
+**修复**（用户确认的分工：**上滑 = 清空 / 单击 = 逐字删**）：
 
 | 文件 | 改动 |
 |---|---|
-| `app/src/main/assets/shared/trime.yaml` | 新增预设 `ClearPinyin: { label: 清空拼音, send: FUNCTION, command: clear_composition }`；两处退格键（`my_pinyin`、`my_english`）`swipe_up: Clear` → `swipe_up: ClearPinyin` |
-| `app/src/main/java/com/osfans/trime/ime/keyboard/CommonKeyboardActionListener.kt` | `handleFunctionCommand` 新增 `"clear_composition" -> clearComposition()`；新增私有 `clearComposition()`（**不做** `hasComposition()` 前置判断，避免重蹈死分支覆辙） |
+| `app/src/main/assets/shared/trime.yaml` | 新增预设 `ClearAll: { label: 清空, send: FUNCTION, command: clear_all }`；两处退格键（`my_pinyin`、`my_english`）`swipe_up: Clear` → `swipe_up: ClearAll` |
+| `app/src/main/java/com/osfans/trime/ime/keyboard/CommonKeyboardActionListener.kt` | `handleFunctionCommand` 新增 `"clear_all" -> clearInputAndComposition()`；新增私有 `clearInputAndComposition()`（**不做** `hasComposition()` 前置判断，避免重蹈死分支覆辙） |
 
-真机验证（HUAWEI ANA-TN00 / HarmonyOS 4.2 / API 31）：
-- 有 composition（`ni hao`）时上滑 → 预编辑串清空，候选栏回落为联想态 ✅
-- 正文已有「你好」时上滑 → **正文完好无损**，旧的「误删整篇」行为消除 ✅
+⚠ **「清空」的实现踩了三个坑**（前两版都被实测退回）：
+
+1. **第一版**：`swipe_up` 只清 Rime 预编辑串 → 正文一个字没删。
+   用户当场退回：「不是，我原来的上滑删除清空输入框呢」。
+2. **第二版**：在 `handleFunctionCommand` 里调 `onText("{Control+a}{BackSpace}")`
+   → **完全不生效**（正文没被删）。同一个字符串走主题的 `text:` 分支是好的，
+   说明问题出在**调用点**，不在字符串本身。
+   **结论：别在这条路径上依赖组合键回放。**
+3. **第三版（现行）**：直接操作 `InputConnection` —— 光标移到末尾 + 删掉光标前的
+   全部内容。这个语义不依赖输入框对 Ctrl+A 的支持，各输入框行为一致。
+
+最终实现：
+
+```kotlin
+private fun clearInputAndComposition() {
+    rime.launchOnReady { api ->
+        service.lifecycleScope.launch {
+            api.clearComposition()   // 1) 清 Rime 预编辑串
+            delay(CLEAR_SETTLE_MS)   // 2) 等清空结果落到输入框
+            clearInputBox()          // 3) 光标移到末尾 + deleteSurroundingText
+        }
+    }
+}
+private fun clearInputBox() {
+    val ic = service.currentInputConnection ?: return
+    ic.beginBatchEdit()
+    ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MOVE_END))
+    ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MOVE_END))
+    ic.deleteSurroundingText(CLEAR_MAX_CHARS, 0)
+    ic.endBatchEdit()
+}
+```
+
+真机 + 模拟器验证（2026-10-11）：
+- 正文有「你好」+ 待选拼音 `ni hao` 时上滑 → **正文与拼音都清空** ✅
 - 单击退格仍逐字删（`ni hao` → `ni ha`）✅
 
 > 遗留：`clearCompositionIfAny()` 现在成了无用代码（`KEYCODE_DEL` 分支恒返回 false）。
-> 若日后有人「修好」`hasComposition()`，单击行为会静默变成整体清空 —— 与本次约定的
-> 「单击逐字删」冲突，改动前请先看这里。
+> 若日后有人「修好」`hasComposition()`，单击行为会静默变成整体清空 —— 与「单击逐字删」
+> 的约定冲突，改动前请先看这里。
 
 ### 2.5 中英切换键的高亮：文档描述与实现不符（非回归）
 
@@ -179,6 +218,34 @@ y≈1453–1499 在 `_shot3`…`_shot7` 上 `inkpx` 全为 0（`_shot1/_shot2` �
 
 这不是 6fd825f7 引入的回归（该键原用 `off_key_back_color: 0xD8DBE0` 的浅灰底，
 随「去边框」一并变透明），但**文档描述需要更正**。
+
+### 2.6 颜文字面板 + 主界面近 7 天走势（2026-10-10 新增）
+
+**颜文字面板**：符号面板新增第 8 组「颜文字」，12 个常用 kaomoji 一键上屏。
+
+| 文件 | 改动 |
+|---|---|
+| `assets/shared/panels.yaml` | 新增 `kaomoji_panel`（4 键/行 × 3 行）；7 个既有符号面板的页签行从 8 项扩到 9 项 |
+| `tools/sync_panels.py` | `PANEL_MAP` 加 `kaomoji_panel` → 键盘名 `kaomoji` |
+| `assets/shared/trime.yaml` | `preset_keys` 加 `SymbolsTab_kaomoji`（页签行由 sync 脚本重新生成） |
+| 测试 | `ThemeGoldenTest` / `ThemeDslExpanderTest` / `DefaultKeyboardResolutionTest` / `ThemeProductionLoadTest` 的键盘与预设计数基线 11→12、42→43 |
+
+⚠ **两条硬约束（踩过）**：
+
+1. 颜文字比单个符号长得多，**必须** `width: 25` + `key_text_size: 10`。
+   不写 `key_text_size` 会走 `key_long_text_size`(14sp) → 溢出键框被裁。
+2. 页签行权重 = **8 页签 × 11 + ABC × 12 = 100**。`tools/check_layout.py` 要求
+   每行**精确**等于 100.00（容差 1e-6），差 0.5 都会报错。
+
+> 顺带修掉的既有缺陷：7 个符号面板的底栏权重只有 **90**
+> （`123(10)+☺(10)+空格(30)+，(10)+中英(15)+⏎(15)`），`check_layout.py` 一直在报
+> 「会错位/换行」。本轮把 `空格` 提到 **40** → 全部 100。
+> ⚠ 改这条时注意：`number` 面板底栏也含 `空格`，但它是 7 键布局
+> （多一个 `ABC`、少一个 `☺`），**保持 30** 才是 100，别一起批量替换。
+
+**主界面近 7 天走势**：`TypedCharCounter` 新增 `history(context, days)`（升序、缺日补 0），
+`MainFragment` 用它生成 `▁▂▃▄▅▆▇█` 一行迷你柱状图，作为「今日已输入 N 字」的 summary；
+新增字串 `typed_week_spark`。全 0 时不显示 summary。
 
 ---
 
@@ -337,6 +404,63 @@ debug 包）：`KEYSTORE_BASE64` / `KEYSTORE_STORE_PASSWORD` / `KEYSTORE_KEY_ALI
 
 **坐标基线**（1080 宽、density 3.0）：`x = 77 + 108 * n`；数字行 y≈1600、
 QWERTY y≈1709、ASDF y≈1882、ZXCV y≈2053。
+
+### 7.1 真机连不上时：改用模拟器（2026-10-11 补）
+
+真机 `EAT0220316001355` 会掉线。掉线时用 AVD **`smoke`**（Android 15 / API 35 / x86_64）。
+
+```bash
+export MSYS_NO_PATHCONV=1
+ADB=/d/Android/Sdk/platform-tools/adb.exe
+"$ADB" start-server                 # ⚠ 必须先起 adb
+cd /d/Android/Sdk/emulator
+env -u http_proxy -u https_proxy -u HTTP_PROXY -u HTTPS_PROXY \
+  ./emulator.exe -avd smoke -no-snapshot -no-audio -no-boot-anim \
+                 -gpu swiftshader_indirect -no-window
+```
+
+⚠ **三个坑（都踩过）**：
+
+1. **必须用工具的后台模式启动**（`run_in_background`），**不要** `nohup ... &`。
+   后者起的进程会在**本次工具调用结束时被回收**，表现为「刚 boot 完就消失」。
+2. **清掉 `http_proxy` 等环境变量**：netsimd 会读它并指向一个死端口。
+3. **AVD 必须选 `smoke`**。`api31` 起不来（日志停在 `Failed to load opengl32sw`）；
+   另外 adb 没先起时模拟器会报 `Unable to connect to adb daemon on port: 5037`。
+
+**装包必须用 x86_64**（模拟器是 x86_64，arm64 包装不上）：
+
+```bash
+cd /d/trime-build
+export BUILD_ABI=arm64-v8a,x86_64     # 一次出两个包
+./gradlew.bat :app:assembleRelease
+"$ADB" install -r -t app/build/outputs/apk/release/trime-x86_64-release.apk
+```
+
+**输入目标**：模拟器没有华为记事本。用**应用自带的测试输入框** ——
+`MainActivity` 工具栏的「Test input」（看 `content-desc`）→ 面板里那个 `EditText`
+占位符是 `Type text`。首次装完要先过 3 步 Setup 向导
+（第 1 步选 **Use app-specific storage**，后两步直接 Done/DONE）。
+用 `uiautomator dump` 拿控件 `bounds`，别靠肉眼估坐标。
+
+**模拟器坐标**（1080×2340 / **density 440**，真机是 480，行位置不同）：
+
+| 行 | y |
+|---|---|
+| QWERTY | 1613 |
+| ASDF | 1784 |
+| ZXCV | 1955 |
+| 底栏（符/123/…） | 2132 |
+| 符号面板页签行 | 1950 |
+
+x：QWERTY `68 + 105n`；ASDF `110 + 105n`；ZXCV `235 + 105n`（⌫ 在 x≈1010）。
+删除键上滑：`input swipe 1010 2030 1010 1880 250`。
+
+⚠ **定位行位置别靠肉眼看缩略图**（会差 100px 以上）。用 `_pngload.py` 扫
+「近黑像素」（`r,g,b` 全 < 45）的连续带，带中心即行中心。
+删掉 `tools/verify-ui/_locate.py` 之类的一次性脚本前先想一下——这次就是靠它定的行。
+
+⚠ **模拟器验不了的**：IME 生命周期/时序类缺陷（见 §10.2），以及候选栏字号观感
+（会被挤成细条）。上滑清空这类**功能**验证可以，**时序/观感**仍须真机。
 
 ---
 
