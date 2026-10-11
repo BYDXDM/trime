@@ -46,19 +46,20 @@ symbols_panel:
   - { click: '·', label: '·', long_click: '•', swipe_up: '◦' }
 
   # ---- 分组页签（照搜狗的分组习惯）----
-  - { click: SymbolsTab_symbols, label: '1.常用', width: 12.5 }
-  - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12.5 }
-  - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12.5 }
-  - { click: SymbolsTab_symbols_net, label: '4.网络', width: 12.5 }
-  - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12.5 }
-  - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12.5 }
-  - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12.5 }
-  - { click: Keyboard_letter, label: 'ABC', width: 12.5 }
+  - { click: SymbolsTab_symbols, label: '1.常用', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_en, label: '3.英文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_net, label: '4.网络', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_math, label: '5.数学', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_num, label: '7.序号', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_kaomoji, label: '8.颜文字', width: 11, key_text_size: 11 }
+  - { click: Keyboard_letter, label: 'ABC', width: 12, key_text_size: 11 }
 
   # ---- 底栏 ----
   - { click: Keyboard_number, label: '123' }
   - { click: Keyboard_emoji, label: '☺' }
-  - { click: space, width: 30, label: '空格' }
+  - { click: space, width: 40, label: '空格' }
   - { click: ',', label: '，' }
   - { click: Mode_switch, label: '中英', long_click: Menu, width: 15 }
   - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, width: 15 }
@@ -103,19 +104,20 @@ symbols_cn_panel:
   - { click: '］', label: '］' }
 
   # ---- 分组页签（照搜狗的分组习惯）----
-  - { click: SymbolsTab_symbols, label: '1.常用', width: 12.5 }
-  - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12.5 }
-  - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12.5 }
-  - { click: SymbolsTab_symbols_net, label: '4.网络', width: 12.5 }
-  - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12.5 }
-  - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12.5 }
-  - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12.5 }
-  - { click: Keyboard_letter, label: 'ABC', width: 12.5 }
+  - { click: SymbolsTab_symbols, label: '1.常用', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_en, label: '3.英文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_net, label: '4.网络', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_math, label: '5.数学', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_num, label: '7.序号', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_kaomoji, label: '8.颜文字', width: 11, key_text_size: 11 }
+  - { click: Keyboard_letter, label: 'ABC', width: 12, key_text_size: 11 }
 
   # ---- 底栏 ----
   - { click: Keyboard_number, label: '123' }
   - { click: Keyboard_emoji, label: '☺' }
-  - { click: space, width: 30, label: '空格' }
+  - { click: space, width: 40, label: '空格' }
   - { click: ',', label: '，' }
   - { click: Mode_switch, label: '中英', long_click: Menu, width: 15 }
   - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, width: 15 }
@@ -160,19 +162,20 @@ symbols_en_panel:
   - { click: '#', label: '#' }
 
   # ---- 分组页签（照搜狗的分组习惯）----
-  - { click: SymbolsTab_symbols, label: '1.常用', width: 12.5 }
-  - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12.5 }
-  - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12.5 }
-  - { click: SymbolsTab_symbols_net, label: '4.网络', width: 12.5 }
-  - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12.5 }
-  - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12.5 }
-  - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12.5 }
-  - { click: Keyboard_letter, label: 'ABC', width: 12.5 }
+  - { click: SymbolsTab_symbols, label: '1.常用', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_en, label: '3.英文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_net, label: '4.网络', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_math, label: '5.数学', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_num, label: '7.序号', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_kaomoji, label: '8.颜文字', width: 11, key_text_size: 11 }
+  - { click: Keyboard_letter, label: 'ABC', width: 12, key_text_size: 11 }
 
   # ---- 底栏 ----
   - { click: Keyboard_number, label: '123' }
   - { click: Keyboard_emoji, label: '☺' }
-  - { click: space, width: 30, label: '空格' }
+  - { click: space, width: 40, label: '空格' }
   - { click: ',', label: '，' }
   - { click: Mode_switch, label: '中英', long_click: Menu, width: 15 }
   - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, width: 15 }
@@ -217,19 +220,20 @@ symbols_net_panel:
   - { click: '¤', label: '¤' }
 
   # ---- 分组页签（照搜狗的分组习惯）----
-  - { click: SymbolsTab_symbols, label: '1.常用', width: 12.5 }
-  - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12.5 }
-  - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12.5 }
-  - { click: SymbolsTab_symbols_net, label: '4.网络', width: 12.5 }
-  - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12.5 }
-  - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12.5 }
-  - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12.5 }
-  - { click: Keyboard_letter, label: 'ABC', width: 12.5 }
+  - { click: SymbolsTab_symbols, label: '1.常用', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_en, label: '3.英文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_net, label: '4.网络', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_math, label: '5.数学', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_num, label: '7.序号', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_kaomoji, label: '8.颜文字', width: 11, key_text_size: 11 }
+  - { click: Keyboard_letter, label: 'ABC', width: 12, key_text_size: 11 }
 
   # ---- 底栏 ----
   - { click: Keyboard_number, label: '123' }
   - { click: Keyboard_emoji, label: '☺' }
-  - { click: space, width: 30, label: '空格' }
+  - { click: space, width: 40, label: '空格' }
   - { click: ',', label: '，' }
   - { click: Mode_switch, label: '中英', long_click: Menu, width: 15 }
   - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, width: 15 }
@@ -274,19 +278,20 @@ symbols_math_panel:
   - { click: '¤', label: '¤' }
 
   # ---- 分组页签（照搜狗的分组习惯）----
-  - { click: SymbolsTab_symbols, label: '1.常用', width: 12.5 }
-  - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12.5 }
-  - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12.5 }
-  - { click: SymbolsTab_symbols_net, label: '4.网络', width: 12.5 }
-  - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12.5 }
-  - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12.5 }
-  - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12.5 }
-  - { click: Keyboard_letter, label: 'ABC', width: 12.5 }
+  - { click: SymbolsTab_symbols, label: '1.常用', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_en, label: '3.英文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_net, label: '4.网络', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_math, label: '5.数学', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_num, label: '7.序号', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_kaomoji, label: '8.颜文字', width: 11, key_text_size: 11 }
+  - { click: Keyboard_letter, label: 'ABC', width: 12, key_text_size: 11 }
 
   # ---- 底栏 ----
   - { click: Keyboard_number, label: '123' }
   - { click: Keyboard_emoji, label: '☺' }
-  - { click: space, width: 30, label: '空格' }
+  - { click: space, width: 40, label: '空格' }
   - { click: ',', label: '，' }
   - { click: Mode_switch, label: '中英', long_click: Menu, width: 15 }
   - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, width: 15 }
@@ -331,19 +336,20 @@ symbols_arrow_panel:
   - { click: '◇', label: '◇' }
 
   # ---- 分组页签（照搜狗的分组习惯）----
-  - { click: SymbolsTab_symbols, label: '1.常用', width: 12.5 }
-  - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12.5 }
-  - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12.5 }
-  - { click: SymbolsTab_symbols_net, label: '4.网络', width: 12.5 }
-  - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12.5 }
-  - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12.5 }
-  - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12.5 }
-  - { click: Keyboard_letter, label: 'ABC', width: 12.5 }
+  - { click: SymbolsTab_symbols, label: '1.常用', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_en, label: '3.英文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_net, label: '4.网络', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_math, label: '5.数学', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_num, label: '7.序号', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_kaomoji, label: '8.颜文字', width: 11, key_text_size: 11 }
+  - { click: Keyboard_letter, label: 'ABC', width: 12, key_text_size: 11 }
 
   # ---- 底栏 ----
   - { click: Keyboard_number, label: '123' }
   - { click: Keyboard_emoji, label: '☺' }
-  - { click: space, width: 30, label: '空格' }
+  - { click: space, width: 40, label: '空格' }
   - { click: ',', label: '，' }
   - { click: Mode_switch, label: '中英', long_click: Menu, width: 15 }
   - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, width: 15 }
@@ -388,19 +394,20 @@ symbols_num_panel:
   - { click: 'Ⅹ', label: 'Ⅹ' }
 
   # ---- 分组页签（照搜狗的分组习惯）----
-  - { click: SymbolsTab_symbols, label: '1.常用', width: 12.5 }
-  - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12.5 }
-  - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12.5 }
-  - { click: SymbolsTab_symbols_net, label: '4.网络', width: 12.5 }
-  - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12.5 }
-  - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12.5 }
-  - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12.5 }
-  - { click: Keyboard_letter, label: 'ABC', width: 12.5 }
+  - { click: SymbolsTab_symbols, label: '1.常用', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_en, label: '3.英文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_net, label: '4.网络', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_math, label: '5.数学', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_num, label: '7.序号', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_kaomoji, label: '8.颜文字', width: 11, key_text_size: 11 }
+  - { click: Keyboard_letter, label: 'ABC', width: 12, key_text_size: 11 }
 
   # ---- 底栏 ----
   - { click: Keyboard_number, label: '123' }
   - { click: Keyboard_emoji, label: '☺' }
-  - { click: space, width: 30, label: '空格' }
+  - { click: space, width: 40, label: '空格' }
   - { click: ',', label: '，' }
   - { click: Mode_switch, label: '中英', long_click: Menu, width: 15 }
   - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, width: 15 }
@@ -501,5 +508,53 @@ emoji_panel:
   - { click: Keyboard_number, label: '123' }
   - { click: space, width: 30, label: '空格' }
   - { click: '.', label: '。' }
+  - { click: Mode_switch, label: '中英', long_click: Menu, width: 15 }
+  - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, width: 15 }
+
+# -----------------------------------------------------------------------------
+#  颜文字面板（4 键/行 × 3 行）
+#
+#  ⚠ 颜文字比单个符号长得多，必须用**宽键 + 小字号**：
+#    width: 25（4 键/行 = 100）配 key_text_size: 10。
+#    不写 key_text_size 会按 key_long_text_size(14sp) 渲染 → 溢出键框被裁。
+#  ⚠ 加颜文字请**整行追加**，保持每行 4 键 × 25 = 100，否则整行错位
+#    （tools/check_layout.py 会直接报出来）。
+# -----------------------------------------------------------------------------
+kaomoji_panel:
+
+  # ---- 第 1 行：开心 / 打招呼 ----
+  - { click: '(｡･ω･｡)ﾉ', label: '(｡･ω･｡)ﾉ', width: 25, key_text_size: 10 }
+  - { click: '(￣▽￣)', label: '(￣▽￣)', width: 25, key_text_size: 10 }
+  - { click: '(＾▽＾)', label: '(＾▽＾)', width: 25, key_text_size: 10 }
+  - { click: '(´∀｀)', label: '(´∀｀)', width: 25, key_text_size: 10 }
+
+  # ---- 第 2 行：卖萌 / 加油 ----
+  - { click: 'ヽ(￣▽￣)ﾉ', label: 'ヽ(￣▽￣)ﾉ', width: 25, key_text_size: 10 }
+  - { click: '(๑•̀ㅂ•́)و✧', label: '(๑•̀ㅂ•́)و✧', width: 25, key_text_size: 10 }
+  - { click: '(´･ω･`)', label: '(´･ω･`)', width: 25, key_text_size: 10 }
+  - { click: '(๑´ㅂ`๑)', label: '(๑´ㅂ`๑)', width: 25, key_text_size: 10 }
+
+  # ---- 第 3 行：崩溃 / 无奈 ----
+  - { click: '(╯°□°)╯', label: '(╯°□°)╯', width: 25, key_text_size: 10 }
+  - { click: '(；´д｀)', label: '(；´д｀)', width: 25, key_text_size: 10 }
+  - { click: '(つд⊂)', label: '(つд⊂)', width: 25, key_text_size: 10 }
+  - { click: '(＠_＠)', label: '(＠_＠)', width: 25, key_text_size: 10 }
+
+  # ---- 分组页签（8 页签 × 11 + ABC × 12 = 100）----
+  - { click: SymbolsTab_symbols, label: '1.常用', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_en, label: '3.英文', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_net, label: '4.网络', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_math, label: '5.数学', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_symbols_num, label: '7.序号', width: 11, key_text_size: 11 }
+  - { click: SymbolsTab_kaomoji, label: '8.颜文字', width: 11, key_text_size: 11 }
+  - { click: Keyboard_letter, label: 'ABC', width: 12, key_text_size: 11 }
+
+  # ---- 底栏 ----
+  - { click: Keyboard_number, label: '123' }
+  - { click: Keyboard_emoji, label: '☺' }
+  - { click: space, width: 40, label: '空格' }
+  - { click: ',', label: '，' }
   - { click: Mode_switch, label: '中英', long_click: Menu, width: 15 }
   - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, width: 15 }

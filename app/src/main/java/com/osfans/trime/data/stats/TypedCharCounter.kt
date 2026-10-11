@@ -9,6 +9,7 @@ package com.osfans.trime.data.stats
 import android.content.Context
 import androidx.core.content.edit
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -44,6 +45,28 @@ object TypedCharCounter {
 
     /** 今天已输入的字数。 */
     fun todayCount(context: Context): Int = prefs(context).getInt(keyOf(Date()), 0)
+
+    /**
+     * 最近 [days] 天的每日字数，**按时间升序**返回（最后一项是今天）。
+     *
+     * 没有记录的那天补 0，所以返回长度恒为 days —— 调用方可以直接按下标当「第几天前」用。
+     * 只读，不触发清理（清理挂在 [record] 上）。
+     */
+    fun history(
+        context: Context,
+        days: Int = 7,
+    ): List<Int> {
+        if (days <= 0) return emptyList()
+        val prefs = prefs(context)
+        val cal = Calendar.getInstance()
+        // 先退到 (days-1) 天前，再逐日前进：顺序与补零都靠这一处保证。
+        cal.add(Calendar.DAY_OF_YEAR, -(days - 1))
+        return List(days) {
+            val count = prefs.getInt(keyOf(cal.time), 0)
+            cal.add(Calendar.DAY_OF_YEAR, 1)
+            count
+        }
+    }
 
     /**
      * 清掉超过 KEEP_DAYS 的旧键。每次写入时顺手做，代价很低。

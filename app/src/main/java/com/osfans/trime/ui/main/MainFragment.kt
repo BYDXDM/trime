@@ -41,6 +41,22 @@ class MainFragment : PaddingPreferenceFragment() {
         }
     }
 
+    /**
+     * 把每日字数画成一行迷你柱状图（Unicode 方块字符 ▁▂▃▄▅▆▇█）。
+     *
+     * 全 0 时返回空串 —— 用户还没输入过时不该显示一条没有意义的平地线。
+     * 0 也占一格（画成最矮的 ▁），否则柱子数对不上天数、看不出是哪天缺。
+     */
+    private fun sparkline(counts: List<Int>): String {
+        if (counts.isEmpty() || counts.all { it == 0 }) return ""
+        val bars = "▁▂▃▄▅▆▇█"
+        val max = counts.max()
+        return counts.joinToString("") { c ->
+            val level = if (max <= 0) 0 else (c.toFloat() / max * (bars.length - 1)).toInt()
+            bars[level.coerceIn(0, bars.length - 1)].toString()
+        }
+    }
+
     override fun onCreatePreferences(
         savedInstanceState: Bundle?,
         rootKey: String?,
@@ -49,11 +65,15 @@ class MainFragment : PaddingPreferenceFragment() {
             // 今日输入字数：只读展示，不设 onClick。
             // 计数在 IME 侧由 TrimeInputMethodService.commitText 累加，
             // 每次回到本页重新构建 preference 时取一次最新值即可。
+            // 副标题附一条最近 7 天的迷你走势（Unicode 方块字符），一眼看出趋势。
+            val ctx = requireContext()
+            val week = TypedCharCounter.history(ctx, 7)
             addPreference(
-                requireContext().getString(
-                    R.string.typed_today,
-                    TypedCharCounter.todayCount(requireContext()),
-                ),
+                ctx.getString(R.string.typed_today, TypedCharCounter.todayCount(ctx)),
+                summary =
+                sparkline(week)
+                    .takeIf { it.isNotEmpty() }
+                    ?.let { ctx.getString(R.string.typed_week_spark, it, week.sum()) },
                 icon = R.drawable.ic_baseline_edit_24,
             )
             addDestinationPreference(

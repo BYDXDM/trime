@@ -66,6 +66,11 @@ PANEL_MAP = {
         'label': '序号',
         'ascii_mode': 1,
     },
+    'kaomoji_panel': {
+        'name': 'kaomoji',
+        'label': '颜文字',
+        'ascii_mode': 1,
+    },
     'number_panel': {
         'name': 'number',
         'label': '数字',

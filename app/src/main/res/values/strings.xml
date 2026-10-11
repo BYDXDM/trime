@@ -260,5 +260,6 @@
     <string name="star_success">Star success</string>
     <string name="ignore_system_gesture_insets">Ignore system gesture insets</string>
     <string name="typed_today">Typed today: %1$d chars</string>
+    <string name="typed_week_spark">Last 7 days %1$s (%2$d chars)</string>
     <string name="ime_switch_hint">Welcome back! Long-press the space bar (or tap the globe key) to switch input methods.</string>
 </resources>

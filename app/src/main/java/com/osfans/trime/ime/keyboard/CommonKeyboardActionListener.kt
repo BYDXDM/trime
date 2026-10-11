@@ -39,6 +39,7 @@ import com.osfans.trime.util.buildIntentFromArgument
 import com.osfans.trime.util.customFormatDateTime
 import com.osfans.trime.util.isAsciiPrintable
 import com.osfans.trime.util.toast
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.kodein.di.DI
 import org.kodein.di.DIAware
@@ -46,6 +47,15 @@ import org.kodein.di.instance
 import splitties.systemservices.clipboardManager
 import splitties.systemservices.inputMethodManager
 import timber.log.Timber
+
+/** 删除键上滑「清空」：清完预编辑串后，等 Rime 把结果推给输入框再全选删除（毫秒）。 */
+private const val CLEAR_SETTLE_MS = 80L
+
+/**
+ * 删除键上滑「清空」时，一次向 `deleteSurroundingText` 请求删除的字符数。
+ * 取一个大到足以覆盖任何正常输入框、又不至于溢出的值。
+ */
+private const val CLEAR_MAX_CHARS = 10_000
 
 class CommonKeyboardActionListener(override val di: DI) : DIAware {
 
@@ -182,16 +192,41 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
             }
 
             /**
-             * 无条件清空 Rime 的预编辑串（删除键上滑 clear_composition 用）。
+             * 删除键上滑「清空」：清掉待选拼音 + 清空输入框正文。
              *
-             * 不做 hasComposition() 前置判断：没有预编辑时 clearComposition() 本身就是
-             * 空操作；加判断只会像 clearCompositionIfAny() 那样被 composingText 的状态
-             * 拖累而静默失效。
+             * 两步都不能省（真机实测）：
+             * - 只发 `{Control+a}{BackSpace}`（旧的 Clear 预设）**清不掉预编辑串** ——
+             *   上滑后拼音仍挂在输入栏上，只是正文被删了。
+             * - 只 clearComposition() 又清不掉已上屏的正文。
+             *
+             * ⚠ 两个踩过的坑：
+             * 1. 一开始把 `onText("{Control+a}{BackSpace}")` 放在 `handleFunctionCommand`
+             *    里调用 —— **完全不生效**（正文一个字都没删）。同样的字符串走主题的
+             *    `text:` 分支是好的，说明问题出在调用点，不在字符串本身。
+             *    结论：别在这条路径上依赖组合键回放。
+             * 2. 所以改成直接操作 `InputConnection`：光标移到末尾 + 删掉光标前的全部内容。
+             *    这个语义不依赖输入框对 Ctrl+A 的支持，各输入框行为一致。
              */
-            private fun clearComposition() {
+            private fun clearInputAndComposition() {
                 rime.launchOnReady { api ->
-                    service.lifecycleScope.launch { api.clearComposition() }
+                    service.lifecycleScope.launch {
+                        // 1) 清 Rime 的预编辑串
+                        api.clearComposition()
+                        // 2) 等清空结果落到输入框，再清正文 —— 否则拼音会混在待删内容里
+                        delay(CLEAR_SETTLE_MS)
+                        clearInputBox()
+                    }
                 }
+            }
+
+            /** 把输入框里的内容整体删掉（光标移到末尾 → 删除光标前全部）。 */
+            private fun clearInputBox() {
+                val ic = service.currentInputConnection ?: return
+                ic.beginBatchEdit()
+                ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MOVE_END))
+                ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MOVE_END))
+                ic.deleteSurroundingText(CLEAR_MAX_CHARS, 0)
+                ic.endBatchEdit()
             }
 
             private fun handleSwitchCharset(action: KeyAction) {
@@ -254,9 +289,9 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
 
                     "switch_hide_key_hint" -> switchHideKeyHint()
 
-                    // 删除键**上滑**：清空整个待选拼音（Rime composition）。
-                    // 与单击区分：单击走 KEYCODE_DEL 分支逐字删，上滑走这里整体清空。
-                    "clear_composition" -> clearComposition()
+                    // 删除键**上滑**：清空（先清待选拼音，再删输入框正文）。
+                    // 与单击区分：单击走 KEYCODE_DEL 分支逐字删。
+                    "clear_all" -> clearInputAndComposition()
 
                     else -> handleIntentAction(action.command, arg)
                 }
