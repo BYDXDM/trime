@@ -65,7 +65,9 @@ engine:
     - table_translator@custom_phrase        # ① 固定短语，优先级最高
     - script_translator@mymain              # ② 主翻译器：完整拼音词典 + 整句 + 用户学习
     - script_translator@mydomain_abbrev     # ③ 简拼/联想（首字母缩写靠它）
-    - script_translator@mydomain_terms      # ④ 垂直领域词：完整拼音编码，低权重
+    - script_translator@mydomain_terms      # ④ 垂直领域词：完整拼音编码
+  # ★ 领域词排序靠词典权重对齐 essay 词频刻度（见 mydomain.dict.yaml
+  #   蔚蓝档案段注释），翻译器顺序无关紧要（合并按质量逐位选举）。
   filters:
     - simplifier
     - uniquifier

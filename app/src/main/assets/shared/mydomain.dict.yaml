@@ -279,54 +279,61 @@ Nmap	nmap	85
 
 # ============================================================
 #  四、游戏 —— 蔚蓝档案
+#  ★ 本段权重（2500~3400）对齐 essay 词频刻度：luna 多字词普遍在
+#    500~800（白字=557、蔚然=580），本段原 250~340 时整段被 essay 词
+#    压住 —— ba 词库「不生效」的根因（用户要的是 BA 词库能打出来，
+#    不是字面词条 BA）。×10 后白子/蔚蓝档案/阿拜多斯等压过同码 essay
+#    词；高于原神/崩铁段（≤200），勿「归一化」对齐。
+#  ★ BA 单条 2000：普通专有名词档。打 ba 排 吧(385554)/把(166222)/
+#    八(7591) 之后、首页可见；用户明确不要字面 BA 霸榜。
 # ============================================================
-蔚蓝档案	wei lan dang an	190
-碧蓝档案	bi lan dang an	150
-BA	ba	200
-夏莱	xia lai	140
-阿罗娜	a luo na	140
-普拉娜	pu la na	130
-小机器人	xiao ji qi ren	110
-老师	lao shi	115
-沙勒	sha le	120
-千年	qian nian	125
-格黑娜	ge hei na	130
-三一	san yi	130
-阿拜多斯	a bai duo si	125
-山猫	shan mao	100
-百鬼夜行	bai gui ye xing	115
-红冬	hong dong	120
-瓦尔基里	wa er ji li	110
-阿里乌斯	a li wu si	110
-白子	bai zi	135
-星野	xing ye	135
-日奈	ri nai	130
-优香	you xiang	130
-花凛	hua lin	125
-泉奈	quan nai	125
-小春	xiao chun	125
-阿露	a lu	125
-亚子	ya zi	125
-伊织	yi zhi	120
-伊吕波	yi lv bo	120
-响	xiang	115
-初音	miku	115
-美游	mei you	115
-宫子	gong zi	115
-爱丽丝	ai li si	120
-总力战	zong li zhan	140
-战术对抗赛	zhan shu dui kang sai	105
-大决战	da jue zhan	105
-联合火力	liang he huo li	105
-资源总力战	zi yuan zong li zhan	100
-演习	yan xi	110
-站位	zhan wei	110
-编队	bian dui	115
-培养	pei yang	110
-神名文字	shen ming wen zi	115
-伊甸	yi dian	110
-圣娅	sheng ya	110
-补习	bu xi	100
+蔚蓝档案	wei lan dang an	3400
+碧蓝档案	bi lan dang an	3000
+BA	ba	2000
+夏莱	xia lai	2900
+阿罗娜	a luo na	2900
+普拉娜	pu la na	2800
+小机器人	xiao ji qi ren	2600
+老师	lao shi	2650
+沙勒	sha le	2700
+千年	qian nian	2750
+格黑娜	ge hei na	2800
+三一	san yi	2800
+阿拜多斯	a bai duo si	2750
+山猫	shan mao	2500
+百鬼夜行	bai gui ye xing	2650
+红冬	hong dong	2700
+瓦尔基里	wa er ji li	2600
+阿里乌斯	a li wu si	2600
+白子	bai zi	2850
+星野	xing ye	2850
+日奈	ri nai	2800
+优香	you xiang	2800
+花凛	hua lin	2750
+泉奈	quan nai	2750
+小春	xiao chun	2750
+阿露	a lu	2750
+亚子	ya zi	2750
+伊织	yi zhi	2700
+伊吕波	yi lv bo	2700
+响	xiang	2650
+初音	miku	2650
+美游	mei you	2650
+宫子	gong zi	2650
+爱丽丝	ai li si	2700
+总力战	zong li zhan	2900
+战术对抗赛	zhan shu dui kang sai	2550
+大决战	da jue zhan	2550
+联合火力	liang he huo li	2550
+资源总力战	zi yuan zong li zhan	2500
+演习	yan xi	2600
+站位	zhan wei	2600
+编队	bian dui	2650
+培养	pei yang	2600
+神名文字	shen ming wen zi	2650
+伊甸	yi dian	2600
+圣娅	sheng ya	2600
+补习	bu xi	2500
 
 # ---------- 英文键名简拼别名（补齐 cl/cf/yt 等两字母习惯） ----------
 Clash	cl	145
