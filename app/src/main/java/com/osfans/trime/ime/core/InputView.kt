@@ -6,7 +6,6 @@
 package com.osfans.trime.ime.core
 
 import android.annotation.SuppressLint
-import android.graphics.Matrix
 import android.os.Build
 import android.view.ContextThemeWrapper
 import android.view.View
@@ -76,55 +75,10 @@ class InputView(
     scope: ThemeScope,
 ) : BaseInputView(service, rime, scope),
     DIAware {
-    /** 背景素材里主体的水平位置（实测 354.8/512）。换素材时要重新量。 */
-    private val BG_SUBJECT_RATIO = 0.693f
-
-    /** 希望主体落在键盘宽度的这个位置：略偏左，视觉上才是「居中」。 */
-    private val BG_SUBJECT_TARGET = 0.42f
-
-    /** 放大倍率上限，防止为了挪主体把图放得过大、像素糊掉。 */
-    private val BG_MAX_ZOOM = 2.2f
-
     private val keyboardBackground =
         imageView {
             scaleType = ImageView.ScaleType.CENTER_CROP
-            addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> applyBackgroundMatrix() }
         }
-
-    /**
-     * 背景 GIF 的人物偏右，靠矩阵把它挪回来。
-     *
-     * 素材是 512×512，主体（人物）的水平加权中心实测在 354.8/512 = 69.3% 处；
-     * 而键盘区是宽扁条带，CENTER_CROP 只能按**宽度**铺满（宽高比 1080:750 > 1:1），
-     * 横向一点余量都没有，所以主体永远钉在 69% 那里，看着就是整个人贴右边。
-     *
-     * 想往左挪就必须放大（放大才有横向余量可以裁），按「主体落在 60% 处」反推：
-     *   scaledW * (1 - subjectRatio) = vw * (1 - target)
-     * 再整体左移到底（右边缘正好贴住 view），横向不会露底。
-     */
-    private fun applyBackgroundMatrix() {
-        val d = keyboardBackground.drawable ?: return
-        val vw = keyboardBackground.width
-        val vh = keyboardBackground.height
-        val dw = d.intrinsicWidth
-        val dh = d.intrinsicHeight
-        if (vw <= 0 || vh <= 0 || dw <= 0 || dh <= 0) return
-
-        // CENTER_CROP 的基准比例
-        val base = maxOf(vw.toFloat() / dw, vh.toFloat() / dh)
-        val needed = vw * (1f - BG_SUBJECT_TARGET) / (dw * (1f - BG_SUBJECT_RATIO))
-        val scale = maxOf(base, needed).coerceAtMost(base * BG_MAX_ZOOM)
-
-        val scaledW = dw * scale
-        val scaledH = dh * scale
-        keyboardBackground.scaleType = ImageView.ScaleType.MATRIX
-        keyboardBackground.imageMatrix =
-            Matrix().apply {
-                setScale(scale, scale)
-                // 左移到底：右边缘贴住 view 右边缘
-                postTranslate(vw - scaledW, (vh - scaledH) / 2f)
-            }
-    }
     private val placeholderListener = OnClickListener { }
 
     private val leftPaddingSpace =
