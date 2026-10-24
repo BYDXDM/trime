@@ -1,8 +1,9 @@
 # 交接文档 · 白洲梓输入法（trime fork）
 
-> 重写于 2026-10-10，2026-10-11 补记第三轮，2026-10-18 补记第四轮（见 §0.1）。
-> **当前状态：①② 已真机验证；③④⑤⑥⑦ 只到「编译 + 单测通过」，还没装机看图。
-> 两轮改动全部未 commit，`dist/` 里的包也还是旧的。**
+> 重写于 2026-10-10，2026-10-11 补记第三轮，2026-10-18 补记第四轮（见 §0.1），
+> 2026-10-24 补记第五轮（见 **§0.3**）。
+> **当前状态以 §0.3 为准**：第三/四轮 + 五个真机 bug 已提交（`7059b57c`，28 个文件），
+> 新包已出（14227148 字节）并装到真机，但功能项大多**还没逐条验收**。
 > 本文档记录「已经做过什么」「为什么这么做」「还剩什么没做」，以及踩过的坑。
 
 ---
@@ -863,3 +864,373 @@ app/src/test/java/com/osfans/trime/ime/candidates/CandidateGlyphFilterTest.kt
 脏子模块 `app/src/main/jni/librime-lua-deps`、以及历史残留 `tools/gif_*.py`(30) / `tools/review_*.py`(6) /
 `tools/verify-ui/`(234) / `rebuild_predict_db.sh` / `relink_plugin.bat`。
 **不要用 `git add -A`，逐个点名。不要用 `git add -f dist/...`**（`dist/` 是整目录 ignore，`-f` 能强加进去）。
+
+---
+
+## 0.3 2026-10-24 停手交接（第五轮 = 用户报的 5 个 bug 收尾）
+
+> 用户要求「别干了，写接收文档，不用验收，写文档就好」。**本节是当前状态的权威描述，覆盖 §0.1、§0.2、§8.1 与 `NEXT-STEPS.md` §9。**
+
+### 一句话现状
+
+第三轮 + 第四轮 + 本轮五个 bug 的修复**已全部提交**（HEAD = `7059b57c`，28 个文件，上一版是 `7df96714`）。
+新包 **14227148 字节、511 项**，`2026-10-24 14:11` 构建，`14:12:14` 装到真机 EAT0220316001355
+（`versionName=3.3.13`、`versionCode=20261101`）。两份都在 `dist/`：
+`trime-arm64-v8a-release.apk` 与 `trime-release.apk`（内容相同）。
+
+**除了背景 GIF 之外的功能项都没有逐条验收。** 背景 GIF 目前的状态是「头太大已解决、循环衔接不流畅」，
+详见下面的专节 —— 这是用户当前唯一还挂着的明确诉求。
+
+### 工作树里未提交的两个回滚（**必须一起提交，别丢**）
+
+`git status` 剩下的（除老三样外）只有这两个，都是本轮**故意改回去的**：
+
+```
+ M app/src/main/assets/shared/backgrounds/mybg/preview.gif   2905549 → 3751952 字节
+ M app/src/main/java/com/osfans/trime/ime/core/InputView.kt   -46 行
+```
+
+- `InputView.kt` 删掉了本轮加的 `BG_SUBJECT_RATIO` / `BG_SUBJECT_TARGET` / `BG_MAX_ZOOM` 三个常量、
+  `applyBackgroundMatrix()`、`addOnLayoutChangeListener` 和 `import android.graphics.Matrix`。
+  **`git diff 7df96714 -- <该文件>` 已确认输出为空**，即与接手时基线逐字一致。
+- `preview.gif` 退回成接手时那份（`git show 7df96714:...` 取出的原件，同时也在 `tools/verify-ui/_orig_preview.gif`）。
+- 老三样照旧排除：两个 typechange（`build-logic/gradle/wrapper/gradle-wrapper.properties`、
+  `fastlane/metadata/android/en-US/images/icon.png`）+ 脏子模块 `app/src/main/jni/librime-lua-deps`。
+
+### 本轮修完并提交的 5 件事
+
+**1. bug 5 —— 打字打到一半冒出括号（本轮最硬的一个）**
+
+- 根因两层：
+  - `AUTO_PAIR_CLOSERS` 里**同时注册了全角** `（ “ ‘ 《 【 「 『`，而旧守卫写的是
+    `if (text[0].isAsciiPrintable() && !rime.statusCached.isAsciiMode) return false` ——
+    `isAsciiPrintable()`（`app/src/main/java/com/osfans/trime/ime/keyboard/Char.kt:8`，`code in 32 until 127`）
+    对全角恒 false，`&&` 直接短路，**中文模式照样补**。
+  - `statusCached` 由 `Rime.emitResponse()`（`app/src/main/java/com/osfans/trime/core/Rime.kt:343-355`）
+    最后一步才刷新，比按键晚一拍；默认 `InlinePreeditMode.DISABLE` 下 `composingText` 恒空。
+  - 物理入口：中文键盘 z 键 `swipe_down: '（'`（`trime.yaml:400`），
+    阈值 `AppPrefs.kt:262-286` 的 swipeTravel 20dp / swipeVelocity 800dp/s 是**或**关系，极易误触。
+- 修法：提成纯函数 `resolveAutoPair(text, isComposing, hasLocalComposition)`，**组词中 / 有本地预编辑一律不补**；
+  `commitPairedText`（`TrimeInputMethodService.kt:696-713`）再加 `hasComposition()` 与选区两道兜底。
+
+**2. 中文模式也补全角括号（用户拍板，已实现）**
+
+用户 m00994 原话：「中文也要」。所以删掉 `resolveAutoPair` 的 `isAsciiMode` 参数与守卫，
+保留「组词中不补」。按字符查表天然分流：中文 `（` → `）`、英文 `(` → `)`。
+`TypingEnhancementsTest` 重写 5 个 case（中文补全角、中文补 ASCII、组词中不补、有本地预编辑不补、右半与非左半 null）。
+
+**3. 空格长按不能拖光标**
+
+- 根因：`GestureFrame.kt` 的 `startLongPressJob` 长按超时后**无条件** `isLongPressed = true`，
+  而 ACTION_MOVE 的滑动分支条件是 `!isLongPressed` → 光标永远拖不动；`repeatable: true` 还让空格持续重复上屏。
+- 修法：新增 `private var slideArmed = false`。长按超时里
+  `if (isSlideCursor && onSlide != null) { slideArmed = true; return@launch }`
+  （**不置 isLongPressed、不 startRepeatJob**）；滑动条件改 `(!isLongPressed || slideArmed)`；
+  ACTION_DOWN 与 ACTION_CANCEL 都复位 `slideArmed = false`。
+- 相关配置：`trime.yaml:272-277` 的 `space_cursor` = `send: space` + `repeatable: true` + `slide_cursor: true`。
+
+**4. 快捷 `@` / `~` 直接上屏半角（用户 m00380 要求）**
+
+- **关键坑：`assets/shared/symbols.yaml` 根本改不动。**
+  `build-logic/convention/src/main/kotlin/RimeDataSyncPlugin.kt` 的 `syncRimeSharedData`
+  每次构建都把 `app/data/rime/prelude/symbols.yaml` **镜像覆盖**到 `app/src/main/assets/shared/symbols.yaml`，
+  而且 `outputs.upToDateWhen { false }` 永不跳过。前两次改都这么被冲没了。
+- 正解：新增 **`app/src/main/assets/shared/symbols.custom.yaml`**（rime 原生补丁机制），
+  `patch:` 下把 `half_shape/@` 与 `half_shape/~` 改成 `{ commit: '@' }` / `{ commit: '~' }`。
+  该文件在 `data/rime` 下无对应源，sync 任务不会删它。
+- `symbols.yaml` 里要改的位置：`half_shape` 段的 `'~'`（61 行）与 `'@'`（63 行），原本是**列表形式**（= 弹候选）。
+
+**5. 背景 GIF —— 换了素材，但方向错了，已退回（见下一节）**
+
+### 背景 GIF：完整来龙去脉（**接手人务必先读完再动手**）
+
+用户原始诉求（m01010）：「我的 gif 人物偏右问题」。本轮追加反馈：
+m01172「改错了啊!你这样直接让头占据了画面，吓人的，你看看你第一次接手的那个」、
+m01244「嗯，太大问题解决了，现在是衔接不流畅问题」。
+
+**两份素材的客观指标（都量过，可复现）**
+
+| | 接手时那份（**现在用的**） | 第四轮换的那份（**已弃用**） |
+|---|---|---|
+| 字节 | 3751952 | 2905549 |
+| 尺寸 / 帧数 | 512×512，30 帧，mode P | 512×512，31 帧，mode P |
+| 循环缝（首末帧平均差） | **15.69** | **3.45** |
+| 相邻帧平均差 | 5.06 | 3.92 |
+| 循环缝 / 相邻帧 比值 | **3.10×（明显跳帧）** | **0.88×（无感循环）** |
+| 主体水平加权中心 | 0.622（饱和度加权；另一种加权算得 0.693） | 0.634 |
+| 构图 | **远景**，头占比小 | **近景**，头占比大 |
+
+**为什么代码层面挪不动（试过，失败，别再试）**
+
+- 键盘区 view 约 1080×750，素材 512×512。
+- `CENTER_CROP` 的 scale = max(1080/512, 750/512) = **2.109** → 缩放后 **1080×1080**，
+  **横向刚好铺满、零余量**，只裁上下 → 主体 x 坐标恒在 62%~69%，任何平移都会露底。
+- 想平移必须放大 → 头必然变大。我按 `BG_SUBJECT_TARGET=0.42f` 反推需要 `base × 2.2 ≈ 4.6` 倍，
+  装机后就是用户说的「头占据了画面」。**结论：只能改素材，不能靠 `imageMatrix`。**
+- 那段代码已全部删除，`InputView.kt` 与 `7df96714` 逐字一致。
+
+**当前状态**
+
+- 头太大 ✅ 解决（素材退回远景那份）
+- 循环衔接不流畅 ❌ **回来了**（3.10× vs 新素材的 0.88×）—— 这就是用户 m01244 说的「衔接不流畅」
+
+**下一步该怎么做**
+
+以**接手时那份的构图**为准（远景、主体 ~0.62、头占比小），重新生成一个循环缝达标的版本。
+上一轮做这件事的工具链都还在 `tools/gif_*.py`（30 个，2026-10-11 11:28–12:09 那串），顺序大致是：
+
+```
+gif_loop_analyze.py → gif_motion_features.py → gif_align_and_budget.py
+→ gif_traj_and_encode.py → gif_encode_sweep.py → gif_quant_compare.py
+→ gif_rect_encode.py → gif_palette_subset.py → gif_build_final.py
+→ gif_finalize.py → gif_install.py → gif_loop_check.py → gif_accept.py
+```
+
+- 原件：`tools/verify-ui/_orig_preview.gif`（3751952 字节，与现用素材一致）
+- 两份对比件：`tools/verify-ui/_old_preview_handover.gif`（3751952，远景、缝 3.10×）、
+  `tools/verify-ui/_new_preview_4th.gif`（2905549，近景、缝 0.88×）
+- 现成的中间产物可直接对比：`tools/verify-ui/_fin_MAXCOV*.gif`、`_pick_*.gif`、`_sub_*.gif` 等 20 多个
+- 素材装在 `app/src/main/assets/shared/backgrounds/mybg/preview.gif`，主题里由 `trime.yaml:72-73` 的
+  `background_folder: mybg` 指定
+
+### 验收进度（如实记录，别当成已通过）
+
+| 项 | 状态 |
+|---|---|
+| 候选栏豆腐块过滤（bug 1） | ✅ 在 2026-10-18 那版包上验过：清空拼音按 `a`，候选「啊 安 按 阿 吖 锕 嘎」无空白方块。**本版包未复验** |
+| 候选下标映射 | ⚠️ 当时点第 2 个候选上屏的是「安」，但**另有一次点「啊」上屏了「锕」**，串位未彻底排除 |
+| 右滑到底（bug 2） | ❌ 未验 |
+| 中文补全角括号 | ❌ 未验 |
+| 空格长按拖光标 | ❌ 未验 |
+| `@` / `~` 上屏半角 | ❌ 未验。**尤其要确认 rime 是否真的认 `symbols.custom.yaml` 这个补丁** |
+| 背景 GIF 位置 | ✅ 头太大已解决；❌ 循环衔接不流畅（见上节） |
+| bug 3：`ba` 打不出 `BA` | ❌ **完全没动** |
+| bug 4：词库整体难用 | ❌ **完全没动** |
+
+### 本轮踩到 / 确认的坑（新增部分）
+
+1. **`assets/shared/symbols.yaml` 改了等于没改** —— 构建时被 `syncRimeSharedData` 覆盖。用 `.custom.yaml` 补丁。
+2. **背景图不能靠 `imageMatrix` 平移** —— 键盘区宽扁，`CENTER_CROP` 横向零余量，只能改素材。
+3. **一次只编一个 ABI** —— `BUILD_ABI` 只给一个；同时编两个会让 arm64 包缺 `AndroidManifest.xml` 变坏包。
+   改 ABI 前先删 `app\build\outputs\apk\release\*.apk`。
+4. **真机掉线会自己回来** —— `adb devices` 空了先等几分钟，`adb kill-server` 反而更慢。
+   本次 13:57 恢复，`transport_id` 从 2 变 1。
+5. **华为备忘录必须用 monkey 启动** —— `am start` 会被 `HW_SIGNATURE_OR_SYSTEM` 拒：
+   `adb shell monkey -p com.huawei.notepad -c android.intent.category.LAUNCHER 1`
+6. **截图必须 `screencap` 到 sdcard 再 `adb pull`** —— PowerShell 重定向会写成 UTF-16，PNG 直接坏。
+7. **候选栏坐标（1080×2340 / density 440）**：候选行 y≈1518，第 1 格 x≈63，每格约 137px。
+8. 前台检查：`adb shell dumpsys window | grep mCurrentFocus`
+   —— 主界面是 `NotePadActivity`，编辑页是 `NoteEditor`，两者要分清。
+
+### 还没做的（按优先级）
+
+1. **背景 GIF 循环衔接** —— 用户当前唯一明确的诉求（m01244「衔接不流畅」）
+2. **推送 `develop` 触发 CI 发签名包**（任务 A）。代理端口会变，先探测：
+   `(Get-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings').ProxyServer`
+3. 上表里所有 ❌ 的功能项装机复验
+4. bug 3（`ba` 词库）、bug 4（词库难用）—— 一直没动
+5. 按 `PLAN-功能扩展.md` 做下一项功能（任务 B）
+
+### 待用户拍板
+
+**无。** 上一版挂着的「中文模式要不要也补全角 `（）`」已在 m00994 拍板为「中文也要」，并已实现。
+
+### 给接手人的五句话
+
+1. 先 `git add` 那两个回滚（`InputView.kt` + `preview.gif`）再动手，否则下次构建又带出「头太大」的包。
+2. 背景图的问题**只能在素材上解决**，代码里怎么算都是放大 → 头变大。
+3. 要改 rime 的 yaml，先想清楚它在不在 `MIRRORED_DIRS` 里；在的话一律用 `.custom.yaml` 补丁。
+4. 用户对观感很敏感，改视觉相关的东西**先小步装机看图**，别一次改到位再装。
+5. 一次只编一个 ABI；产物只放 `D:\trime-build\dist\`，别拷到桌面。
+
+---
+
+## 0.4 2026-10-24 第六轮（**只调研 + 换了一个 GIF 文件，没编译没装机**，换 agent 时停在这里）
+
+> 本节记录 §0.3 之后新查实的三件事。代码**一行没改**，工作树相对 §0.3 只多两样：
+> ①两份文档（本文件 + `NEXT-STEPS.md`）更新；②`preview.gif` 从 3751952 换成了 3471816
+> （即下一节说的 `_install_candidate.gif`）。
+> `HEAD` 仍是 `7059b57c`；`InputView.kt` 的 -46 行回滚也还在工作树里没提交。
+> **新包没有构建**，`dist/` 里仍是 14:11 那份旧的 14227148 字节包。
+
+### 1. 背景 GIF 循环衔接 —— **解法已经存在，不用再生成素材**
+
+§0.3 说「要以接手时那份的构图重新生成循环缝达标的素材」，**这句已过时**。
+2026-10-11 12:02 那轮 GIF 工具链其实已经产出过一份达标的成品，只是**从没装进仓库**：
+
+`tools/verify-ui/_install_candidate.gif` —— 3471816 字节，38 帧，
+SHA256 `c6b7ad55c429f657`（与 `tools/verify-ui/_fin_MAXCOV160.gif` 逐字节相同）。
+
+| 指标 | 现用 `_old_preview_handover.gif` | **候选 `_install_candidate.gif`** | 已弃 `_new_preview_4th.gif` |
+|---|---|---|---|
+| 字节 | 3751952 | 3471816 | 2905549 |
+| 帧数 | 30 | 38 | 31 |
+| 循环缝 seam（首末帧平均差） | 15.69 | **2.04** | 3.45 |
+| 相邻帧均值 adj | 5.06 | 5.20 | 3.92 |
+| seam / adj | 3.10×（明显跳帧） | **0.39×（无感循环）** | 0.88× |
+| 主体水平中心 cx（饱和度加权） | 0.624 | **0.610** | 0.638 |
+| 每帧时长 | 100ms | 100ms | — |
+| 构图 | 远景、头占比小 | **远景、头占比小（与现用完全一致）** | 近景大头（用户骂的那份） |
+
+- **构图与现用素材一致**：导出首帧目视对比，远景、脸偏右、草帽+紫花、白裙肩带，全部相同。
+- 逐帧比对：cand[i] vs old[i] 在 i=0..19 差值稳定 1.73~1.80（同一帧序列重编码），
+  i=20 起升到 5~9.7 —— **后 18 帧是交叉淡入淡出的缝合段**，这就是它把循环缝从 15.69 压到 2.04 的手法。
+- 首帧 f00 与末帧 f37 目视几乎相同，无跳变。ping-pong 假设已排除（差值 12~19，不成立）。
+- **它从未提交过**：`git log --follow` 该路径只有 `f49115f5`（3751952）与 `7059b57c`（2905549）两条。
+
+**文件名已经换好了**（本轮唯一改动的文件）：`app/src/main/assets/shared/backgrounds/mybg/preview.gif`
+现在是 3471816 字节。**但没编译、没装机**，所以循环效果还没在真机上看过。
+
+剩下两步：
+
+```powershell
+Remove-Item app\build\intermediates\assets -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item app\build\outputs\apk\release\*.apk -Force -ErrorAction SilentlyContinue
+$env:BUILD_ABI="arm64-v8a"
+.\gradlew.bat :app:assembleRelease
+```
+
+然后 `adb -s EAT0220316001355 install -r -t` 装 `dist\trime-arm64-v8a-release.apk`，看键盘背景循环是否顺。
+
+背景图走 `DataManager.kt:58` 的
+`PACKAGED_MIRROR_DIRS = arrayOf("backgrounds", "soundeffect")` + `mirrorPackagedDirs()`
+的「不存在或尺寸变了才覆盖」逻辑，尺寸 3751952→3471816 会触发覆盖，不用手动清。
+另外 `RimeDataSyncPlugin` 的 `MIRRORED_DIRS` 不含 `backgrounds`，所以这个素材不会被构建冲掉。
+
+**复用脚本**（`tools/` 下，未提交）：`_gif_scan.py`（批量扫 seam/adj/ratio/cx）、
+`_gif_frames.py` / `_gif_frames2.py`（导出帧）、`_gif_verify.py`（帧级匹配 + SHA256 去重）、
+`_gif_loop.py`（帧时长）、`_gif_pingpong.py`。目视对比图在 `tools/verify-ui/_cmp/`。
+
+### 2. 字体难看 —— 根因是**仓库里一个字体文件都没有**
+
+`app/src/main/assets/shared/trime.yaml:14-22` 配了 9 个字体名，全部落空：
+
+```
+key_font: latin.ttf        label_font: latin.ttf      preview_font: latin.ttf
+text_font: latin.ttf       candidate_font: han.ttf    comment_font: comment.ttf
+hanb_font: hanb.ttf        latin_font: latin.ttf      symbol_font: symbol.ttf
+```
+
+字号：`font_size: 16`（90 行）、`label_font_size: 20`（99）、
+`text_font_size: 20`（100）、`comment_font_size: 16`（101）。
+
+**关键事实**：
+- `app/src/main/assets/shared/` 下**没有任何 .ttf/.otf/.ttc**（全仓库只有 boost 子模块里的文档示例，无关）。
+- `app/src/main/java/com/osfans/trime/data/theme/FontManager.kt:33`：
+  `private val fontDir get() = File(DataManager.userDataDir, "fonts")`
+  —— **只从用户数据目录读，不从 assets 读**。
+- `handler(fontName)`（90-97 行）找不到文件就打 `Timber.w("font %s not found")` 返回 null；
+  `getTypeface` 的 fallback 链是 LATIN_FONT → key 字体 → HANB_FONT → `setSystemFallback("sans-serif")`，
+  所以**现在全部落到系统 sans-serif**。
+- 真机实测：`/sdcard/Android/data/com.osfans.trime/files/rime/fonts` **不存在**。
+- `DataManager.kt:58` 的 `PACKAGED_MIRROR_DIRS` 只有 `backgrounds` / `soundeffect`，
+  **`fonts` 不在其中** —— 就算往 assets 放字体也不会被镜像到用户目录。
+
+**两条可选修法**（未实施，**要用户先拍板能接受多大 APK**）：
+- (a) 放字体到 `app/src/main/assets/shared/fonts/`，并把 `fonts` 加进 `PACKAGED_MIRROR_DIRS`。
+  改动最小（一行 Kotlin + 字体文件），但会增大 APK。
+- (b) 在 `DataManager.sync()` 里单独写一段把 assets/fonts 复制到 `userDataDir/fonts`，逻辑同上但更可控。
+
+**体积参考**：APK 现在 14.2MB。本机 `C:\Windows\Fonts` 可取的：
+`Deng.ttf` 16.3MB、`NotoSansSC-VF.ttf` 17.8MB、`simhei.ttf` 9.8MB、`simsunb.ttf` 21.9MB。
+**加一个中文字体 APK 就翻倍**。折中：只放 latin（`latin.ttf` 一个文件覆盖 key/label/preview/text 四个槽），中文继续靠系统 fallback。
+
+### 3. bug 3 `ba` 打不出 `BA` —— 根因已定位，方案未定
+
+- 词条**存在**：`app/src/main/assets/shared/mydomain.dict.yaml:285` = `BA<TAB>ba<TAB>200`，
+  权重 200 是全库最高档之一。
+- 但 `mydomain.schema.yaml` 的四个 translator 里，**只有两个用 `dictionary: mydomain`**：
+  - `custom_phrase`（stabledb，`initial_quality: 2`）—— 读 `custom_phrase.txt`，不含 BA
+  - `mymain`（`initial_quality: 1.0`，`dictionary: luna_pinyin`）
+    —— **底库是 luna_pinyin，根本看不到 mydomain 里的 BA**
+  - `mydomain_terms`（`initial_quality: 0.5`，`dictionary: mydomain`）—— 有 BA，但权重被砍半
+  - `mydomain_abbrev`（`initial_quality: 1.0`，`dictionary: mydomain`，`enable_completion: true`）—— 有 BA
+- 所以 `ba` 的候选里 BA 排在 luna_pinyin 的 吧 / 把 / 八 之后，
+  **第一页（`menu/page_size: 9`）看不到**。
+- 可选修法（未实施）：抬 `mydomain_terms/initial_quality` 到 1.5~2.0；
+  或给 `mymain` 再加一个 `dictionary: mydomain` 的兄弟 translator；
+  或把 BA / 蔚蓝档案 / 白子 / 阿拜多斯 等词条权重抬到 2000 量级。
+- **改完必须重新部署**，并在真机上确认 `ba` 第一页就能看到 `BA`。
+
+### 本轮确认的环境事实
+
+- 设备 EAT0220316001355 中途又掉过一次线，**自己回来了**（与 §0.3 第 4 条一致，别 kill-server）。
+- 真机上 `files/shared/` 是 assets 同步目标，`files/rime/` 是用户数据目录
+  （含 `mydomain.user.userdb`、`installation.yaml`、`user.yaml`）。
+  `files/shared/` 下已有 `symbols.custom.yaml`，说明第四轮的补丁机制确实生效过。
+
+---
+
+## 0.5 2026-10-24 第七轮（GIF 装机 + 字体 + ba 词库，已完成并装机验证）
+
+> 三个诉求全部落地，新包 `dist/trime-arm64-v8a-release.apk` = **14016468 字节**（20:12 构建，
+> 513 项，`AndroidManifest.xml`/`resources.arsc` 自检通过），已装真机 EAT0220316001355。
+> 第六轮的两份文档改动（§0.4/§11）当时未提交，本轮一并提交。
+
+### 1. 背景 GIF —— 已装机，循环衔接待用户观感确认
+
+§0.4 的 `_install_candidate.gif`（3471816 字节）随本轮包装机；键盘背景确认在动、
+构图与接手时一致（远景、头占比小）。**「循环顺不顺」要用户自己看**，离线指标
+seam 2.04 / 0.39× 已达标。`InputView.kt` 的 -46 行回滚 + 新 GIF 已提交（必须一起的那两个）。
+
+### 2. 字体 —— 真根因是 GeneralStyle 的解析 bug，已修 + 换 Quicksand
+
+- **§0.4 的根因分析只对了一半**。就算字体文件就位也加载不了：
+  `GeneralStyle.kt` 的 `stringList()` 只认 YAML **序列**，而 `key_font: latin.ttf`
+  是**标量** → 全部 9 个字体名解析成空列表 → FontManager 永远拿到 DEFAULT。
+  历史上 2bcdf382 把「标量→空列表」写进了测试（GeneralStyleTest）当设计。
+- 修复：`stringList()` 标量按单元素列表解析（列表写法继续支持）；
+  GeneralStyleTest 断言改为 `keyFont == listOf("latin.ttf")`。
+- 配套：`DataManager.PACKAGED_MIRROR_DIRS` 加 `"fonts"`（FontManager 只读
+  `<userDataDir>/fonts`），assets/shared/fonts/ 随包镜像；装机后自动落地 ✓。
+- 字体两换：先 Varela Round（已生效，键面字母明显变圆），用户要求「更小更圆」
+  后换 **Quicksand**（OFL，124824 字节，variable 默认 Regular），
+  `key_text_size` 22 → **20**。`preview_font` 是无效键，已改名 `popup_font`。
+- ⚠ 中文槽（candidate/comment/hanb/symbol）继续系统 fallback，APK 仅 +0.1MB。
+
+### 3. ba 词库 —— 根因是权重刻度差 10 倍，已修（白子首页第 5、蔚蓝档案第 1）
+
+- **用户澄清（重要）**：「我要的是 ba 词库，而不是 ba 这个词」——goal 是蔚蓝档案
+  词库能打出来，不是字面词条 BA 霸榜。第六轮 §0.4.3 的方案（全局抬 quality /
+  抬 BA 词条权重）方向全错。
+- **真正根因**：mydomain 整库权重（80~2000）比 essay 词频刻度低约 10 倍——
+  essay 多字词普遍 500~800（白字=557、蔚然=580），顶常用字 7591~385554
+  （八/把/吧）。白子 285 输给白字 557 就是这么来的；整段领域词被系统性掩埋。
+- 修复：蔚蓝档案段（47 条）×10 → 2500~3400；字面 BA → 2000（普通专有名词档，
+  打 ba 时排 吧/把/八 之后、首页可见，不霸榜）。原神/崩铁段 ≤200 未动。
+- 真机验证：`baizi` → 白子第 5（首页）；`weilangdangan` → 蔚蓝档案第 1；
+  `bengtie` → 崩铁第 3（userdb 加权）；`clash` → Clash 第 1。check_dict 通过
+  （仅 BA 外一条「权重超出建议区间」提示——区间建议已过时，勿改回）。
+- **改权重改的是 `app/data/rime/myvocab/`（权威源）**，assets/shared 是构建镜像。
+
+### 4. 第七轮踩坑（都验证过，勿重蹈）
+
+1. **shell 与 app 进程的文件视图可能不一致**：`adb shell sed` 改 assets、
+   `adb pull` 读文件做字节比对，都可能和 app 实际读到的不一样。设备端调参
+   **只能走 APK 重装**（让 app 自己写文件），sed/广播那些循环全是空转。
+2. **librime 表内权重编码不是明文 float**（Java 端全量字节扫 200/340/385554/
+   2e7 的线性与 log 值全部 0 命中，疑似压缩/变长）——**别做表字节考古**，
+   直接看部署日志（`grep rime.trime`，有 checksum、collecting entries、
+   dropping 告警）+ 引擎候选日志。
+3. `script_translator` 候选质量 = `exp(entry.weight)`（script_translator.cc:646）；
+   essay 值直存表，排序实际是线性值比大小。合并选举（MergedTranslation::Elect）
+   只比较**相邻**翻译器首候选。
+4. **键码表**：Z=54、M=41、N=42、O=43（此前把 Z 敲成 44=P，浪费两轮判别实验）。
+5. 键盘字体改后不生效 ≠ 失败：先排除「首启时字体还没镜像」的时序（force-stop
+   重启 IME），再用 6 倍放大裁单字母比对（小图+花背景会看走眼，Q 尤其误导——
+   HarmonyOS Sans 和 Varela 的 Q 都是圆环）。
+6. 真机安装密码 100000（adb install 未触发，备用）。
+7. 诊断日志走 release 版也能出：TrimeApplication 在 release 也 plant 了
+   Timber 树（INFO+，tag=线程名）；一次性日志会被刷掉，写文件更稳
+   （`files/shared/dictdbg.txt` 手法）。本轮诊断代码已全部移除。
+
+### 5. 还没做的
+
+1. GIF 循环观感 —— 等用户看真机。
+2. **词库其他段是否也对齐 essay 刻度**（科技/原神/崩铁段 ≤200 仍被掩埋，
+   这就是 bug 4「词库难用」的根因）——抬权会霸榜，**要用户拍板**。
+3. 装机复验清单（右滑到底、中文全角括号、空格拖光标、`@`/`~` 半角、下标映射）。
+4. 任务 A（推送 develop 触发 CI，当前本地 ahead 2）、任务 B（PLAN-功能扩展.md）。
+5. `tools/verify-ui/` 本轮新增约 30 个 `_v*.png/_font*.png/_deploy_log*.txt`
+   调试文件，未跟踪，收尾可清。
+
