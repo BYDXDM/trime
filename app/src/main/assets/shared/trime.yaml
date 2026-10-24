@@ -11,9 +11,13 @@ author: myime
 
 style:
   # ---- 字体 ----
+  # 仅 latin.ttf 随包（assets/shared/fonts/，经 DataManager.PACKAGED_MIRROR_DIRS
+  # 镜像到 <userDataDir>/fonts）。中文槽（candidate/comment/hanb/symbol）留空
+  # 文件名继续走系统 fallback，APK 不为此翻倍。
+  # ⚠ 字体名标量写法依赖 GeneralStyle.stringList 的标量兼容（勿只认列表）。
   key_font: latin.ttf
   label_font: latin.ttf
-  preview_font: latin.ttf
+  popup_font: latin.ttf      # 按键按下预览（原 preview_font 是无效键，运行时忽略并告警）
   text_font: latin.ttf
   candidate_font: han.ttf
   comment_font: comment.ttf
@@ -22,7 +26,7 @@ style:
   symbol_font: symbol.ttf
 
   # ---- 字号 ----
-  key_text_size: 22          # 按键字母
+  key_text_size: 20          # 按键字母（22 → 20：用户要求「更小」，配 Quicksand 圆体）
   key_long_text_size: 14
   label_text_size: 13        # ★ 参考图里字母上方的小数字/符号
   # 键顶角标（labelSymbol）用的字号。注意 KeyView.drawSymbol 读的是

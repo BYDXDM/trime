@@ -54,8 +54,9 @@ object DataManager {
     private const val SHARED_DIR_NAME = "shared"
     private const val USER_DIR_NAME = "rime"
 
-    /** shared 下随包发布、需镜像到 Rime 用户目录的资源目录（见 [mirrorPackagedDirs]）。 */
-    private val PACKAGED_MIRROR_DIRS = arrayOf("backgrounds", "soundeffect")
+    /** shared 下随包发布、需镜像到 Rime 用户目录的资源目录（见 [mirrorPackagedDirs]）。
+     *  fonts：FontManager 只从 <userDataDir>/fonts 读字体（不读 assets），随包字体必须镜像过去。 */
+    private val PACKAGED_MIRROR_DIRS = arrayOf("backgrounds", "soundeffect", "fonts")
 
     /** 联想训练数据（随包发布，设备上编译成 [PREDICT_DB_NAME]）。 */
     private const val PREDICT_TEXT_NAME = "predict.txt"
