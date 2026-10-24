@@ -516,25 +516,25 @@ preset_keyboards:
     - { click: '。', label: '。', long_click: '>', swipe_up: '〉', width: 20 }
     - { click: '？', label: '？', long_click: '¿', swipe_up: '?', width: 20 }
     - { click: '！', label: '！', long_click: '¡', swipe_up: '!', width: 20 }
-    - { click: Keyboard_letter, label: '返回', width: 20 }
+    - { click: SymbolsUp_symbols_num, label: '↑', width: 20 }
     # ---- 第 2 行 ----
     - { click: '、', label: '、', long_click: '\', swipe_up: '|', width: 20 }
     - { click: '；', label: '；', long_click: ';', swipe_up: ':', width: 20 }
     - { click: '：', label: '：', long_click: ':', swipe_up: '；', width: 20 }
     - { click: '“', label: '“', long_click: '‘', swipe_up: '「', width: 20 }
-    - { click: SymbolsUp_symbols, label: '↑', width: 20 }
+    - { click: SymbolsDown_symbols, label: '↓', width: 20 }
     # ---- 第 3 行 ----
     - { click: '”', label: '”', long_click: '’', swipe_up: '」', width: 20 }
     - { click: '…', label: '…', long_click: '——', swipe_up: '·', width: 20 }
     - { click: '（', label: '（', long_click: '(', swipe_up: '{', width: 20 }
     - { click: '）', label: '）', long_click: ')', swipe_up: '}', width: 20 }
-    - { click: SymbolsDown_symbols, label: '↓', width: 20 }
+    - { click: Keyboard_number, label: '123', width: 20 }
     # ---- 第 4 行 ----
     - { click: '【', label: '【', long_click: '[', swipe_up: '〈', width: 20 }
     - { click: '】', label: '】', long_click: ']', swipe_up: '〉', width: 20 }
     - { click: '《', label: '《', long_click: '<', swipe_up: '〈', width: 20 }
     - { click: '》', label: '》', long_click: '>', swipe_up: '〉', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签（照搜狗的分组习惯）----
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
@@ -543,7 +543,7 @@ preset_keyboards:
     - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    - { click: Mode_switch, label: '中英', long_click: Menu, width: 16, key_text_size: 11 }
+    - { click: Keyboard_letter, label: '返回', long_click: Menu, width: 16, key_text_size: 11 }
     # 中文
 
     # =========================================================================
@@ -563,25 +563,25 @@ preset_keyboards:
     - { click: '。', label: '。', width: 20 }
     - { click: '、', label: '、', width: 20 }
     - { click: '；', label: '；', width: 20 }
-    - { click: Keyboard_letter, label: '返回', width: 20 }
+    - { click: SymbolsUp_symbols, label: '↑', width: 20 }
     # ---- 第 2 行 ----
     - { click: '：', label: '：', width: 20 }
     - { click: '？', label: '？', width: 20 }
     - { click: '！', label: '！', width: 20 }
     - { click: '…', label: '…', width: 20 }
-    - { click: SymbolsUp_symbols_cn, label: '↑', width: 20 }
+    - { click: SymbolsDown_symbols_cn, label: '↓', width: 20 }
     # ---- 第 3 行 ----
     - { click: '—', label: '—', width: 20 }
     - { click: '～', label: '～', width: 20 }
     - { click: '“', label: '“', width: 20 }
     - { click: '”', label: '”', width: 20 }
-    - { click: SymbolsDown_symbols_cn, label: '↓', width: 20 }
+    - { click: Keyboard_number, label: '123', width: 20 }
     # ---- 第 4 行 ----
     - { click: '‘', label: '‘', width: 20 }
     - { click: '’', label: '’', width: 20 }
     - { click: '「', label: '「', width: 20 }
     - { click: '」', label: '」', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
@@ -590,7 +590,7 @@ preset_keyboards:
     - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    - { click: Mode_switch, label: '中英', long_click: Menu, width: 16, key_text_size: 11 }
+    - { click: Keyboard_letter, label: '返回', long_click: Menu, width: 16, key_text_size: 11 }
     # 英文
 
     # =========================================================================
@@ -610,25 +610,25 @@ preset_keyboards:
     - { click: '.', label: '.', width: 20 }
     - { click: '?', label: '?', width: 20 }
     - { click: '!', label: '!', width: 20 }
-    - { click: Keyboard_letter, label: '返回', width: 20 }
+    - { click: SymbolsUp_symbols_cn, label: '↑', width: 20 }
     # ---- 第 2 行 ----
     - { click: ';', label: ';', width: 20 }
     - { click: ':', label: ':', width: 20 }
     - { click: '"', label: '"', width: 20 }
     - { click: ''', label: ''', width: 20 }
-    - { click: SymbolsUp_symbols_en, label: '↑', width: 20 }
+    - { click: SymbolsDown_symbols_en, label: '↓', width: 20 }
     # ---- 第 3 行 ----
     - { click: '(', label: '(', width: 20 }
     - { click: ')', label: ')', width: 20 }
     - { click: '[', label: '[', width: 20 }
     - { click: ']', label: ']', width: 20 }
-    - { click: SymbolsDown_symbols_en, label: '↓', width: 20 }
+    - { click: Keyboard_number, label: '123', width: 20 }
     # ---- 第 4 行 ----
     - { click: '<', label: '<', width: 20 }
     - { click: '>', label: '>', width: 20 }
     - { click: '-', label: '-', width: 20 }
     - { click: '_', label: '_', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
@@ -637,7 +637,7 @@ preset_keyboards:
     - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    - { click: Mode_switch, label: '中英', long_click: Menu, width: 16, key_text_size: 11 }
+    - { click: Keyboard_letter, label: '返回', long_click: Menu, width: 16, key_text_size: 11 }
     # 网络
 
     # =========================================================================
@@ -657,25 +657,25 @@ preset_keyboards:
     - { click: '#', label: '#', width: 20 }
     - { click: '&', label: '&', width: 20 }
     - { click: '*', label: '*', width: 20 }
-    - { click: Keyboard_letter, label: '返回', width: 20 }
+    - { click: SymbolsUp_symbols_en, label: '↑', width: 20 }
     # ---- 第 2 行 ----
     - { click: '/', label: '/', width: 20 }
     - { click: '\', label: '\', width: 20 }
     - { click: '_', label: '_', width: 20 }
     - { click: '|', label: '|', width: 20 }
-    - { click: SymbolsUp_symbols_net, label: '↑', width: 20 }
+    - { click: SymbolsDown_symbols_net, label: '↓', width: 20 }
     # ---- 第 3 行 ----
     - { click: '^', label: '^', width: 20 }
     - { click: '~', label: '~', width: 20 }
     - { click: '©', label: '©', width: 20 }
     - { click: '®', label: '®', width: 20 }
-    - { click: SymbolsDown_symbols_net, label: '↓', width: 20 }
+    - { click: Keyboard_number, label: '123', width: 20 }
     # ---- 第 4 行 ----
     - { click: '™', label: '™', width: 20 }
     - { click: '§', label: '§', width: 20 }
     - { click: '°', label: '°', width: 20 }
     - { click: '‰', label: '‰', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
@@ -684,7 +684,7 @@ preset_keyboards:
     - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    - { click: Mode_switch, label: '中英', long_click: Menu, width: 16, key_text_size: 11 }
+    - { click: Keyboard_letter, label: '返回', long_click: Menu, width: 16, key_text_size: 11 }
     # 数学
 
     # =========================================================================
@@ -704,25 +704,25 @@ preset_keyboards:
     - { click: '-', label: '-', width: 20 }
     - { click: '×', label: '×', width: 20 }
     - { click: '÷', label: '÷', width: 20 }
-    - { click: Keyboard_letter, label: '返回', width: 20 }
+    - { click: SymbolsUp_symbols_net, label: '↑', width: 20 }
     # ---- 第 2 行 ----
     - { click: '=', label: '=', width: 20 }
     - { click: '≠', label: '≠', width: 20 }
     - { click: '≈', label: '≈', width: 20 }
     - { click: '±', label: '±', width: 20 }
-    - { click: SymbolsUp_symbols_math, label: '↑', width: 20 }
+    - { click: SymbolsDown_symbols_math, label: '↓', width: 20 }
     # ---- 第 3 行 ----
     - { click: '∞', label: '∞', width: 20 }
     - { click: '%', label: '%', width: 20 }
     - { click: '‰', label: '‰', width: 20 }
     - { click: '√', label: '√', width: 20 }
-    - { click: SymbolsDown_symbols_math, label: '↓', width: 20 }
+    - { click: Keyboard_number, label: '123', width: 20 }
     # ---- 第 4 行 ----
     - { click: '¥', label: '¥', width: 20 }
     - { click: '￥', label: '￥', width: 20 }
     - { click: '$', label: '$', width: 20 }
     - { click: '€', label: '€', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
@@ -731,7 +731,7 @@ preset_keyboards:
     - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    - { click: Mode_switch, label: '中英', long_click: Menu, width: 16, key_text_size: 11 }
+    - { click: Keyboard_letter, label: '返回', long_click: Menu, width: 16, key_text_size: 11 }
     # 箭头
 
     # =========================================================================
@@ -751,25 +751,25 @@ preset_keyboards:
     - { click: '→', label: '→', width: 20 }
     - { click: '↑', label: '↑', width: 20 }
     - { click: '↓', label: '↓', width: 20 }
-    - { click: Keyboard_letter, label: '返回', width: 20 }
+    - { click: SymbolsUp_symbols_math, label: '↑', width: 20 }
     # ---- 第 2 行 ----
     - { click: '↔', label: '↔', width: 20 }
     - { click: '↕', label: '↕', width: 20 }
     - { click: '↖', label: '↖', width: 20 }
     - { click: '↗', label: '↗', width: 20 }
-    - { click: SymbolsUp_symbols_arrow, label: '↑', width: 20 }
+    - { click: SymbolsDown_symbols_arrow, label: '↓', width: 20 }
     # ---- 第 3 行 ----
     - { click: '↘', label: '↘', width: 20 }
     - { click: '↙', label: '↙', width: 20 }
     - { click: '↺', label: '↺', width: 20 }
     - { click: '↻', label: '↻', width: 20 }
-    - { click: SymbolsDown_symbols_arrow, label: '↓', width: 20 }
+    - { click: Keyboard_number, label: '123', width: 20 }
     # ---- 第 4 行 ----
     - { click: '▶', label: '▶', width: 20 }
     - { click: '◀', label: '◀', width: 20 }
     - { click: '▲', label: '▲', width: 20 }
     - { click: '▼', label: '▼', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
@@ -778,7 +778,7 @@ preset_keyboards:
     - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    - { click: Mode_switch, label: '中英', long_click: Menu, width: 16, key_text_size: 11 }
+    - { click: Keyboard_letter, label: '返回', long_click: Menu, width: 16, key_text_size: 11 }
     # 序号
 
     # =========================================================================
@@ -798,25 +798,25 @@ preset_keyboards:
     - { click: '②', label: '②', width: 20 }
     - { click: '③', label: '③', width: 20 }
     - { click: '④', label: '④', width: 20 }
-    - { click: Keyboard_letter, label: '返回', width: 20 }
+    - { click: SymbolsUp_symbols_arrow, label: '↑', width: 20 }
     # ---- 第 2 行 ----
     - { click: '⑤', label: '⑤', width: 20 }
     - { click: '⑥', label: '⑥', width: 20 }
     - { click: '⑦', label: '⑦', width: 20 }
     - { click: '⑧', label: '⑧', width: 20 }
-    - { click: SymbolsUp_symbols_num, label: '↑', width: 20 }
+    - { click: SymbolsDown_symbols_num, label: '↓', width: 20 }
     # ---- 第 3 行 ----
     - { click: '⑨', label: '⑨', width: 20 }
     - { click: '⑩', label: '⑩', width: 20 }
     - { click: '⑴', label: '⑴', width: 20 }
     - { click: '⑵', label: '⑵', width: 20 }
-    - { click: SymbolsDown_symbols_num, label: '↓', width: 20 }
+    - { click: Keyboard_number, label: '123', width: 20 }
     # ---- 第 4 行 ----
     - { click: '⑶', label: '⑶', width: 20 }
     - { click: '⑷', label: '⑷', width: 20 }
     - { click: '⑸', label: '⑸', width: 20 }
     - { click: '⑹', label: '⑹', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
@@ -825,7 +825,7 @@ preset_keyboards:
     - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    - { click: Mode_switch, label: '中英', long_click: Menu, width: 16, key_text_size: 11 }
+    - { click: Keyboard_letter, label: '返回', long_click: Menu, width: 16, key_text_size: 11 }
     # -----------------------------------------------------------------------------
     #  数字面板（照搜狗布局：左 %/− 右 ⌫/./@，中 3×4 数字）
     # -----------------------------------------------------------------------------
@@ -847,19 +847,19 @@ preset_keyboards:
     - { click: '1', label: '1', long_click: '①', swipe_up: '¹', width: 22 }
     - { click: '2', label: '2', long_click: '②', swipe_up: '²', width: 22 }
     - { click: '3', label: '3', long_click: '③', swipe_up: '³', width: 22 }
-    - { click: BackSpace, label: '⌫', width: 22 }
+    - { click: '.', label: '.', width: 22 }
     # ---- 第 2 行 ----
     - { click: '/', label: '/', long_click: '÷', width: 12 }
     - { click: '4', label: '4', long_click: '④', swipe_up: '⁴', width: 22 }
     - { click: '5', label: '5', long_click: '⑤', swipe_up: '⁵', width: 22 }
     - { click: '6', label: '6', long_click: '⑥', swipe_up: '⁶', width: 22 }
-    - { click: '.', label: '.', long_click: '·', width: 22 }
+    - { click: '@', label: '@', long_click: '·', width: 22 }
     # ---- 第 3 行 ----
     - { click: '-', label: '−', long_click: '＋', width: 12 }
     - { click: '7', label: '7', long_click: '⑦', swipe_up: '⁷', width: 22 }
     - { click: '8', label: '8', long_click: '⑧', swipe_up: '⁸', width: 22 }
     - { click: '9', label: '9', long_click: '⑨', swipe_up: '⁹', width: 22 }
-    - { click: '@', label: '@', width: 22 }
+    - { click: BackSpace, label: '⌫', width: 22 }
     # ---- 第 4 行 ----
     - { click: Keyboard_symbols, label: '符', width: 12 }
     - { click: Keyboard_letter, label: '返回', width: 22 }
