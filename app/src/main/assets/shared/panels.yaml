@@ -47,6 +47,7 @@ symbols_panel:
   - { click: BackSpace, label: '⌫', width: 20 }
 
   # ---- 分组页签（照搜狗的分组习惯）----
+  - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
   - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12, key_text_size: 11 }
@@ -54,7 +55,6 @@ symbols_panel:
   - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-  - { click: Keyboard_letter, label: '返回', long_click: Menu, width: 16, key_text_size: 11 }
 
 # 中文
 symbols_cn_panel:
@@ -88,6 +88,7 @@ symbols_cn_panel:
   - { click: BackSpace, label: '⌫', width: 20 }
 
   # ---- 分组页签 ----
+  - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
   - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12, key_text_size: 11 }
@@ -95,7 +96,6 @@ symbols_cn_panel:
   - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-  - { click: Keyboard_letter, label: '返回', long_click: Menu, width: 16, key_text_size: 11 }
 
 # 英文
 symbols_en_panel:
@@ -129,6 +129,7 @@ symbols_en_panel:
   - { click: BackSpace, label: '⌫', width: 20 }
 
   # ---- 分组页签 ----
+  - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
   - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12, key_text_size: 11 }
@@ -136,7 +137,6 @@ symbols_en_panel:
   - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-  - { click: Keyboard_letter, label: '返回', long_click: Menu, width: 16, key_text_size: 11 }
 
 # 网络
 symbols_net_panel:
@@ -170,6 +170,7 @@ symbols_net_panel:
   - { click: BackSpace, label: '⌫', width: 20 }
 
   # ---- 分组页签 ----
+  - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
   - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12, key_text_size: 11 }
@@ -177,7 +178,6 @@ symbols_net_panel:
   - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-  - { click: Keyboard_letter, label: '返回', long_click: Menu, width: 16, key_text_size: 11 }
 
 # 数学
 symbols_math_panel:
@@ -211,6 +211,7 @@ symbols_math_panel:
   - { click: BackSpace, label: '⌫', width: 20 }
 
   # ---- 分组页签 ----
+  - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
   - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12, key_text_size: 11 }
@@ -218,7 +219,6 @@ symbols_math_panel:
   - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-  - { click: Keyboard_letter, label: '返回', long_click: Menu, width: 16, key_text_size: 11 }
 
 # 箭头
 symbols_arrow_panel:
@@ -252,6 +252,7 @@ symbols_arrow_panel:
   - { click: BackSpace, label: '⌫', width: 20 }
 
   # ---- 分组页签 ----
+  - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
   - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12, key_text_size: 11 }
@@ -259,7 +260,6 @@ symbols_arrow_panel:
   - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-  - { click: Keyboard_letter, label: '返回', long_click: Menu, width: 16, key_text_size: 11 }
 
 # 序号
 symbols_num_panel:
@@ -293,6 +293,7 @@ symbols_num_panel:
   - { click: BackSpace, label: '⌫', width: 20 }
 
   # ---- 分组页签 ----
+  - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
   - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12, key_text_size: 11 }
@@ -300,7 +301,6 @@ symbols_num_panel:
   - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
   - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-  - { click: Keyboard_letter, label: '返回', long_click: Menu, width: 16, key_text_size: 11 }
 
 # -----------------------------------------------------------------------------
 #  数字面板（照搜狗布局：左 %/− 右 ⌫/./@，中 3×4 数字）
@@ -329,8 +329,8 @@ number_panel:
   - { click: BackSpace, label: '⌫', width: 22 }
 
   # ---- 第 4 行 ----
-  - { click: Keyboard_symbols, label: '符', width: 12 }
-  - { click: Keyboard_letter, label: '返回', width: 22 }
+  - { click: Keyboard_letter, label: '返回', width: 12 }
+  - { click: Keyboard_symbols, label: '符', width: 22 }
   - { click: '0', label: '0', long_click: '⑩', swipe_up: '⁰', width: 22 }
   - { click: space, width: 22 }
   - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, width: 22 }
