@@ -423,7 +423,8 @@ class ThemeDiagnosticsTest :
             // 且顺序由 lint 的遍历顺序决定 —— 以下为实测值）。
             val trimeYamlFindings =
                 listOf(
-                    "WARNING UNKNOWN_STYLE_KEY style/preview_font",
+                    // preview_font 已改名为 popup_font（preview_font 是无效键）；
+                    // 其余 preview_* 仍是无效键，改名会静默改变弹窗尺寸，暂留。
                     "WARNING UNKNOWN_STYLE_KEY style/preview_text_size",
                     "WARNING UNKNOWN_STYLE_KEY style/preview_height",
                     "WARNING UNKNOWN_STYLE_KEY style/preview_offset",

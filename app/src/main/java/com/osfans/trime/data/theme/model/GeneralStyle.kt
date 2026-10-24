@@ -184,7 +184,13 @@ data class GeneralStyle(
                 "vertical_gap",
             )
 
-        private fun YamlNode?.stringList(): List<String> = this?.sequence?.items?.mapNotNull(YamlNode::string) ?: emptyList()
+        // 主题里的字体名既有列表写法（key_font: [a.ttf, b.ttf]）也有标量写法
+        // （key_font: latin.ttf，上游 trime 的惯例）。只认序列会把标量静默丢成
+        // 空列表，FontManager 拿不到任何字体名，全部回落系统字体。
+        private fun YamlNode?.stringList(): List<String> {
+            val list = this?.sequence?.items?.mapNotNull(YamlNode::string)
+            return if (!list.isNullOrEmpty()) list else listOfNotNull(this?.string)
+        }
 
         fun decode(node: YamlNode): GeneralStyle = GeneralStyle(
             autoCaps = node["auto_caps"]?.boolean ?: DEFAULTS.autoCaps,

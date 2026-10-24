@@ -53,11 +53,13 @@ class GeneralStyleTest :
                     style.keyboardPaddingLand shouldBe 40
                 }
 
-                Then("fonts declared as a single scalar decode to an empty list") {
-                    // By design (since 2bcdf382) fonts must be lists, e.g. `candidate_font: [han.ttf]`;
-                    // a scalar like `candidate_font: han.ttf` decodes to an empty list (system font).
-                    style.candidateFont shouldBe emptyList()
-                    style.keyFont shouldBe emptyList()
+                Then("fonts declared as a single scalar decode to a single-element list") {
+                    // 2bcdf382 曾把标量字体名解析成空列表（等于内置主题的字体配置
+                    // 全部失效）。上游主题与社区主题（tongwenfeng 等）的惯例都是
+                    // 标量写法 `key_font: latin.ttf`，标量必须按单元素列表解析；
+                    // 列表写法 `candidate_font: [han.ttf]` 也继续支持。
+                    style.candidateFont shouldBe listOf("han.ttf")
+                    style.keyFont shouldBe listOf("latin.ttf")
                 }
 
                 Then("theme header is decoded") {
