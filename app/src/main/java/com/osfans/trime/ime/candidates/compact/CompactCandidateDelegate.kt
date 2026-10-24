@@ -84,7 +84,8 @@ class CompactCandidateDelegate(override val di: DI) :
         bar.unrollButtonStateMachine.push(
             UnrollButtonStateMachine.TransitionEvent.UnrolledCandidatesUpdated,
             UnrollButtonStateMachine.BooleanKey.UnrolledCandidatesEmpty to
-                (adapter.total == childCount),
+                // 栏里少了几条被过滤掉的缺字形候选，这些不会显示，算「已全显示」时要把它们补回来。
+                (childCount + adapter.filteredOut >= adapter.total),
         )
     }
 
@@ -97,10 +98,15 @@ class CompactCandidateDelegate(override val di: DI) :
     val adapter by lazy {
         CompactCandidateViewAdapter(scope).apply {
             setOnItemClickListener { _, _, position ->
-                rime.launchOnReady { it.selectCandidate(position, global = true) }
+                // 候选栏过滤掉了缺字形的条目，显示位置不再等于 librime 下标。
+                // 这里用 apply 的接收者（适配器本身），不能写 `adapter.`——那会递归引用本属性。
+                val index = originalIndex(position)
+                rime.launchOnReady { it.selectCandidate(index, global = true) }
             }
             setOnItemLongClickListener { _, view, position ->
-                inputView.showCandidateActionMenu(position, items[position].text, view, global = true)
+                val index = originalIndex(position)
+                val text = items.getOrNull(position)?.text ?: return@setOnItemLongClickListener false
+                inputView.showCandidateActionMenu(index, text, view, global = true)
                 true
             }
         }
@@ -139,6 +145,63 @@ class CompactCandidateDelegate(override val di: DI) :
             override fun canScrollHorizontally(): Boolean = true
 
             override fun canScrollVertically(): Boolean = false
+
+            // ★ 自己接管横向滚动，不走父类的 handleScrollingMainOrientation()。
+            //   父类那条路径最终落到 fill()，而 fill() 的
+            //     while ((remainingSpace > 0 || mInfinite) && hasMore(...))
+            //   在 NOWRAP 下只可能转一圈（mFlexLines 里就一行），每圈扣的是
+            //   flexLine.getCrossSize()（行高）而不是主轴溢出量，所以
+            //   fill() 返回的 consumed 恒在「行高」量级，位移被钳死。
+            //   实测：第一次右滑刚好走 1066px，之后无论滑多少次、滑多快，
+            //   候选栏像素逐列完全一致 —— 第 13 个之后的候选永远够不着。
+            //   候选栏本来就在一次 layout 里把整行候选项全部 measure+addView 完，
+            //   所以这里直接平移子项，边界按「内容总宽 − 视口宽」裁剪即可。
+            override fun scrollHorizontallyBy(
+                dx: Int,
+                recycler: RecyclerView.Recycler?,
+                state: RecyclerView.State?,
+            ): Int {
+                if (dx == 0 || childCount == 0) return 0
+                val viewport = width - paddingLeft - paddingRight
+                val maxScroll = (contentExtent() - viewport).coerceAtLeast(0)
+                if (maxScroll <= 0) return 0
+                val current = (paddingLeft - decoratedLeftEdge()).coerceAtLeast(0)
+                val target = (current + dx).coerceIn(0, maxScroll)
+                val real = target - current
+                if (real == 0) return 0
+                offsetChildrenHorizontal(-real)
+                return real
+            }
+
+            /** 已排布子项占用的主轴总宽度（含分隔线 ItemDecoration）。 */
+            private fun contentExtent(): Int {
+                var minLeft = Int.MAX_VALUE
+                var maxRight = Int.MIN_VALUE
+                for (i in 0 until childCount) {
+                    val child = getChildAt(i) ?: continue
+                    minLeft = minOf(minLeft, getDecoratedLeft(child))
+                    maxRight = maxOf(maxRight, getDecoratedRight(child))
+                }
+                return if (maxRight > minLeft) maxRight - minLeft else 0
+            }
+
+            /** 最左子项的装饰后左边界；未滚动时应等于 paddingLeft。 */
+            private fun decoratedLeftEdge(): Int {
+                var minLeft = Int.MAX_VALUE
+                for (i in 0 until childCount) {
+                    val child = getChildAt(i) ?: continue
+                    minLeft = minOf(minLeft, getDecoratedLeft(child))
+                }
+                return if (minLeft == Int.MAX_VALUE) paddingLeft else minLeft
+            }
+
+            // 滚动条虽然已关掉（isHorizontalScrollBarEnabled = false），但这两个值
+            // 还被 RecyclerView 用来判断边缘发光/无障碍滚动，一并给准数。
+            override fun computeHorizontalScrollRange(state: RecyclerView.State): Int = contentExtent()
+
+            override fun computeHorizontalScrollOffset(state: RecyclerView.State): Int = (paddingLeft - decoratedLeftEdge()).coerceAtLeast(0)
+
+            override fun computeHorizontalScrollExtent(state: RecyclerView.State): Int = width - paddingLeft - paddingRight
 
             override fun onLayoutCompleted(state: RecyclerView.State?) {
                 super.onLayoutCompleted(state)
@@ -206,6 +269,10 @@ class CompactCandidateDelegate(override val di: DI) :
 
         val maxSpanCount = maxSpanCountPref.getValue()
 
+        adapter.updateCandidates(candidates, total, highlighted)
+        // 填充策略要按「实际能显示的条数」算：缺字形被过滤掉的候选不占格子。
+        val visibleCount = adapter.visibleCount
+
         when (fillStyle) {
             CompactCandidateMode.NEVER_FILL -> {
                 layoutMinWidth = 0
@@ -215,9 +282,9 @@ class CompactCandidateDelegate(override val di: DI) :
 
             CompactCandidateMode.AUTO_FILL -> {
                 layoutMinWidth = view.width / maxSpanCount - separatorDrawable.intrinsicWidth
-                layoutFlexGrow = if (candidates.size < maxSpanCount) 0f else 1f
+                layoutFlexGrow = if (visibleCount < maxSpanCount) 0f else 1f
                 // [^1] total candidates count < maxSpanCount
-                secondLayoutPassNeeded = candidates.size < maxSpanCount
+                secondLayoutPassNeeded = visibleCount < maxSpanCount
                 secondLayoutPassDone = false
             }
 
@@ -229,10 +296,9 @@ class CompactCandidateDelegate(override val di: DI) :
         }
 
         adapter.updateLayoutParams(layoutMinWidth, layoutFlexGrow)
-        adapter.updateCandidates(candidates, total, highlighted)
 
         // not sure why empty candidates won't trigger `FlexboxLayoutManager#onLayoutCompleted()`
-        if (candidates.isEmpty()) {
+        if (visibleCount == 0) {
             refreshUnrolled(0)
         }
     }

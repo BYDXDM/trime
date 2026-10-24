@@ -1,0 +1,21 @@
+# Rime 补丁：覆盖 rime-prelude 里 symbols.yaml 的 half_shape 段。
+#
+# ⚠ 为什么不能直接改 symbols.yaml：
+#   build-logic/convention/src/main/kotlin/RimeDataSyncPlugin.kt 的
+#   syncRimeSharedData 任务会在**每次构建时**把 app/data/rime/prelude/symbols.yaml
+#   镜像到 app/src/main/assets/shared/symbols.yaml（outputs.upToDateWhen { false }，
+#   永不跳过）。直接改后者会被下一次构建覆盖回去。
+#   而 prelude 是 git 子模块，改它既污染子模块又不会被提交。
+#
+#   所以走 rime 自己的补丁机制：同目录下的 symbols.custom.yaml 会在部署时
+#   被 patch 进 symbols.yaml。本文件在 data/rime 下没有对应源文件，
+#   sync 任务「不删自己没有源的文件」，因此能稳定存活。
+#
+# 用户要求（2026-10-18）：快捷 @ / 快捷 ~ 不要弹候选，直接上屏半角。
+#   原配置是列表形式，列表 = 出候选菜单：
+#     '~' : [ '~', ～, ˜, ... ]
+#     '@' : [ '@', ©, ®, ℗ ]
+#   改成 { commit: ... } 才是「直接上屏」。
+patch:
+  half_shape/@: { commit: '@' }
+  half_shape/~: { commit: '~' }

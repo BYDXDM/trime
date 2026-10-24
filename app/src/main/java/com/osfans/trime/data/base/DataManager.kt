@@ -40,10 +40,14 @@ object DataManager {
     const val USER_CONFIG_FILE_NAME = "user.yaml"
     const val INSTALLATION_FILE_NAME = "installation.yaml"
 
+    /** 自定义短语表（`table_translator@custom_phrase` 的 `db_class: stabledb` 数据源）。 */
+    const val CUSTOM_PHRASE_FILE_NAME = "custom_phrase.txt"
+
     val POST_SCHEMA_DEPLOY_EXPORT_FILES =
         listOf(
             DEFAULT_CUSTOM_FILE_NAME,
             USER_CONFIG_FILE_NAME,
+            CUSTOM_PHRASE_FILE_NAME,
         )
 
     private const val DATA_CHECKSUMS_NAME = "checksums.json"

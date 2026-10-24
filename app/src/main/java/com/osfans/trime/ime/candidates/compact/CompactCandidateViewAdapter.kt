@@ -12,6 +12,7 @@ import com.chad.library.adapter4.BaseQuickAdapter
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.osfans.trime.core.CandidateProto
 import com.osfans.trime.data.theme.ThemeScope
+import com.osfans.trime.ime.candidates.CandidateGlyphFilter
 import com.osfans.trime.ime.candidates.CandidateItemUi
 import com.osfans.trime.ime.candidates.CandidateViewHolder
 import splitties.dimensions.dp
@@ -25,13 +26,31 @@ open class CompactCandidateViewAdapter(
         setHasStableIds(true)
     }
 
-    override fun getItemId(position: Int): Long = items.getOrNull(position).hashCode().toLong()
+    /**
+     * 用位置当 id，而不是 `CandidateProto.hashCode()`：同一次候选里出现两条一模一样的
+     * 候选（text/comment/label 全等）时 hash 相同，RecyclerView 会把它们当成同一个 item
+     * 丢掉其中一个，那一格就空了。
+     */
+    override fun getItemId(position: Int): Long = position.toLong()
 
     var total: Int = -1
         private set
 
+    /** 过滤掉画不出来的候选之后，实际显示的条数。同步可得，不依赖 submitList 的异步 diff。 */
+    var visibleCount: Int = 0
+        private set
+
+    /** 本轮被过滤掉的条数。展开按钮据此判断「栏里是不是已经全显示了」。 */
+    var filteredOut: Int = 0
+        private set
+
     var highlightedIdx: Int = -1
         private set
+
+    /** 过滤后的第 i 项在 librime 原始候选列表里的下标。 */
+    private var originalIndices: IntArray = IntArray(0)
+
+    fun originalIndex(position: Int): Int = originalIndices.getOrNull(position) ?: position
 
     var layoutMinWidth: Int = 0
         private set
@@ -49,9 +68,15 @@ open class CompactCandidateViewAdapter(
         total: Int,
         highlightedIndex: Int,
     ) {
-        super.submitList(data.toList(), null)
+        val filtered = CandidateGlyphFilter.filter(data.toList(), CandidateGlyphFilter::canRender)
+        originalIndices = filtered.indices
+        visibleCount = filtered.candidates.size
+        filteredOut = data.size - filtered.candidates.size
+        // total 保持 librime 的原始条数：展开面板的 CandidatesPagingSource 按下标取页，
+        // 把它改成过滤后的条数会让末尾的候选永远翻不到。
         this.total = total
         this.highlightedIdx = highlightedIndex
+        super.submitList(filtered.candidates, null)
     }
 
     override fun onCreateViewHolder(
@@ -83,11 +108,12 @@ open class CompactCandidateViewAdapter(
         item: CandidateProto?,
     ) {
         item ?: return
-        val isHighlighted = position == highlightedIdx
+        val originalIndex = originalIndex(position)
+        val isHighlighted = originalIndex == highlightedIdx
         holder.ui.update(item, isHighlighted)
         holder.text = item.text
         holder.comment = item.comment
-        holder.idx = position // unused
+        holder.idx = originalIndex
         holder.ui.root.updateLayoutParams<FlexboxLayoutManager.LayoutParams> {
             minWidth = this@CompactCandidateViewAdapter.layoutMinWidth
             flexGrow = this@CompactCandidateViewAdapter.layoutFlexGrow

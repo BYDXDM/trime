@@ -230,6 +230,16 @@
     <string name="max_span_count">每行最大候選詞數</string>
     <string name="max_span_count_landscape">每行最大候選詞數(橫屏)</string>
     <string name="user_dictionary">使用者詞典</string>
+    <string name="custom_phrase">自訂短語</string>
+    <string name="custom_phrase_text">短語</string>
+    <string name="custom_phrase_code">編碼</string>
+    <string name="custom_phrase_weight">權重</string>
+    <string name="custom_phrase_add">新增短語</string>
+    <string name="custom_phrase_edit">編輯短語</string>
+    <string name="custom_phrase_invalid">短語和編碼不能為空</string>
+    <string name="custom_phrase_saved">已儲存，正在重載 Rime…</string>
+    <string name="custom_phrase_delete_confirm">刪除「%1$s」（%2$s）？</string>
+    <string name="custom_phrase_entry_summary">%1$s · 權重 %2$d</string>
     <string name="exported_n_entries">已匯出 %1$d 個詞條</string>
     <string name="backed_up_x_to_sync_dir">已備份 %1$s 到同步目錄</string>
     <string name="import_">匯入</string>

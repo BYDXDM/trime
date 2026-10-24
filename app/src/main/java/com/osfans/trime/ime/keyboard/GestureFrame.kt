@@ -31,6 +31,15 @@ open class GestureFrame(context: Context) : FrameLayout(context) {
     private var slideActivated = false
     private var swipeTriggered = false
 
+    /**
+     * 长按已进入「拖动模式」（仅 [isSlideCursor] 的键，如空格）。
+     *
+     * 不能复用 [isLongPressed]：那个一置真，ACTION_MOVE 里的滑动分支就被
+     * `!isLongPressed` 挡死，光标永远拖不动；而且 `repeatable: true` 的空格
+     * 还会在长按期间一直重复上屏空格。所以拖动类按键长按后改置这个标志。
+     */
+    private var slideArmed = false
+
     private var longPressJob: Job? = null
     private var repeatJob: Job? = null
     private var doubleTapJob: Job? = null
@@ -94,6 +103,7 @@ open class GestureFrame(context: Context) : FrameLayout(context) {
 
                 isLongPressed = false
                 slideActivated = false
+                slideArmed = false
                 swipeTriggered = false
                 lastSwipeBehavior = KeyBehavior.CLICK
 
@@ -122,7 +132,9 @@ open class GestureFrame(context: Context) : FrameLayout(context) {
                 // 必须先按屏幕密度换算，否则高密度屏上阈值会缩水成 1/3 左右。
                 val density = resources.displayMetrics.density
 
-                if ((isSlideCursor || isSlideDelete) && onSlide != null && !isLongPressed && swipeTravel > 0) {
+                // slideArmed：长按超时后进入拖动模式，此时 isLongPressed 仍是 false，
+                // 所以这里照常能滑动。
+                if ((isSlideCursor || isSlideDelete) && onSlide != null && (!isLongPressed || slideArmed) && swipeTravel > 0) {
                     if (!slideActivated) {
                         if (abs(dx) >= swipeTravel * density) {
                             slideActivated = true
@@ -214,6 +226,7 @@ open class GestureFrame(context: Context) : FrameLayout(context) {
 
                 isLongPressed = false
                 slideActivated = false
+                slideArmed = false
                 swipeTriggered = false
 
                 onCancel?.invoke()
@@ -229,9 +242,17 @@ open class GestureFrame(context: Context) : FrameLayout(context) {
             delay(longPressTimeout.toLong())
             if (touchId != currentTouchId) return@launch
             if (swipeTriggered || slideActivated) return@launch
-            isLongPressed = true
 
             if (vibrateOnKeyPress) InputFeedbackManager.keyPressVibrate(this@GestureFrame, true)
+
+            // 拖动类按键（空格）：长按的语义是「进入拖动模式」，
+            // 既不能置 isLongPressed（会挡死滑动分支），也不能走 repeat（会一直上屏空格）。
+            if (isSlideCursor && onSlide != null) {
+                slideArmed = true
+                return@launch
+            }
+
+            isLongPressed = true
 
             if (isRepeatable) {
                 startRepeatJob()

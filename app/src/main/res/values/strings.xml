@@ -233,6 +233,16 @@
     <string name="max_span_count">Maximum candidates per row</string>
     <string name="max_span_count_landscape">Maximum candidates per row (landscape)</string>
     <string name="user_dictionary">User dictionary</string>
+    <string name="custom_phrase">Custom phrases</string>
+    <string name="custom_phrase_text">Phrase</string>
+    <string name="custom_phrase_code">Code</string>
+    <string name="custom_phrase_weight">Weight</string>
+    <string name="custom_phrase_add">New phrase</string>
+    <string name="custom_phrase_edit">Edit phrase</string>
+    <string name="custom_phrase_invalid">Phrase and code cannot be empty</string>
+    <string name="custom_phrase_saved">Saved, reloading Rime…</string>
+    <string name="custom_phrase_delete_confirm">Delete “%1$s” (%2$s)?</string>
+    <string name="custom_phrase_entry_summary">%1$s · weight %2$d</string>
     <string name="import_">Import</string>
     <string name="import_error">Import error</string>
     <string name="import_n_entries">Imported %1$d entry(-ies)</string>

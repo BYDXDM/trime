@@ -128,7 +128,16 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
                 }
             }
 
-            override fun onAction(action: KeyAction) {
+            override fun onAction(action: KeyAction) = handleAction(action, allowAutoPair = true)
+
+            /**
+             * @param allowAutoPair `{xxx}` 文本序列展开出来的按键要传 false：那是主题里
+             *   写死的「模拟这个键」（如 `{braceleft}`），不能被成对补全改写成别的字符序列。
+             */
+            private fun handleAction(
+                action: KeyAction,
+                allowAutoPair: Boolean,
+            ) {
                 val text = action.getText(KeyboardWindow.currentKeyboard)
                 val shouldHandle = when {
                     action.commit.isNotEmpty() -> {
@@ -147,6 +156,15 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
                 }
 
                 if (shouldHandle) {
+                    // `[` `{` 在 KeyAction 初始化时就被解析成了 keycode（KEYCODE_LEFT_BRACKET /
+                    // 符号码 10011），text 为空，走不到上面 text.isNotEmpty() 那条成对分支；
+                    // 这里按码还原字符再判一次。不是成对左半、或光标后已有内容时直接落下去，
+                    // 照常走下面的按键分发。
+                    if (allowAutoPair) {
+                        val open = autoPairTextForCode(action.code)
+                        if (open != null && commitAutoPair(open)) return
+                    }
+
                     when (action.code) {
                         KeyEvent.KEYCODE_SWITCH_CHARSET -> handleSwitchCharset(action)
 
@@ -164,31 +182,21 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
 
                         KeyEvent.KEYCODE_VOICE_ASSIST -> switchToVoiceInputMethod()
 
-                        // 退格（单击）：逐字删除，保持用户已习惯的行为。
-                        // ⚠ 原设计是「有预编辑时一次清空全部拼音」，但 clearCompositionIfAny()
-                        //   依赖 service.hasComposition()（composingText 非空），真机预编辑期间
-                        //   该判定实测为假 → 分支恒不生效，一直退化成逐字删。
-                        //   按用户确认：单击保持逐字删；整体清空改由删除键**上滑**
-                        //   （clear_composition）承担。
-                        KeyEvent.KEYCODE_DEL -> if (!clearCompositionIfAny()) handleDefaultKeyAction(action)
+                        // 退格（单击）：逐字删除。
+                        // ⚠ 这里**故意**不做「有预编辑就整体清空」：
+                        //   service.hasComposition() 读的是 composingText，而它的赋值有两条路 ——
+                        //   ① 嵌入式预编辑模式（inline_preedit_mode 非 DISABLE）会持续写它；
+                        //   ② 分词窗口 SegmentsWindow 不看清开关直接写它、且 detach 时不复位。
+                        //   于是那个判定在默认配置下恒假（退化成逐字删），一旦用户开了嵌入式预编辑
+                        //   或开过分词窗口就恒真（单击变成整体清空）—— 同一手势两种语义。
+                        //   按用户确认：单击恒为逐字删；整体清空由删除键**上滑**
+                        //   （trime.yaml 里删除键 swipe_up: ClearAll → command clear_all）承担，
+                        //   见下面的 clearInputAndComposition()。
+                        KeyEvent.KEYCODE_DEL -> handleDefaultKeyAction(action)
 
                         else -> handleDefaultKeyAction(action)
                     }
                 }
-            }
-
-            /**
-             * 有未上屏的预编辑就整体清空并返回 true；否则返回 false（走正常退格）。
-             * 用 Rime 的 Escape 语义（清空 composition），不是逐字 BackSpace。
-             */
-            private fun clearCompositionIfAny(): Boolean {
-                if (!service.hasComposition()) return false
-                // clearComposition() 是 suspend，launchOnReady 的 lambda 不是 suspend，
-                // 所以按 handleSwitchCharset 的写法在 lifecycleScope 里起协程。
-                rime.launchOnReady { api ->
-                    service.lifecycleScope.launch { api.clearComposition() }
-                }
-                return true
             }
 
             /**
@@ -545,7 +553,9 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
                     service.postRimeJob {
                         if (value.run { startsWith('{') && endsWith('}') }) {
                             val token = value.removeSurrounding("{", "}")
-                            onAction(KeyActionManager.getAction(token))
+                            // 文本序列里的 `{xxx}` 是「模拟这个键」，不是用户真的按了那个键：
+                            // 不做成对补全，否则 `{braceleft}` 会被改写成 `{}` 或 `{`。
+                            handleAction(KeyActionManager.getAction(token), allowAutoPair = false)
                         } else if (!value[0].isAsciiPrintable()) {
                             service.commitText(value)
                         } else {
@@ -567,8 +577,13 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
      * @return true 表示已按成对处理，调用方不必再普通上屏。
      */
     private fun commitAutoPair(text: String): Boolean {
-        if (rime.run { statusCached }.isComposing) return false
-        val close = autoPairCloserFor(text) ?: return false
+        val status = rime.run { statusCached }
+        val close =
+            resolveAutoPair(
+                text = text,
+                isComposing = status.isComposing,
+                hasLocalComposition = service.hasComposition(),
+            ) ?: return false
         return service.commitPairedText(text, close)
     }
 
@@ -576,7 +591,7 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
         /** 双击空格判定窗口：两次按下间隔小于该值视为双击。 */
         private const val SPACE_DOUBLE_TAP_WINDOW_MS = 350L
 
-        /** 左半符号 → 右半符号。快捷符号与符号面板里出现的成对符号都在列。 */
+        /** 左半符号 → 右半符号。快捷符号与符号面板里出现的成对符号都在列（含 ASCII）。 */
         private val AUTO_PAIR_CLOSERS: Map<String, String> =
             mapOf(
                 "（" to "）",
@@ -586,9 +601,49 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
                 "【" to "】",
                 "「" to "」",
                 "『" to "』",
+                "(" to ")",
+                "[" to "]",
+                "{" to "}",
+            )
+
+        /**
+         * 查不到键码的字符（如 `(`）才会被 [KeyAction] 填进 text，走上面的字符表就够了；
+         * 而 `[` `{` 会被 [KeyCode] 解析成键码（KEYCODE_LEFT_BRACKET / 符号码 10011），
+         * text 为空，根本走不到那张表。这里按「字符 → 它会被解析成的键码」再补一张。
+         */
+        private val AUTO_PAIR_BY_KEYCODE: Map<Int, String> =
+            mapOf(
+                KeyCode.nameToKeyCode("[") to "[",
+                KeyCode.nameToKeyCode("{") to "{",
             )
 
         internal fun autoPairCloserFor(text: String): String? = AUTO_PAIR_CLOSERS[text]
+
+        /** @return [code] 对应的成对左半符号；该键码不是左半符号时为 null。 */
+        internal fun autoPairTextForCode(code: Int): String? = AUTO_PAIR_BY_KEYCODE[code]
+
+        /**
+         * 判定 [text] 要不要自动补全，返回该补的右半符号；不该补时返回 null。
+         *
+         * 两道守卫，顺序即优先级：
+         * 1. 组词中不补。rime 的 statusCached 由 emitResponse 在**最后一步**刷新，
+         *    比按键晚一拍；连打时组词刚建立它还是 isComposing = false，光看它会在
+         *    拼音打一半时误补括号。本地 composingText 一并看（分词窗口会写它）。
+         *    这条是「打字打到一半冒出括号」那个 bug 的根治点，不能删。
+         * 2. 非左半符号不补。
+         *
+         * 中英文**都补**（用户 2026-10-18 拍板「中文也要」）：按字符查表天然分流 ——
+         * 中文键盘上 `(` 经 rime 标点表出来是 `（`，查到 `）`；英文模式下是 `(`，
+         * 查到 `)`。所以这里不需要再看 isAsciiMode。
+         */
+        internal fun resolveAutoPair(
+            text: String,
+            isComposing: Boolean,
+            hasLocalComposition: Boolean,
+        ): String? {
+            if (isComposing || hasLocalComposition) return null
+            return autoPairCloserFor(text)
+        }
 
         internal fun isDoubleSpaceTap(
             now: Long,

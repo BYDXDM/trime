@@ -690,14 +690,19 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
 
     /**
      * 成对符号提交：一次上屏 open+close，并把光标移到两者之间。
-     * 仅在光标后没有内容时使用（由 CommonKeyboardActionListener 校验）；
-     * 光标后有内容时返回 false，调用方回退为普通单字上屏。
+     * 仅在「没有未上屏的预编辑、没有选区、光标后没有内容」时使用；
+     * 任一条件不满足就返回 false，调用方回退为普通单字上屏。
      */
     fun commitPairedText(
         open: String,
         close: String,
     ): Boolean {
         val ic = currentInputConnection ?: return false
+        // 还有未上屏的预编辑时不能插：commitText 会把括号压到组词串前面，
+        // 拼音随后上屏就成了「（）汉字」这种错位结果。调用方已拦一次，这里是兜底。
+        if (hasComposition()) return false
+        // 有选区时也不能插：commitText 会用 "()" 顶掉用户选中的内容，等于删字。
+        if (!ic.getSelectedText(0).isNullOrEmpty()) return false
         val after = ic.getTextAfterCursor(1, 0)
         if (!after.isNullOrEmpty()) return false
         ic.beginBatchEdit()

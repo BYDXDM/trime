@@ -372,7 +372,11 @@ preset_keyboards:
     - { click: 'u', label_symbol: '7', swipe_up: '7', swipe_down: '&' }
     - { click: 'i', label_symbol: '8', swipe_up: '8', swipe_down: '*' }
     - { click: 'o', label_symbol: '9', swipe_up: '9', swipe_down: '(' }
-    - { click: 'p', label_symbol: '0', swipe_up: '0', swipe_down: ')' }
+    # ⚠ p 原来的下滑绑定（swipe_down 出右括号）已于 2026-10-11 删除：p 是键盘右上角，
+    #   拇指伸过去时最容易带出向下的位移；而 p 的角标画的是 '0'，用户根本看不出下滑会
+    #   打出右括号，属「无提示的隐形绑定」→ 极易误触。右括号仍可由 x 上滑（键顶就有
+    #   右括号角标）、符号面板（常用 / 中文 / 英文）与 123 面板打出。
+    - { click: 'p', label_symbol: '0', swipe_up: '0' }
 
     # ---------------- 第 2 行：A S D F G H J K L ----------------
     # 左右各 5 权重半键让 9 键居中（参考图 A 行确实内缩）
@@ -439,7 +443,11 @@ preset_keyboards:
     - { click: 'u', label_symbol: '7', swipe_up: '7', swipe_down: '&' }
     - { click: 'i', label_symbol: '8', swipe_up: '8', swipe_down: '*' }
     - { click: 'o', label_symbol: '9', swipe_up: '9', swipe_down: '(' }
-    - { click: 'p', label_symbol: '0', swipe_up: '0', swipe_down: ')' }
+    # ⚠ p 原来的下滑绑定（swipe_down 出右括号）已于 2026-10-11 删除：p 是键盘右上角，
+    #   拇指伸过去时最容易带出向下的位移；而 p 的角标画的是 '0'，用户根本看不出下滑会
+    #   打出右括号，属「无提示的隐形绑定」→ 极易误触。右括号仍可由 x 上滑（键顶就有
+    #   右括号角标）、符号面板（常用 / 中文 / 英文）与 123 面板打出。
+    - { click: 'p', label_symbol: '0', swipe_up: '0' }
 
     # ---- 第 2 行 ----
     - { width: 5 }
