@@ -1234,3 +1234,29 @@ seam 2.04 / 0.39× 已达标。`InputView.kt` 的 -46 行回滚 + 新 GIF 已提
 5. `tools/verify-ui/` 本轮新增约 30 个 `_v*.png/_font*.png/_deploy_log*.txt`
    调试文件，未跟踪，收尾可清。
 
+
+
+---
+
+## 0.6 2026-10-24 第八轮（搜狗风面板重排 + 删除键统一 + 字数图表，已装机验证）
+
+> 新包 `dist/trime-arm64-v8a-release.apk` 14016468→当前 dist 已更新（含下列全部），已装真机。
+
+1. **符号/数字面板照搜狗重排**（commit b7c6b761）：符号面板 4 列大键 + 右侧功能列
+   （↑/↓ 分组循环/123）+ 底部数字页签 1.常用~7.序号；每组精选 16 符号（原 20）；
+   数字面板照搜狗（左 %/÷/− 竖条 + 3×4 数字 + 右 ⌫/./@ + 符/返回/0/空格/回车）；
+   **表情页（☺）与颜文字页签已删**（用户很少用）。preset_keys +14/−2，
+   键盘数 12→10，测试基线已同步。改 panels.yaml 后必须跑 tools/sync_panels.py +
+   check_layout.py（行宽必须恰为 100）。
+2. **删除键统一到右缘拇指位**（commit 50add28c）：主键盘 Z 行末（锚点，未动）、
+   数字面板右列 ./@/⌫、符号面板右列 ↑/↓/123/⌫；「返回」在符号面板页签行末。
+   用户原话「删除键能不能不要总是换位置」＝抱怨位置不一致，不是要随机换位。
+3. **主界面近 14 天字数柱状图**（commit e9b0c5a1）：TypedChartView（Canvas）+
+   TypedChartPreference，插在「今日已输入 N 字」下方；柱顶数值/柱底星期/今日高亮；
+   原 Unicode 迷你走势（sparkline + typed_week_spark 字串）已删。
+4. **搜狗本地词库挖掘（结论：基本挖不到）**：手机 `Android/data/com.sohu.inputmethod.sogou`
+   经 adb 可访问，但 homedict/scel 全空、files/ 是腾讯图缓存；个性化词库本体在
+   `/data/data/com.sohu.inputmethod.sogou*`（无 root 不可达）。PC 未装搜狗。
+   可行替代：搜狗 App 内「词库同步/导出」到账户，或用户提供导出文件再解析。
+5. 用户要求**别再弹 PowerShell 窗口**：此前代理探测调过 powershell.exe——以后一律不用。
+6. 遗留不变：词库其他段刻度对齐待拍板、装机复验清单、任务 A（本地 ahead 9）、任务 B。
