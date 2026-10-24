@@ -191,7 +191,10 @@ class Rime {
   }
 
   std::tuple<int, int, std::vector<CandidateProto>> getBulkCandidates() {
-    constexpr int limit = 16;
+    // 16 → 64：候选条按这条列表整体布局（NOWRAP 单行），截到 16 时第 17 个起
+    // 右滑永远够不到（用户报「右滑不能到底」）；64 覆盖常规词组的全部候选，
+    // 更长的菜单仍由展开面板（unrolled window）翻页兜底。
+    constexpr int limit = 64;
     auto list = getCandidates(0, limit);
     // use -1 to indicate it's not sure how many candidates now
     auto size = list.size() < limit ? list.size() : -1;
