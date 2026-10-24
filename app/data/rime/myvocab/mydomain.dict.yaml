@@ -26,179 +26,94 @@ use_preset_vocabulary: false
 ...
 
 # ============================================================
-#  一、科技 / AI / 网络代理
+#  一、科技 / AI / 网络代理（×10 对齐 essay 多字词刻度 500~800，高于崩铁段）
 # ============================================================
-科技	ke ji	100
-科学	ke xue	90
-技术	ji shu	95
-人工智能	ren gong zhi neng	100
-机器学习	ji qi xue xi	95
-深度学习	shen du xue xi	95
-神经网络	shen jing wang luo	90
-大模型	da mo xing	98
-大语言模型	da yu yan mo xing	90
-自然语言处理	zi ran yu yan chu li	85
-算法	suan fa	85
-算力	suan li	90
-并发	bing fa	80
-分布式	fen bu shi	80
-容器	rong qi	80
-云计算	yun ji suan	85
-云端	yun duan	75
-服务器	fu wu qi	80
-客户端	ke hu duan	80
-带宽	dai kuan	85
-延迟	yan chi	88
-丢包	diu bao	80
-加密	jia mi	88
-解密	jie mi	80
-证书	zheng shu	80
-伪装	wei zhuang	80
-混淆	hun xiao	80
-代理	dai li	125
-机场	ji chang	120
-节点	jie dian	105
-订阅	ding yue	105
-落地	luo di	100
-中转	zhong zhuan	100
-直连	zhi lian	100
-全局模式	quan ju mo shi	90
-规则模式	gui ze mo shi	90
-分流	fen liu	95
-测速	ce su	95
-Clash	clash	150
-ClashMeta	clashmeta	125
-Mihomo	mihomo	125
-V2Ray	v2ray	150
-v2rayN	v2rayn	115
-Xray	xray	135
-sing-box	singbox	125
-Trojan	trojan	130
-Shadowsocks	shadowsocks	130
-ShadowsocksR	ssr	125
-VLESS	vless	120
-VMess	vmess	120
-Hysteria	hysteria	115
-TUIC	tuic	110
-Cloudflare	cloudflare	150
-Workers	workers	125
-Pages	pages	125
-WARP	warp	120
-Vercel	vercel	115
-Nginx	nginx	110
-Docker	docker	110
-Kubernetes	kubernetes	100
-GitHub	github	150
-GitLab	gitlab	110
-OpenAI	openai	125
-ChatGPT	chatgpt	135
-Claude	claude	125
-Gemini	gemini	115
-DeepSeek	deepseek	125
-Copilot	copilot	110
-Cursor	cursor	110
-Grok	grok	110
-HuggingFace	huggingface	110
-Linux	linux	100
-Android	android	100
-Python	python	100
-Java	java	90
-Kotlin	kotlin	90
-Rust	rust	90
-Golang	golang	90
-NodeJs	nodejs	90
-Redis	redis	95
-MySQL	mysql	95
-SQLite	sqlite	90
-FFmpeg	ffmpeg	90
-Nmap	nmap	85
+科技	ke ji	1000
+科学	ke xue	900
+技术	ji shu	950
+人工智能	ren gong zhi neng	1000
+机器学习	ji qi xue xi	950
+深度学习	shen du xue xi	950
+神经网络	shen jing wang luo	900
+大模型	da mo xing	980
+大语言模型	da yu yan mo xing	900
+自然语言处理	zi ran yu yan chu li	850
+算法	suan fa	850
+算力	suan li	900
+并发	bing fa	800
+分布式	fen bu shi	800
+容器	rong qi	800
+云计算	yun ji suan	850
+云端	yun duan	750
+服务器	fu wu qi	800
+客户端	ke hu duan	800
+带宽	dai kuan	850
+延迟	yan chi	880
+丢包	diu bao	800
+加密	jia mi	880
+解密	jie mi	800
+证书	zheng shu	800
+伪装	wei zhuang	800
+混淆	hun xiao	800
+代理	dai li	1250
+机场	ji chang	1200
+节点	jie dian	1050
+订阅	ding yue	1050
+落地	luo di	1000
+中转	zhong zhuan	1000
+直连	zhi lian	1000
+全局模式	quan ju mo shi	900
+规则模式	gui ze mo shi	900
+分流	fen liu	950
+测速	ce su	950
+Clash	clash	1500
+ClashMeta	clashmeta	1250
+Mihomo	mihomo	1250
+V2Ray	v2ray	1500
+v2rayN	v2rayn	1150
+Xray	xray	1350
+sing-box	singbox	1250
+Trojan	trojan	1300
+Shadowsocks	shadowsocks	1300
+ShadowsocksR	ssr	1250
+VLESS	vless	1200
+VMess	vmess	1200
+Hysteria	hysteria	1150
+TUIC	tuic	1100
+Cloudflare	cloudflare	1500
+Workers	workers	1250
+Pages	pages	1250
+WARP	warp	1200
+Vercel	vercel	1150
+Nginx	nginx	1100
+Docker	docker	1100
+Kubernetes	kubernetes	1000
+GitHub	github	1500
+GitLab	gitlab	1100
+OpenAI	openai	1250
+ChatGPT	chatgpt	1350
+Claude	claude	1250
+Gemini	gemini	1150
+DeepSeek	deepseek	1250
+Copilot	copilot	1100
+Cursor	cursor	1100
+Grok	grok	1100
+HuggingFace	huggingface	1100
+Linux	linux	1000
+Android	android	1000
+Python	python	1000
+Java	java	900
+Kotlin	kotlin	900
+Rust	rust	900
+Golang	golang	900
+NodeJs	nodejs	900
+Redis	redis	950
+MySQL	mysql	950
+SQLite	sqlite	900
+FFmpeg	ffmpeg	900
+Nmap	nmap	850
 
-# ============================================================
-#  二、游戏 —— 原神
-# ============================================================
-原神	yuan shen	200
-原石	yuan shi	200
-创世结晶	chuang shi jie jing	150
-纠缠之缘	jiu chan zhi yuan	150
-相遇之缘	xiang yu zhi yuan	150
-圣遗物	sheng yi wu	200
-圣遗物评分	sheng yi wu ping fen	100
-词条	ci tiao	120
-主词条	zhu ci tiao	110
-副词条	fu ci tiao	110
-双暴	shuang bao	110
-暴击	bao ji	115
-暴击率	bao ji lv	115
-暴击伤害	bao ji shang hai	115
-精通	jing tong	110
-充能	chong neng	110
-元素精通	yuan su jing tong	100
-祈愿	qi yuan	180
-抽卡	chou ka	170
-卡池	ka chi	165
-大保底	da bao di	140
-小保底	xiao bao di	140
-十连	shi lian	140
-单抽	dan chou	130
-歪了	wai le	130
-体力	ti li	140
-树脂	shu zhi	145
-原粹树脂	yuan cui shu zhi	130
-深渊	shen yuan	185
-深境螺旋	shen jing luo xuan	150
-幻想真境剧诗	huan xiang zhen jing ju shi	110
-幻想真境	yu xiang zhen jing	110
-幽境危战	you jing wei zhan	110
-危战	wei zhan	110
-周本	zhou ben	130
-副本	fu ben	140
-秘境	mi jing	135
-地脉	di mai	120
-大世界	da shi jie	120
-蒙德	meng de	150
-璃月	li yue	150
-稻妻	dao qi	150
-须弥	xu mi	145
-枫丹	feng dan	145
-纳塔	na ta	140
-至冬	zhi dong	120
-主角	zhu jue	125
-派蒙	pai meng	150
-旅行者	lv xing zhe	140
-空	sora	100
-荧	ying	110
-温迪	wen di	125
-可莉	ke li	135
-琴	qin	115
-迪卢克	di lu ke	130
-胡桃	hu tao	140
-钟离	zhong li	140
-甘雨	gan yu	130
-神里绫华	shen li ling hua	130
-雷电将军	lei dian jiang jun	140
-八重神子	ba chong shen zi	130
-纳西妲	na xi da	130
-芙宁娜	fu ning na	125
-那维莱特	na wei lai te	125
-仆人	pu ren	115
-玛薇卡	ma wei ka	115
-武器	wu qi	130
-专武	zhuan wu	125
-精炼	jing lian	115
-锻造	duan zao	110
-命之座	ming zhi zuo	130
-命座	ming zuo	130
-天赋	tian fu	125
-突破材料	tu po cai liao	115
-摩拉	mo la	140
-冒险等阶	mao xian deng jie	100
-尘歌壶	chen ge hu	110
-七圣召唤	qi sheng zhao huan	110
-风花节	feng hua jie	100
-海灯节	hai deng jie	105
-
-# ============================================================
-#  三、游戏 —— 崩坏：星穹铁道
+#  二、游戏 —— 崩坏：星穹铁道
 # ============================================================
 崩坏	beng huai	180
 星穹铁道	xing qiong tie dao	190
@@ -276,9 +191,14 @@ Nmap	nmap	85
 模拟经营	mo ni jing ying	100
 末日兽	mo ri shou	105
 末日	pai meng	100
+抽卡	chou ka	170
+大保底	da bao di	140
+小保底	xiao bao di	140
+体力	ti li	140
+深渊	shen yuan	185
 
 # ============================================================
-#  四、游戏 —— 蔚蓝档案
+#  三、游戏 —— 蔚蓝档案
 #  ★ 本段权重（2500~3400）对齐 essay 词频刻度：luna 多字词普遍在
 #    500~800（白字=557、蔚然=580），本段原 250~340 时整段被 essay 词
 #    压住 —— ba 词库「不生效」的根因（用户要的是 BA 词库能打出来，
