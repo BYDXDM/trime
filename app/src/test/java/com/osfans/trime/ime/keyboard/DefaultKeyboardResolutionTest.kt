@@ -30,7 +30,7 @@ class DefaultKeyboardResolutionTest :
         val ids = theme.presetKeyboards.keys.toList()
 
         "fork 的 12 个键盘都在（符号按搜狗习惯拆成 7 组 + 颜文字）" {
-            ids shouldBe listOf("my_pinyin", "my_english", "symbols", "symbols_cn", "symbols_en", "symbols_net", "symbols_math", "symbols_arrow", "symbols_num", "kaomoji", "number", "emoji")
+            ids shouldBe listOf("my_pinyin", "my_english", "symbols", "symbols_cn", "symbols_en", "symbols_net", "symbols_math", "symbols_arrow", "symbols_num", "number")
         }
 
         "方案 id 优先匹配同名键盘" {

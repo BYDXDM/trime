@@ -44,7 +44,7 @@ class GeneralStyleTest :
                     style.horizontalGap shouldBe 1
                     style.keyHeight shouldBe 52
                     style.keyLongTextSize shouldBe 14f
-                    style.keyTextSize shouldBe 22f
+                    style.keyTextSize shouldBe 20f
                     style.keyWidth shouldBe 10f
                     style.labelTextSize shouldBe 13f
                     style.keyboardHeight shouldBe 250

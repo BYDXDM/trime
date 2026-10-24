@@ -33,7 +33,7 @@ class ThemeProductionLoadTest :
             val theme = (result as ThemeLoader.ThemeLoadResult.Success).theme
             // fork 的 5 个键盘必须都在
             theme.presetKeyboards.keys.containsAll(
-                listOf("my_pinyin", "my_english", "symbols", "symbols_cn", "symbols_en", "symbols_net", "symbols_math", "symbols_arrow", "symbols_num", "kaomoji", "number", "emoji"),
+                listOf("my_pinyin", "my_english", "symbols", "symbols_cn", "symbols_en", "symbols_net", "symbols_math", "symbols_arrow", "symbols_num", "number"),
             ) shouldBe true
             // 配色表必须非空（否则 ThemeLoader 会拒绝）
             (theme.colorSchemes.isNotEmpty()) shouldBe true
@@ -50,7 +50,7 @@ class ThemeProductionLoadTest :
                 listOf(
                     "select_all", "Clear", "BackToPreviousSyllable", "copy", "cut", "paste",
                     "undo", "redo", "CommitComment", "Return", "Return1", "BackSpace",
-                    "Shift_L", "space", "Delete", "Insert", "Escape", "Keyboard_emoji",
+                    "Shift_L", "space", "Delete", "Insert", "Escape",
                     "space_cursor", "backspace_clear",
                 )
             val missing = needed.filterNot { theme.presetKeys.containsKey(it) }
