@@ -77,7 +77,13 @@ val Project.signKeyStoreProps: Properties?
             envOrPropOrNull("KEYSTORE_PROPERTIES", "keystoreProperties")
                 ?: "keystore.properties"
         val file = File(name)
-        return if (file.exists()) Properties().apply { load(file.inputStream()) } else null
+        // Properties.load(InputStream) 按 ISO-8859-1 解码，仓库路径含中文时
+        // storeFile 会被解成乱码，签名配置静默失效、产物变成 -unsigned.apk。
+        return if (file.exists()) {
+            Properties().apply { file.reader(Charsets.UTF_8).use { load(it) } }
+        } else {
+            null
+        }
     }
 
 val Project.signKeyBase64: String?
