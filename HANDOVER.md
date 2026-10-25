@@ -77,9 +77,9 @@ SegmentsWindow 路径下会为 true，`KEYCODE_DEL` 走它会把预编辑一次�
 
 | 项 | 值 |
 |---|---|
-| 仓库 | `D:\trime-build`（fork 自 osfans/trime，Android 输入法，Kotlin + native librime） |
+| 仓库 | `D:\ai\工作\trime-build`（fork 自 osfans/trime，Android 输入法，Kotlin + native librime） |
 | 远端 | `https://github.com/BYDXDM/trime.git`，工作分支 **`develop`** |
-| 产物 | `D:\trime-build\dist\trime-release.apk`（14212811 bytes，arm64 单包，**已签名** release） |
+| 产物 | `D:\ai\工作\trime-build\dist\trime-release.apk`（14212811 bytes，arm64 单包，**已签名** release） |
 | 真机 | `EAT0220316001355` = HUAWEI ANA-TN00 / HarmonyOS 4.2 / API 31 / arm64-v8a / 1080×2340 / density 480（**3.0**） |
 | adb | `D:\Android\Sdk\platform-tools\adb.exe` |
 | 构建 | `$env:BUILD_ABI="arm64-v8a"; .\gradlew.bat :app:assembleRelease`（见 §7） |
@@ -517,7 +517,7 @@ dark 0x332C2F33），但**全代码库没有任何消费者**，改它没有任�
 ## 6. 构建、测试与产物
 
 ```powershell
-cd D:\trime-build
+cd D:\ai\工作\trime-build
 $env:BUILD_ABI = "arm64-v8a"
 .\gradlew.bat :app:assembleRelease
 # ⚠ -PbuildAbiOverride=arm64-v8a 不生效，必须用环境变量
@@ -569,7 +569,7 @@ debug 包）：`KEYSTORE_BASE64` / `KEYSTORE_STORE_PASSWORD` / `KEYSTORE_KEY_ALI
 
 ## 7. 真机验收工具（**本机视觉模型不可用时靠它**）
 
-`D:\trime-build\tools\verify-ui\`，纯 Python、零第三方依赖、自实现 zlib 解压与
+`D:\ai\工作\trime-build\tools\verify-ui\`，纯 Python、零第三方依赖、自实现 zlib 解压与
 全部 5 种 PNG filter：
 
 | 脚本 | 用法 | 作用 |
@@ -1041,7 +1041,7 @@ gif_loop_analyze.py → gif_motion_features.py → gif_align_and_budget.py
 2. 背景图的问题**只能在素材上解决**，代码里怎么算都是放大 → 头变大。
 3. 要改 rime 的 yaml，先想清楚它在不在 `MIRRORED_DIRS` 里；在的话一律用 `.custom.yaml` 补丁。
 4. 用户对观感很敏感，改视觉相关的东西**先小步装机看图**，别一次改到位再装。
-5. 一次只编一个 ABI；产物只放 `D:\trime-build\dist\`，别拷到桌面。
+5. 一次只编一个 ABI；产物只放 `D:\ai\工作\trime-build\dist\`，别拷到桌面。
 
 ---
 
@@ -1312,8 +1312,12 @@ seam 2.04 / 0.39× 已达标。`InputView.kt` 的 -46 行回滚 + 新 GIF 已提
 
 ---
 
+
+---
+
 ## 0.9 2026-10-25 环境变更：仓库路径迁移
 
-**仓库已从 `D:	rime-build` 移动到 `D:i\工作	rime-build`**（2026-10-25，
-目录被移动而非重装）。所有构建、adb、文档引用一律用新路径；本文件与
-NEXT-STEPS.md 中的旧路径已批量替换。其余（远端、分支、设备、签名）不变。
+**仓库已从 `D:\trime-build` 移动到 `D:\ai\工作\trime-build`**（2026-10-25，
+目录被整体移动，非重装）。所有构建、adb、文档引用一律用新路径；
+本文件、NEXT-STEPS.md 与 PROMPT-NEXT-AGENT.md 中的旧路径已全部替换。
+其余（远端 BYDXDM/trime、分支 develop、真机 EAT0220316001355、签名）不变。

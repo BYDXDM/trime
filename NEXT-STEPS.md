@@ -187,7 +187,7 @@ app/build/outputs/apk/release/trime-arm64-v8a-release.apk   14224974 字节，�
 dist/trime-release.apk                                      14215432 字节，更旧
 ```
 
-按硬约束**只放 `D:\trime-build\dist\`**（不要拷到用户桌面）。
+按硬约束**只放 `D:\ai\工作\trime-build\dist\`**（不要拷到用户桌面）。
 
 ---
 
@@ -247,7 +247,7 @@ python -c "import zipfile,sys;n=zipfile.ZipFile(sys.argv[1]).namelist();print(le
 
 - **回复一律用中文。**
 - **永远不要设置 `sandbox_permissions`。**
-- **不要把产物拷到用户桌面**，只放 `D:\trime-build\dist\`。
+- **不要把产物拷到用户桌面**，只放 `D:\ai\工作\trime-build\dist\`。
 - **不要动 `app/src/main/jni/librime-lua-deps` 子模块。**
 - **不要在用户手机上删 `rime/build/*.bin`**（会毁词典产物；重建用广播，见 HANDOVER §5.4）。
 
@@ -285,7 +285,7 @@ python -c "import zipfile,sys;n=zipfile.ZipFile(sys.argv[1]).namelist();print(le
 ### 9.2 强制重新合并 assets 再编（不然改了也进不了包）
 
 ```powershell
-cd D:\trime-build
+cd D:\ai\工作\trime-build
 Remove-Item -Recurse -Force app\build\intermediates\assets -ErrorAction SilentlyContinue
 Remove-Item app\build\outputs\apk\release\*.apk -ErrorAction SilentlyContinue
 $env:BUILD_ABI="arm64-v8a"
@@ -348,7 +348,7 @@ git diff --cached --name-only | Select-String -Pattern 'gradle-wrapper\.properti
 
 ### 9.7 出包 + 后续
 
-- 产物只放 `D:\trime-build\dist\`，顺手清掉 `dist\_*.png` 那批调试截图（约 20 个）。
+- 产物只放 `D:\ai\工作\trime-build\dist\`，顺手清掉 `dist\_*.png` 那批调试截图（约 20 个）。
 - 然后才轮到任务 A（CI 发签名包）→ B（`PLAN-功能扩展.md` 下一项）→ C（真机复验）。
 
 ### 9.8 待用户拍板
