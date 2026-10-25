@@ -139,8 +139,8 @@ class ThemeGoldenTest :
                 // 5 → 11：符号面板按搜狗习惯拆成 7 组（常用/中文/英文/网络/数学/箭头/序号），
                 // 原来的 symbols 变成「常用」，另外多出 6 个分组键盘。
                 // 11 → 12：新增 kaomoji（颜文字面板，第 8 个符号分组页签）。
-                Then("the 10 fork keyboards are decoded with their keys") {
-                    theme.presetKeyboards.size shouldBe 10
+                Then("the 17 fork keyboards are decoded with their keys") {
+                    theme.presetKeyboards.size shouldBe 17
                     theme.presetKeyboards.keys shouldBe
                         setOf(
                             "my_pinyin",
@@ -153,6 +153,13 @@ class ThemeGoldenTest :
                             "symbols_arrow",
                             "symbols_num",
                             "number",
+                            "symbols_p2",
+                            "symbols_cn_p2",
+                            "symbols_en_p2",
+                            "symbols_net_p2",
+                            "symbols_math_p2",
+                            "symbols_arrow_p2",
+                            "symbols_num_p2",
                         )
 
                     val pinyin = theme.presetKeyboards.getValue("my_pinyin")

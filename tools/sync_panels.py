@@ -72,6 +72,12 @@ PANEL_MAP = {
         'ascii_mode': 1,
     },
 }
+# 各分组第 2 页（↑/↓ 组内翻页）
+for _k, _label in {
+    'symbols': '常用', 'symbols_cn': '中文', 'symbols_en': '英文', 'symbols_net': '网络',
+    'symbols_math': '数学', 'symbols_arrow': '箭头', 'symbols_num': '序号',
+}.items():
+    PANEL_MAP[f'{_k}_p2_panel'] = {'name': f'{_k}_p2', 'label': _label + '2', 'ascii_mode': 1}
 
 HEADER = """    # =========================================================================
     #  {label}面板 —— 由 tools/sync_panels.py 从 panels.yaml 生成
@@ -89,7 +95,7 @@ def read_panels():
 
     panels, cur = {}, None
     for line in lines:
-        m = re.match(r'^([a-z_]+):\s*$', line)
+        m = re.match(r'^([a-z_0-9]+):\s*$', line)
         if m:
             cur = m.group(1)
             panels[cur] = []

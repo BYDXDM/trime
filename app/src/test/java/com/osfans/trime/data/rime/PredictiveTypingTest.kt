@@ -84,10 +84,10 @@ class PredictiveTypingTest :
             // $ 表示句首起始词，必须有，否则空输入时联想区是空的
             val starters = rows.filter { it[0] == "$" }
             (starters.isNotEmpty()) shouldBe true
-            // 抽查一条：原神(yuan shen) 的首字母必须是 ys
-            val yuanshen = rows.firstOrNull { it[1] == "原神" }
-            (yuanshen != null) shouldBe true
-            initials(yuanshen!![3]) shouldBe "ys"
+            // 抽查一条：我们(wo men) 的首字母必须是 wm（原神链已随原神段删除）
+            val women = rows.firstOrNull { it[1] == "我们" }
+            (women != null) shouldBe true
+            initials(women!![3]) shouldBe "wm"
         }
 
         "联想词库随包发布，且部署时被镜像到用户目录（否则插件读不到）" {
