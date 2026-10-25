@@ -512,28 +512,28 @@ preset_keyboards:
     height: 52
     keys:
     # ---- 第 1 行 ----
-    - { click: '，', label: '，', long_click: '<', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
-    - { click: '。', label: '。', long_click: '>', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
-    - { click: '？', label: '？', long_click: '¿', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
-    - { click: '！', label: '！', long_click: '¡', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
+    - { click: '，', label: '，', long_click: '<', width: 20 }
+    - { click: '。', label: '。', long_click: '>', width: 20 }
+    - { click: '？', label: '？', long_click: '¿', width: 20 }
+    - { click: '！', label: '！', long_click: '¡', width: 20 }
     - { click: SymbolsToP2_symbols, label: '↑', width: 20 }
     # ---- 第 2 行 ----
-    - { click: '、', label: '、', long_click: '\', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
-    - { click: '；', label: '；', long_click: ';', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
-    - { click: '：', label: '：', long_click: ':', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
-    - { click: '“', label: '“', long_click: '‘', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
+    - { click: '、', label: '、', long_click: '\', width: 20 }
+    - { click: '；', label: '；', long_click: ';', width: 20 }
+    - { click: '：', label: '：', long_click: ':', width: 20 }
+    - { click: '“', label: '“', long_click: '‘', width: 20 }
     - { click: SymbolsToP2_symbols, label: '↓', width: 20 }
     # ---- 第 3 行 ----
-    - { click: '”', label: '”', long_click: '’', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
-    - { click: '…', label: '…', long_click: '——', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
-    - { click: '（', label: '（', long_click: '(', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
-    - { click: '）', label: '）', long_click: ')', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
+    - { click: '”', label: '”', long_click: '’', width: 20 }
+    - { click: '…', label: '…', long_click: '——', width: 20 }
+    - { click: '（', label: '（', long_click: '(', width: 20 }
+    - { click: '）', label: '）', long_click: ')', width: 20 }
     - { click: Keyboard_number, label: '123', width: 20 }
     # ---- 第 4 行 ----
-    - { click: '【', label: '【', long_click: '[', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
-    - { click: '】', label: '】', long_click: ']', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
-    - { click: '《', label: '《', long_click: '<', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
-    - { click: '》', label: '》', long_click: '>', swipe_up: SymbolsToP2_symbols, swipe_down: SymbolsToP1_symbols, swipe_left: SymbolsToP2_symbols, swipe_right: SymbolsToP1_symbols, width: 20 }
+    - { click: '【', label: '【', long_click: '[', width: 20 }
+    - { click: '】', label: '】', long_click: ']', width: 20 }
+    - { click: '《', label: '《', long_click: '<', width: 20 }
+    - { click: '》', label: '》', long_click: '>', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签（照搜狗的分组习惯）----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
@@ -559,28 +559,28 @@ preset_keyboards:
     height: 52
     keys:
     # ---- 第 1 行 ----
-    - { click: '，', label: '，', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
-    - { click: '。', label: '。', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
-    - { click: '、', label: '、', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
-    - { click: '；', label: '；', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
+    - { click: '，', label: '，', width: 20 }
+    - { click: '。', label: '。', width: 20 }
+    - { click: '、', label: '、', width: 20 }
+    - { click: '；', label: '；', width: 20 }
     - { click: SymbolsToP2_symbols_cn, label: '↑', width: 20 }
     # ---- 第 2 行 ----
-    - { click: '：', label: '：', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
-    - { click: '？', label: '？', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
-    - { click: '！', label: '！', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
-    - { click: '…', label: '…', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
+    - { click: '：', label: '：', width: 20 }
+    - { click: '？', label: '？', width: 20 }
+    - { click: '！', label: '！', width: 20 }
+    - { click: '…', label: '…', width: 20 }
     - { click: SymbolsToP2_symbols_cn, label: '↓', width: 20 }
     # ---- 第 3 行 ----
-    - { click: '—', label: '—', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
-    - { click: '～', label: '～', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
-    - { click: '“', label: '“', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
-    - { click: '”', label: '”', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
+    - { click: '—', label: '—', width: 20 }
+    - { click: '～', label: '～', width: 20 }
+    - { click: '“', label: '“', width: 20 }
+    - { click: '”', label: '”', width: 20 }
     - { click: Keyboard_number, label: '123', width: 20 }
     # ---- 第 4 行 ----
-    - { click: '‘', label: '‘', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
-    - { click: '’', label: '’', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
-    - { click: '「', label: '「', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
-    - { click: '」', label: '」', swipe_up: SymbolsToP2_symbols_cn, swipe_down: SymbolsToP1_symbols_cn, swipe_left: SymbolsToP2_symbols_cn, swipe_right: SymbolsToP1_symbols_cn, width: 20 }
+    - { click: '‘', label: '‘', width: 20 }
+    - { click: '’', label: '’', width: 20 }
+    - { click: '「', label: '「', width: 20 }
+    - { click: '」', label: '」', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
@@ -606,28 +606,28 @@ preset_keyboards:
     height: 52
     keys:
     # ---- 第 1 行 ----
-    - { click: ',', label: ',', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
-    - { click: '.', label: '.', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
-    - { click: '?', label: '?', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
-    - { click: '!', label: '!', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
+    - { click: ',', label: ',', width: 20 }
+    - { click: '.', label: '.', width: 20 }
+    - { click: '?', label: '?', width: 20 }
+    - { click: '!', label: '!', width: 20 }
     - { click: SymbolsToP2_symbols_en, label: '↑', width: 20 }
     # ---- 第 2 行 ----
-    - { click: ';', label: ';', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
-    - { click: ':', label: ':', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
-    - { click: '"', label: '"', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
-    - { click: ''', label: ''', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
+    - { click: ';', label: ';', width: 20 }
+    - { click: ':', label: ':', width: 20 }
+    - { click: '"', label: '"', width: 20 }
+    - { click: ''', label: ''', width: 20 }
     - { click: SymbolsToP2_symbols_en, label: '↓', width: 20 }
     # ---- 第 3 行 ----
-    - { click: '(', label: '(', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
-    - { click: ')', label: ')', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
-    - { click: '[', label: '[', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
-    - { click: ']', label: ']', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
+    - { click: '(', label: '(', width: 20 }
+    - { click: ')', label: ')', width: 20 }
+    - { click: '[', label: '[', width: 20 }
+    - { click: ']', label: ']', width: 20 }
     - { click: Keyboard_number, label: '123', width: 20 }
     # ---- 第 4 行 ----
-    - { click: '<', label: '<', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
-    - { click: '>', label: '>', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
-    - { click: '-', label: '-', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
-    - { click: '_', label: '_', swipe_up: SymbolsToP2_symbols_en, swipe_down: SymbolsToP1_symbols_en, swipe_left: SymbolsToP2_symbols_en, swipe_right: SymbolsToP1_symbols_en, width: 20 }
+    - { click: '<', label: '<', width: 20 }
+    - { click: '>', label: '>', width: 20 }
+    - { click: '-', label: '-', width: 20 }
+    - { click: '_', label: '_', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
@@ -653,28 +653,28 @@ preset_keyboards:
     height: 52
     keys:
     # ---- 第 1 行 ----
-    - { click: '@', label: '@', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
-    - { click: '#', label: '#', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
-    - { click: '&', label: '&', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
-    - { click: '*', label: '*', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
+    - { click: '@', label: '@', width: 20 }
+    - { click: '#', label: '#', width: 20 }
+    - { click: '&', label: '&', width: 20 }
+    - { click: '*', label: '*', width: 20 }
     - { click: SymbolsToP2_symbols_net, label: '↑', width: 20 }
     # ---- 第 2 行 ----
-    - { click: '/', label: '/', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
-    - { click: '\', label: '\', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
-    - { click: '_', label: '_', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
-    - { click: '|', label: '|', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
+    - { click: '/', label: '/', width: 20 }
+    - { click: '\', label: '\', width: 20 }
+    - { click: '_', label: '_', width: 20 }
+    - { click: '|', label: '|', width: 20 }
     - { click: SymbolsToP2_symbols_net, label: '↓', width: 20 }
     # ---- 第 3 行 ----
-    - { click: '^', label: '^', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
-    - { click: '~', label: '~', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
-    - { click: '©', label: '©', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
-    - { click: '®', label: '®', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
+    - { click: '^', label: '^', width: 20 }
+    - { click: '~', label: '~', width: 20 }
+    - { click: '©', label: '©', width: 20 }
+    - { click: '®', label: '®', width: 20 }
     - { click: Keyboard_number, label: '123', width: 20 }
     # ---- 第 4 行 ----
-    - { click: '™', label: '™', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
-    - { click: '§', label: '§', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
-    - { click: '°', label: '°', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
-    - { click: '‰', label: '‰', swipe_up: SymbolsToP2_symbols_net, swipe_down: SymbolsToP1_symbols_net, swipe_left: SymbolsToP2_symbols_net, swipe_right: SymbolsToP1_symbols_net, width: 20 }
+    - { click: '™', label: '™', width: 20 }
+    - { click: '§', label: '§', width: 20 }
+    - { click: '°', label: '°', width: 20 }
+    - { click: '‰', label: '‰', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
@@ -700,28 +700,28 @@ preset_keyboards:
     height: 52
     keys:
     # ---- 第 1 行 ----
-    - { click: '+', label: '+', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
-    - { click: '-', label: '-', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
-    - { click: '×', label: '×', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
-    - { click: '÷', label: '÷', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
+    - { click: '+', label: '+', width: 20 }
+    - { click: '-', label: '-', width: 20 }
+    - { click: '×', label: '×', width: 20 }
+    - { click: '÷', label: '÷', width: 20 }
     - { click: SymbolsToP2_symbols_math, label: '↑', width: 20 }
     # ---- 第 2 行 ----
-    - { click: '=', label: '=', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
-    - { click: '≠', label: '≠', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
-    - { click: '≈', label: '≈', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
-    - { click: '±', label: '±', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
+    - { click: '=', label: '=', width: 20 }
+    - { click: '≠', label: '≠', width: 20 }
+    - { click: '≈', label: '≈', width: 20 }
+    - { click: '±', label: '±', width: 20 }
     - { click: SymbolsToP2_symbols_math, label: '↓', width: 20 }
     # ---- 第 3 行 ----
-    - { click: '∞', label: '∞', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
-    - { click: '%', label: '%', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
-    - { click: '‰', label: '‰', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
-    - { click: '√', label: '√', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
+    - { click: '∞', label: '∞', width: 20 }
+    - { click: '%', label: '%', width: 20 }
+    - { click: '‰', label: '‰', width: 20 }
+    - { click: '√', label: '√', width: 20 }
     - { click: Keyboard_number, label: '123', width: 20 }
     # ---- 第 4 行 ----
-    - { click: '¥', label: '¥', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
-    - { click: '￥', label: '￥', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
-    - { click: '$', label: '$', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
-    - { click: '€', label: '€', swipe_up: SymbolsToP2_symbols_math, swipe_down: SymbolsToP1_symbols_math, swipe_left: SymbolsToP2_symbols_math, swipe_right: SymbolsToP1_symbols_math, width: 20 }
+    - { click: '¥', label: '¥', width: 20 }
+    - { click: '￥', label: '￥', width: 20 }
+    - { click: '$', label: '$', width: 20 }
+    - { click: '€', label: '€', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
@@ -747,28 +747,28 @@ preset_keyboards:
     height: 52
     keys:
     # ---- 第 1 行 ----
-    - { click: '←', label: '←', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
-    - { click: '→', label: '→', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
-    - { click: '↑', label: '↑', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
-    - { click: '↓', label: '↓', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
+    - { click: '←', label: '←', width: 20 }
+    - { click: '→', label: '→', width: 20 }
+    - { click: '↑', label: '↑', width: 20 }
+    - { click: '↓', label: '↓', width: 20 }
     - { click: SymbolsToP2_symbols_arrow, label: '↑', width: 20 }
     # ---- 第 2 行 ----
-    - { click: '↔', label: '↔', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
-    - { click: '↕', label: '↕', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
-    - { click: '↖', label: '↖', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
-    - { click: '↗', label: '↗', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
+    - { click: '↔', label: '↔', width: 20 }
+    - { click: '↕', label: '↕', width: 20 }
+    - { click: '↖', label: '↖', width: 20 }
+    - { click: '↗', label: '↗', width: 20 }
     - { click: SymbolsToP2_symbols_arrow, label: '↓', width: 20 }
     # ---- 第 3 行 ----
-    - { click: '↘', label: '↘', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
-    - { click: '↙', label: '↙', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
-    - { click: '↺', label: '↺', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
-    - { click: '↻', label: '↻', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
+    - { click: '↘', label: '↘', width: 20 }
+    - { click: '↙', label: '↙', width: 20 }
+    - { click: '↺', label: '↺', width: 20 }
+    - { click: '↻', label: '↻', width: 20 }
     - { click: Keyboard_number, label: '123', width: 20 }
     # ---- 第 4 行 ----
-    - { click: '▶', label: '▶', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
-    - { click: '◀', label: '◀', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
-    - { click: '▲', label: '▲', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
-    - { click: '▼', label: '▼', swipe_up: SymbolsToP2_symbols_arrow, swipe_down: SymbolsToP1_symbols_arrow, swipe_left: SymbolsToP2_symbols_arrow, swipe_right: SymbolsToP1_symbols_arrow, width: 20 }
+    - { click: '▶', label: '▶', width: 20 }
+    - { click: '◀', label: '◀', width: 20 }
+    - { click: '▲', label: '▲', width: 20 }
+    - { click: '▼', label: '▼', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
@@ -794,28 +794,28 @@ preset_keyboards:
     height: 52
     keys:
     # ---- 第 1 行 ----
-    - { click: '①', label: '①', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
-    - { click: '②', label: '②', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
-    - { click: '③', label: '③', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
-    - { click: '④', label: '④', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
+    - { click: '①', label: '①', width: 20 }
+    - { click: '②', label: '②', width: 20 }
+    - { click: '③', label: '③', width: 20 }
+    - { click: '④', label: '④', width: 20 }
     - { click: SymbolsToP2_symbols_num, label: '↑', width: 20 }
     # ---- 第 2 行 ----
-    - { click: '⑤', label: '⑤', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
-    - { click: '⑥', label: '⑥', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
-    - { click: '⑦', label: '⑦', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
-    - { click: '⑧', label: '⑧', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
+    - { click: '⑤', label: '⑤', width: 20 }
+    - { click: '⑥', label: '⑥', width: 20 }
+    - { click: '⑦', label: '⑦', width: 20 }
+    - { click: '⑧', label: '⑧', width: 20 }
     - { click: SymbolsToP2_symbols_num, label: '↓', width: 20 }
     # ---- 第 3 行 ----
-    - { click: '⑨', label: '⑨', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
-    - { click: '⑩', label: '⑩', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
-    - { click: '⑴', label: '⑴', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
-    - { click: '⑵', label: '⑵', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
+    - { click: '⑨', label: '⑨', width: 20 }
+    - { click: '⑩', label: '⑩', width: 20 }
+    - { click: '⑴', label: '⑴', width: 20 }
+    - { click: '⑵', label: '⑵', width: 20 }
     - { click: Keyboard_number, label: '123', width: 20 }
     # ---- 第 4 行 ----
-    - { click: '⑶', label: '⑶', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
-    - { click: '⑷', label: '⑷', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
-    - { click: '⑸', label: '⑸', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
-    - { click: '⑹', label: '⑹', swipe_up: SymbolsToP2_symbols_num, swipe_down: SymbolsToP1_symbols_num, swipe_left: SymbolsToP2_symbols_num, swipe_right: SymbolsToP1_symbols_num, width: 20 }
+    - { click: '⑶', label: '⑶', width: 20 }
+    - { click: '⑷', label: '⑷', width: 20 }
+    - { click: '⑸', label: '⑸', width: 20 }
+    - { click: '⑹', label: '⑹', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
@@ -880,25 +880,25 @@ preset_keyboards:
     width: 10
     height: 52
     keys:
-    - { click: '〈', label: '〈', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
-    - { click: '〉', label: '〉', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
-    - { click: '「', label: '「', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
-    - { click: '」', label: '」', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
+    - { click: '〈', label: '〈', width: 20 }
+    - { click: '〉', label: '〉', width: 20 }
+    - { click: '「', label: '「', width: 20 }
+    - { click: '」', label: '」', width: 20 }
     - { click: SymbolsToP1_symbols, label: '↑', width: 20 }
-    - { click: '『', label: '『', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
-    - { click: '』', label: '』', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
-    - { click: '～', label: '～', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
-    - { click: '·', label: '·', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
+    - { click: '『', label: '『', width: 20 }
+    - { click: '』', label: '』', width: 20 }
+    - { click: '～', label: '～', width: 20 }
+    - { click: '·', label: '·', width: 20 }
     - { click: SymbolsToP1_symbols, label: '↓', width: 20 }
-    - { click: '•', label: '•', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
-    - { click: '※', label: '※', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
-    - { click: '‧', label: '‧', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
-    - { click: '°', label: '°', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
+    - { click: '•', label: '•', width: 20 }
+    - { click: '※', label: '※', width: 20 }
+    - { click: '‧', label: '‧', width: 20 }
+    - { click: '°', label: '°', width: 20 }
     - { click: Keyboard_number, label: '123', width: 20 }
-    - { click: '〃', label: '〃', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
-    - { click: '％', label: '％', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
-    - { click: '‰', label: '‰', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
-    - { click: '＠', label: '＠', swipe_up: SymbolsToP1_symbols, swipe_down: SymbolsToP2_symbols, swipe_left: SymbolsToP1_symbols, swipe_right: SymbolsToP2_symbols, width: 20 }
+    - { click: '〃', label: '〃', width: 20 }
+    - { click: '％', label: '％', width: 20 }
+    - { click: '‰', label: '‰', width: 20 }
+    - { click: '＠', label: '＠', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -922,25 +922,25 @@ preset_keyboards:
     width: 10
     height: 52
     keys:
-    - { click: '【', label: '【', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
-    - { click: '】', label: '】', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
-    - { click: '〔', label: '〔', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
-    - { click: '〕', label: '〕', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
+    - { click: '【', label: '【', width: 20 }
+    - { click: '】', label: '】', width: 20 }
+    - { click: '〔', label: '〔', width: 20 }
+    - { click: '〕', label: '〕', width: 20 }
     - { click: SymbolsToP1_symbols_cn, label: '↑', width: 20 }
-    - { click: '〖', label: '〖', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
-    - { click: '〗', label: '〗', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
-    - { click: '《', label: '《', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
-    - { click: '》', label: '》', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
+    - { click: '〖', label: '〖', width: 20 }
+    - { click: '〗', label: '〗', width: 20 }
+    - { click: '《', label: '《', width: 20 }
+    - { click: '》', label: '》', width: 20 }
     - { click: SymbolsToP1_symbols_cn, label: '↓', width: 20 }
-    - { click: '〈', label: '〈', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
-    - { click: '〉', label: '〉', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
-    - { click: '＋', label: '＋', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
-    - { click: '－', label: '－', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
+    - { click: '〈', label: '〈', width: 20 }
+    - { click: '〉', label: '〉', width: 20 }
+    - { click: '＋', label: '＋', width: 20 }
+    - { click: '－', label: '－', width: 20 }
     - { click: Keyboard_number, label: '123', width: 20 }
-    - { click: '×', label: '×', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
-    - { click: '÷', label: '÷', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
-    - { click: '＝', label: '＝', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
-    - { click: '～', label: '～', swipe_up: SymbolsToP1_symbols_cn, swipe_down: SymbolsToP2_symbols_cn, swipe_left: SymbolsToP1_symbols_cn, swipe_right: SymbolsToP2_symbols_cn, width: 20 }
+    - { click: '×', label: '×', width: 20 }
+    - { click: '÷', label: '÷', width: 20 }
+    - { click: '＝', label: '＝', width: 20 }
+    - { click: '～', label: '～', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -964,25 +964,25 @@ preset_keyboards:
     width: 10
     height: 52
     keys:
-    - { click: '{', label: '{', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
-    - { click: '}', label: '}', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
-    - { click: '|', label: '|', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
-    - { click: '~', label: '~', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
+    - { click: '{', label: '{', width: 20 }
+    - { click: '}', label: '}', width: 20 }
+    - { click: '|', label: '|', width: 20 }
+    - { click: '~', label: '~', width: 20 }
     - { click: SymbolsToP1_symbols_en, label: '↑', width: 20 }
-    - { click: '=', label: '=', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
-    - { click: '+', label: '+', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
-    - { click: '\', label: '\', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
-    - { click: '^', label: '^', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
+    - { click: '=', label: '=', width: 20 }
+    - { click: '+', label: '+', width: 20 }
+    - { click: '\', label: '\', width: 20 }
+    - { click: '^', label: '^', width: 20 }
     - { click: SymbolsToP1_symbols_en, label: '↓', width: 20 }
-    - { click: '`', label: '`', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
-    - { click: '…', label: '…', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
-    - { click: '–', label: '–', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
-    - { click: '—', label: '—', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
+    - { click: '`', label: '`', width: 20 }
+    - { click: '…', label: '…', width: 20 }
+    - { click: '–', label: '–', width: 20 }
+    - { click: '—', label: '—', width: 20 }
     - { click: Keyboard_number, label: '123', width: 20 }
-    - { click: '«', label: '«', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
-    - { click: '»', label: '»', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
-    - { click: '‹', label: '‹', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
-    - { click: '›', label: '›', swipe_up: SymbolsToP1_symbols_en, swipe_down: SymbolsToP2_symbols_en, swipe_left: SymbolsToP1_symbols_en, swipe_right: SymbolsToP2_symbols_en, width: 20 }
+    - { click: '«', label: '«', width: 20 }
+    - { click: '»', label: '»', width: 20 }
+    - { click: '‹', label: '‹', width: 20 }
+    - { click: '›', label: '›', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -1006,25 +1006,25 @@ preset_keyboards:
     width: 10
     height: 52
     keys:
-    - { click: '§', label: '§', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
-    - { click: '¶', label: '¶', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
-    - { click: '†', label: '†', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
-    - { click: '‡', label: '‡', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
+    - { click: '§', label: '§', width: 20 }
+    - { click: '¶', label: '¶', width: 20 }
+    - { click: '†', label: '†', width: 20 }
+    - { click: '‡', label: '‡', width: 20 }
     - { click: SymbolsToP1_symbols_net, label: '↑', width: 20 }
-    - { click: 'µ', label: 'µ', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
-    - { click: '•', label: '•', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
-    - { click: '◦', label: '◦', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
-    - { click: '‱', label: '‱', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
+    - { click: 'µ', label: 'µ', width: 20 }
+    - { click: '•', label: '•', width: 20 }
+    - { click: '◦', label: '◦', width: 20 }
+    - { click: '‱', label: '‱', width: 20 }
     - { click: SymbolsToP1_symbols_net, label: '↓', width: 20 }
-    - { click: '℃', label: '℃', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
-    - { click: '℉', label: '℉', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
-    - { click: '№', label: '№', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
-    - { click: '★', label: '★', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
+    - { click: '℃', label: '℃', width: 20 }
+    - { click: '℉', label: '℉', width: 20 }
+    - { click: '№', label: '№', width: 20 }
+    - { click: '★', label: '★', width: 20 }
     - { click: Keyboard_number, label: '123', width: 20 }
-    - { click: '☆', label: '☆', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
-    - { click: '✓', label: '✓', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
-    - { click: '✗', label: '✗', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
-    - { click: '✧', label: '✧', swipe_up: SymbolsToP1_symbols_net, swipe_down: SymbolsToP2_symbols_net, swipe_left: SymbolsToP1_symbols_net, swipe_right: SymbolsToP2_symbols_net, width: 20 }
+    - { click: '☆', label: '☆', width: 20 }
+    - { click: '✓', label: '✓', width: 20 }
+    - { click: '✗', label: '✗', width: 20 }
+    - { click: '✧', label: '✧', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -1048,25 +1048,25 @@ preset_keyboards:
     width: 10
     height: 52
     keys:
-    - { click: '∠', label: '∠', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
-    - { click: '∛', label: '∛', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
-    - { click: '∝', label: '∝', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
-    - { click: '∑', label: '∑', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
+    - { click: '∠', label: '∠', width: 20 }
+    - { click: '∛', label: '∛', width: 20 }
+    - { click: '∝', label: '∝', width: 20 }
+    - { click: '∑', label: '∑', width: 20 }
     - { click: SymbolsToP1_symbols_math, label: '↑', width: 20 }
-    - { click: '∏', label: '∏', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
-    - { click: '∫', label: '∫', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
-    - { click: '∮', label: '∮', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
-    - { click: '€', label: '€', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
+    - { click: '∏', label: '∏', width: 20 }
+    - { click: '∫', label: '∫', width: 20 }
+    - { click: '∮', label: '∮', width: 20 }
+    - { click: '€', label: '€', width: 20 }
     - { click: SymbolsToP1_symbols_math, label: '↓', width: 20 }
-    - { click: '£', label: '£', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
-    - { click: '¢', label: '¢', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
-    - { click: '⊥', label: '⊥', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
-    - { click: '∥', label: '∥', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
+    - { click: '£', label: '£', width: 20 }
+    - { click: '¢', label: '¢', width: 20 }
+    - { click: '⊥', label: '⊥', width: 20 }
+    - { click: '∥', label: '∥', width: 20 }
     - { click: Keyboard_number, label: '123', width: 20 }
-    - { click: '∧', label: '∧', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
-    - { click: '∨', label: '∨', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
-    - { click: '≅', label: '≅', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
-    - { click: '≡', label: '≡', swipe_up: SymbolsToP1_symbols_math, swipe_down: SymbolsToP2_symbols_math, swipe_left: SymbolsToP1_symbols_math, swipe_right: SymbolsToP2_symbols_math, width: 20 }
+    - { click: '∧', label: '∧', width: 20 }
+    - { click: '∨', label: '∨', width: 20 }
+    - { click: '≅', label: '≅', width: 20 }
+    - { click: '≡', label: '≡', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -1090,25 +1090,25 @@ preset_keyboards:
     width: 10
     height: 52
     keys:
-    - { click: '⇐', label: '⇐', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
-    - { click: '⇒', label: '⇒', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
-    - { click: '⇑', label: '⇑', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
-    - { click: '⇓', label: '⇓', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
+    - { click: '⇐', label: '⇐', width: 20 }
+    - { click: '⇒', label: '⇒', width: 20 }
+    - { click: '⇑', label: '⇑', width: 20 }
+    - { click: '⇓', label: '⇓', width: 20 }
     - { click: SymbolsToP1_symbols_arrow, label: '↑', width: 20 }
-    - { click: '⇔', label: '⇔', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
-    - { click: '⇕', label: '⇕', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
-    - { click: '⟲', label: '⟲', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
-    - { click: '⟳', label: '⟳', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
+    - { click: '⇔', label: '⇔', width: 20 }
+    - { click: '⇕', label: '⇕', width: 20 }
+    - { click: '⟲', label: '⟲', width: 20 }
+    - { click: '⟳', label: '⟳', width: 20 }
     - { click: SymbolsToP1_symbols_arrow, label: '↓', width: 20 }
-    - { click: '↰', label: '↰', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
-    - { click: '↱', label: '↱', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
-    - { click: '↲', label: '↲', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
-    - { click: '↳', label: '↳', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
+    - { click: '↰', label: '↰', width: 20 }
+    - { click: '↱', label: '↱', width: 20 }
+    - { click: '↲', label: '↲', width: 20 }
+    - { click: '↳', label: '↳', width: 20 }
     - { click: Keyboard_number, label: '123', width: 20 }
-    - { click: '⇤', label: '⇤', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
-    - { click: '⇥', label: '⇥', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
-    - { click: '↚', label: '↚', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
-    - { click: '↛', label: '↛', swipe_up: SymbolsToP1_symbols_arrow, swipe_down: SymbolsToP2_symbols_arrow, swipe_left: SymbolsToP1_symbols_arrow, swipe_right: SymbolsToP2_symbols_arrow, width: 20 }
+    - { click: '⇤', label: '⇤', width: 20 }
+    - { click: '⇥', label: '⇥', width: 20 }
+    - { click: '↚', label: '↚', width: 20 }
+    - { click: '↛', label: '↛', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -1132,25 +1132,25 @@ preset_keyboards:
     width: 10
     height: 52
     keys:
-    - { click: '⑺', label: '⑺', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
-    - { click: '⑻', label: '⑻', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
-    - { click: '⑼', label: '⑼', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
-    - { click: '⑽', label: '⑽', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
+    - { click: '⑺', label: '⑺', width: 20 }
+    - { click: '⑻', label: '⑻', width: 20 }
+    - { click: '⑼', label: '⑼', width: 20 }
+    - { click: '⑽', label: '⑽', width: 20 }
     - { click: SymbolsToP1_symbols_num, label: '↑', width: 20 }
-    - { click: 'Ⅰ', label: 'Ⅰ', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
-    - { click: 'Ⅱ', label: 'Ⅱ', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
-    - { click: 'Ⅲ', label: 'Ⅲ', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
-    - { click: 'Ⅳ', label: 'Ⅳ', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
+    - { click: 'Ⅰ', label: 'Ⅰ', width: 20 }
+    - { click: 'Ⅱ', label: 'Ⅱ', width: 20 }
+    - { click: 'Ⅲ', label: 'Ⅲ', width: 20 }
+    - { click: 'Ⅳ', label: 'Ⅳ', width: 20 }
     - { click: SymbolsToP1_symbols_num, label: '↓', width: 20 }
-    - { click: 'Ⅴ', label: 'Ⅴ', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
-    - { click: 'Ⅵ', label: 'Ⅵ', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
-    - { click: 'Ⅶ', label: 'Ⅶ', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
-    - { click: 'Ⅷ', label: 'Ⅷ', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
+    - { click: 'Ⅴ', label: 'Ⅴ', width: 20 }
+    - { click: 'Ⅵ', label: 'Ⅵ', width: 20 }
+    - { click: 'Ⅶ', label: 'Ⅶ', width: 20 }
+    - { click: 'Ⅷ', label: 'Ⅷ', width: 20 }
     - { click: Keyboard_number, label: '123', width: 20 }
-    - { click: 'Ⅸ', label: 'Ⅸ', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
-    - { click: 'Ⅹ', label: 'Ⅹ', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
-    - { click: 'ⅰ', label: 'ⅰ', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
-    - { click: 'ⅱ', label: 'ⅱ', swipe_up: SymbolsToP1_symbols_num, swipe_down: SymbolsToP2_symbols_num, swipe_left: SymbolsToP1_symbols_num, swipe_right: SymbolsToP2_symbols_num, width: 20 }
+    - { click: 'Ⅸ', label: 'Ⅸ', width: 20 }
+    - { click: 'Ⅹ', label: 'Ⅹ', width: 20 }
+    - { click: 'ⅰ', label: 'ⅰ', width: 20 }
+    - { click: 'ⅱ', label: 'ⅱ', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
