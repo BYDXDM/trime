@@ -78,6 +78,18 @@ class KeyboardWindow(di: DI) :
 
         /** `import_preset` 的最大展开层数，防止主题写出环导致无限递归 */
         private const val MAX_IMPORT_PRESET_DEPTH = 8
+
+        /** 符号分组翻页动画时长（ms）。 */
+        private const val SLIDE_DURATION_MS = 180L
+
+        /** 符号分组的页序（页签顺序，每组 p1→p2）；翻页方向按此推断。 */
+        private val SYMBOLS_PAGE_ORDER =
+            listOf(
+                "symbols", "symbols_p2", "symbols_cn", "symbols_cn_p2",
+                "symbols_en", "symbols_en_p2", "symbols_net", "symbols_net_p2",
+                "symbols_math", "symbols_math_p2", "symbols_arrow", "symbols_arrow_p2",
+                "symbols_num", "symbols_num_p2",
+            )
     }
 
     override val key: ResidentWindow.Key
@@ -333,10 +345,68 @@ class KeyboardWindow(di: DI) :
             if (cachedKeyboards.containsKey(target)) {
                 if (target == currentKeyboardId) return@execute
             }
-            detachCurrentView(recordAsciiMode = syncAsciiMode)
-            attachKeyboard(target, syncAsciiMode)
+            // 符号分组的两页之间切换时做双页滑动（旧页滑出 + 新页滑入），
+            // 否则是硬切。方向按页序表推断：目标在后面 = 从右滑入。
+            val fromIdx = SYMBOLS_PAGE_ORDER.indexOf(currentKeyboardId)
+            val toIdx = SYMBOLS_PAGE_ORDER.indexOf(target)
+            val slideDir = if (fromIdx >= 0 && toIdx > fromIdx) {
+                1
+            } else if (fromIdx > toIdx && toIdx >= 0) {
+                -1
+            } else {
+                0
+            }
+            if (slideDir != 0) {
+                switchWithSlide(target, slideDir, syncAsciiMode)
+            } else {
+                detachCurrentView(recordAsciiMode = syncAsciiMode)
+                attachKeyboard(target, syncAsciiMode)
+            }
         }
         Timber.d("Switched to keyboard: $target")
+    }
+
+    /** 符号分组翻页动画：旧视图保留到动画结束再移除，两页同屏滑动。 */
+    private fun switchWithSlide(
+        target: String,
+        slideDir: Int,
+        syncAsciiMode: Boolean,
+    ) {
+        val oldView = currentKeyboardView
+        if (oldView == null) {
+            detachCurrentView(recordAsciiMode = syncAsciiMode)
+            attachKeyboard(target, syncAsciiMode)
+            return
+        }
+        oldView.onDetach()
+        if (syncAsciiMode) {
+            activeKeyboard?.lastAsciiMode = rime.run { statusCached }.isAsciiMode
+        }
+        attachKeyboard(target, syncAsciiMode)
+        val newView = currentKeyboardView
+        if (newView == null || newView == oldView) {
+            keyboardView.removeView(oldView)
+            return
+        }
+        val w = (keyboardView.width.takeIf { it > 0 } ?: oldView.width.takeIf { it > 0 })?.toFloat() ?: run {
+            keyboardView.removeView(oldView)
+            return
+        }
+        val interp = android.view.animation.DecelerateInterpolator()
+        newView.translationX = slideDir * w
+        oldView
+            .animate()
+            .translationX(-slideDir * w)
+            .setDuration(SLIDE_DURATION_MS)
+            .setInterpolator(interp)
+            .withEndAction { keyboardView.removeView(oldView) }
+            .start()
+        newView
+            .animate()
+            .translationX(0f)
+            .setDuration(SLIDE_DURATION_MS)
+            .setInterpolator(interp)
+            .start()
     }
 
     /**
