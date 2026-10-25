@@ -1,6 +1,5 @@
-# 联想词库训练数据（由 tools/gen_predict.py 生成，勿手改）
+# 联想词库训练数据（手工维护；gen_predict.py 已不存在，改完随包发布，设备端会重编 predict.db）
 # 格式: 上文词<TAB>候选词<TAB>权重<TAB>拼音编码
-$	原神	2000	yuan shen
 $	我们	1029	wo men
 $	什么	990	shen me
 $	可以	966	ke yi
@@ -30,10 +29,6 @@ $	可能	570	ke neng
 代码	调试	760	tiao shi
 你好	请问	855	qing wen
 你好	我是	760	wo shi
-原神	抽卡	1530	chou ka
-原神	深渊	1480	shen yuan
-原神	启动	1000	qi dong
-原神	体力	980	ti li
 可以	的	910	de
 可以	了	840	le
 可以	吗	760	ma
