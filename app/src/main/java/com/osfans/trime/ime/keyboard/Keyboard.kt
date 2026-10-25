@@ -379,6 +379,38 @@ class Keyboard(
     }
 
     /**
+     * Shift 键三态循环：默认 → 单次大写 → 大写锁定 → 默认。
+     *
+     * 与 [clickModifierKey] 的自翻转语义不同：三态无法用「翻转一个布尔」表达，
+     * 所以这里显式推进状态。状态本身沿用既有字段，不新增变量：
+     * [mShiftKey] 的 isOn 即锁定态，修饰位 META_SHIFT_ON 即单次态。
+     */
+    fun cycleShiftState() {
+        val shiftKey = mShiftKey
+        val capsLock = shiftKey?.isOn == true
+        val oneShot = !capsLock && modifier.hasFlag(KeyEvent.META_SHIFT_ON)
+        when {
+            // 锁定 → 默认
+            capsLock -> {
+                shiftKey?.setOn(false)
+                setModifier(KeyEvent.META_SHIFT_ON, false)
+            }
+
+            // 单次 → 锁定
+            oneShot -> {
+                shiftKey?.setOn(true)
+                setModifier(KeyEvent.META_SHIFT_ON, true)
+            }
+
+            // 默认 → 单次
+            else -> {
+                shiftKey?.setOn(false)
+                setModifier(KeyEvent.META_SHIFT_ON, true)
+            }
+        }
+    }
+
+    /**
      * 设置修饰键的状态
      *
      * @param on 是否锁定修饰键

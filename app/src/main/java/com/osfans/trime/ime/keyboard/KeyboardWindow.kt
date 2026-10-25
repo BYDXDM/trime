@@ -366,6 +366,24 @@ class KeyboardWindow(di: DI) :
         Timber.d("Switched to keyboard: $target")
     }
 
+    /**
+     * 符号面板整键盘左右滑翻页。
+     *
+     * 页序表 [SYMBOLS_PAGE_ORDER] 里每组占两项（首页 / _p2 页），所以翻页时先在本组内
+     * 前后翻，翻到头再跨组：正序进下一组首页，逆序进上一组的 _p2 页，首尾循环。
+     *
+     * @param direction 负值 = 上一页，正值 = 下一页
+     * @return 当前不是符号面板时返回 false，交给调用方兜底
+     */
+    fun swipeSymbolsPage(direction: Int): Boolean {
+        val from = SYMBOLS_PAGE_ORDER.indexOf(currentKeyboardId)
+        if (from < 0 || direction == 0) return false
+        val size = SYMBOLS_PAGE_ORDER.size
+        val target = if (direction > 0) (from + 1) % size else (from + size - 1) % size
+        switchKeyboard(SYMBOLS_PAGE_ORDER[target])
+        return true
+    }
+
     /** 符号分组翻页动画：旧视图保留到动画结束再移除，两页同屏滑动。 */
     private fun switchWithSlide(
         target: String,

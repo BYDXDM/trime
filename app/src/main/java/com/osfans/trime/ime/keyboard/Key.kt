@@ -289,6 +289,8 @@ class Key(
 
     private val appearanceType: Int
         get() {
+            // Shift 键自带三态字形，锁定/单次态不再靠 onKeyBackground 高亮（蓝底配白箭头很难看）
+            if (isShift) return 0
             return when {
                 click?.isModifierKey == true && parent.modifier.hasFlag(click!!.modifierKeyOnMask) || isOn -> 2
                 click?.isSticky == true || click?.isFunctional == true -> 1

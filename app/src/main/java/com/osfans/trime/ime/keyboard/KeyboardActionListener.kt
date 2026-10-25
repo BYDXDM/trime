@@ -38,4 +38,12 @@ interface KeyboardActionListener {
      * @param input the sequence of characters to be displayed.
      */
     fun onText(input: String)
+
+    /**
+     * 符号面板整键盘左右滑动翻页。按键自身没有对应滑动绑定时才会走到这里。
+     *
+     * @param direction 负值 = 上一页（手指右滑），正值 = 下一页（手指左滑）
+     * @return 是否消费了本次滑动；返回 false 时由按键的默认滑动行为兜底
+     */
+    fun onKeyboardPaging(direction: Int): Boolean = false
 }

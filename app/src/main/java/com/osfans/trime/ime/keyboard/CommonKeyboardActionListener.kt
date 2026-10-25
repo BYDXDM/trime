@@ -130,6 +130,8 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
 
             override fun onAction(action: KeyAction) = handleAction(action, allowAutoPair = true)
 
+            override fun onKeyboardPaging(direction: Int): Boolean = keyboardWindow.swipeSymbolsPage(direction)
+
             /**
              * @param allowAutoPair `{xxx}` 文本序列展开出来的按键要传 false：那是主题里
              *   写死的「模拟这个键」（如 `{braceleft}`），不能被成对补全改写成别的字符序列。
