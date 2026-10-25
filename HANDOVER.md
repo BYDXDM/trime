@@ -1297,7 +1297,12 @@ seam 2.04 / 0.39× 已达标。`InputView.kt` 的 -46 行回滚 + 新 GIF 已提
    swipe_down=上一页（组内循环）。原上滑变体（16 处）都有长按等价，不丢功能。
 3. **数字键去圈号快捷**（39990dad）：long_click 圈号/swipe_up 上标全删。
 4. **Shift → ⇧**（39990dad）：搜狗式箭头指示，锁定高亮逻辑不变。
-5. 踩坑：sync_panels.read_panels 的面板头正则 `[a-z_]+` 不含数字，`*_p2_panel`
+5. **翻页流畅化**（commit 16455902）：KeyboardWindow.switchKeyboard 按
+   SYMBOLS_PAGE_ORDER（页签序，每组 p1→p2）推断方向，旧视图保留至动画
+   结束、新视图从侧滑入（180ms，DecelerateInterpolator 双视图同屏滑动），
+   替代硬切；224 个符号键补 swipe_left/right（与 up/down 并存，横滑翻页）。
+   真机：左滑出第 2 页、连滑 3 次跨分组、零崩溃。
+6. 踩坑：sync_panels.read_panels 的面板头正则 `[a-z_]+` 不含数字，`*_p2_panel`
    被静默跳过（已修为 `[a-z_0-9]+`）；批量 sed 预设键时有两类事故——
    Python f-string 里单 `}` 转义崩、以及替换占位符没匹配导致 7 行预设被写坏、
    preset_keys 尾部行缩进丢失顶格（YAML 整段解析失败）——**改 preset_keys 后

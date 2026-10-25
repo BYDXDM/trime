@@ -533,3 +533,4 @@ git diff --cached --name-only | Select-String -Pattern 'gradle-wrapper\.properti
 | 3 | Shift 改搜狗箭头 | label → ⇧（39990dad） |
 
 键盘总数 17（7 组 × 2 页 + 拼音/英文/数字）。全部已推送。
+翻页流畅化（16455902）：双页滑动动画 180ms + 左右滑手势，连滑跨分组稳定。
