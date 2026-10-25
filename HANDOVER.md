@@ -611,7 +611,7 @@ env -u http_proxy -u https_proxy -u HTTP_PROXY -u HTTPS_PROXY \
 **但要分两次编**——`BUILD_ABI=arm64-v8a,x86_64` 一次编两个会让 arm64 那个变成坏包（见 §6）：
 
 ```bash
-cd /d/trime-build
+cd /d/ai/工作/trime-build
 export BUILD_ABI=x86_64                # 只编模拟器要的那个
 ./gradlew.bat :app:assembleRelease
 "$ADB" install -r -t app/build/outputs/apk/release/trime-x86_64-release.apk
@@ -1308,3 +1308,12 @@ seam 2.04 / 0.39× 已达标。`InputView.kt` 的 -46 行回滚 + 新 GIF 已提
    preset_keys 尾部行缩进丢失顶格（YAML 整段解析失败）——**改 preset_keys 后
    必跑 check_layout + 单测**（ProductionKeyboardTypingTest 的哑键检测会抓住
    悬空引用）。
+
+
+---
+
+## 0.9 2026-10-25 环境变更：仓库路径迁移
+
+**仓库已从 `D:	rime-build` 移动到 `D:i\工作	rime-build`**（2026-10-25，
+目录被移动而非重装）。所有构建、adb、文档引用一律用新路径；本文件与
+NEXT-STEPS.md 中的旧路径已批量替换。其余（远端、分支、设备、签名）不变。

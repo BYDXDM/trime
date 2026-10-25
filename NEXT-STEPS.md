@@ -11,7 +11,7 @@
 ## 0. 开工前必须自己复核一遍
 
 ```bash
-cd D:/trime-build
+cd D:/ai/工作/trime-build
 git status -sb          # 期望：## develop...origin/develop，无 ahead
 git rev-parse HEAD      # 期望：82132c907b46ad9f006ecb750d86e9fef36fc210
 git log --oneline -5
