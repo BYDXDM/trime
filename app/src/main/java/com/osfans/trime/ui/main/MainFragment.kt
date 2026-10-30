@@ -72,6 +72,11 @@ class MainFragment : PaddingPreferenceFragment() {
                 NavigationRoute.CustomPhrase,
             )
             addDestinationPreference(
+                R.string.blacklist,
+                R.drawable.ic_baseline_lock_24,
+                NavigationRoute.Blacklist,
+            )
+            addDestinationPreference(
                 R.string.profile,
                 R.drawable.ic_baseline_snippet_folder_24,
                 NavigationRoute.Profile,

@@ -128,6 +128,7 @@ class InputView(
     private val inputBar: InputBarDelegate by instance()
     private val keyboardWindow: KeyboardWindow by instance()
     private val liquidWindow: LiquidWindow by instance()
+    private val compactCandidate: CompactCandidateDelegate by instance()
 
     private val candidatesMode by AppPrefs.defaultInstance().candidates.mode
 
@@ -176,6 +177,9 @@ class InputView(
     }
 
     init {
+        // 黑名单是纯显示层过滤，改完只需让候选栏重新过滤一遍。
+        onBlacklistUpdated = { compactCandidate.refreshCandidates() }
+
         // MUST call before any operation
         val receivers: List<InputBroadcastReceiver> by allInstances()
         receivers.forEach { broadcaster.addReceiver(it) }

@@ -127,9 +127,12 @@ class KeyView(
                         }
                     }
 
-                    KeyBehavior.DOUBLE_CLICK, KeyBehavior.LAZY_DOUBLE_CLICK,
-                    KeyBehavior.SWIPE_UP, KeyBehavior.SWIPE_DOWN,
-                    ->
+                    // 上下滑不再兜底翻分组：符号面板改成整块纵向滚动（KeyboardView 负责），
+                    // 没被容器拦下的竖向手势直接忽略，避免「想滚一点却整组跳走」。
+                    KeyBehavior.SWIPE_UP, KeyBehavior.SWIPE_DOWN ->
+                        key.getAction(behavior)?.let { processKeyAction(it, behavior) }
+
+                    KeyBehavior.DOUBLE_CLICK, KeyBehavior.LAZY_DOUBLE_CLICK ->
                         key.getAction(behavior)?.let { processKeyAction(it, behavior) }
 
                     else -> {}

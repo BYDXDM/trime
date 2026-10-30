@@ -159,6 +159,10 @@ class AppPrefs(
             const val MAX_SPAN_COUNT = "max_span_count"
             const val MAX_SPAN_COUNT_LANDSCAPE = "max_span_count_landscape"
             const val HORIZONTAL_CANDIDATE_MODE = "horizontal_candidate_mode"
+
+            const val KEYBOARD_HEIGHT_OVERRIDE = "keyboard_height_override"
+            const val KEY_GAP_OVERRIDE = "key_gap_override"
+            const val CANDIDATE_BAR_HEIGHT_OVERRIDE = "candidate_bar_height_override"
         }
 
         enum class LandscapeMode(override val stringRes: Int) : PreferenceDelegateEnum {
@@ -183,6 +187,47 @@ class AppPrefs(
         val hideInputBar = switch(R.string.hide_input_bar, HIDE_INPUT_BAR, false)
         val hideKeySymbol = switch(R.string.hide_key_symbol, HIDE_KEY_SYMBOL, false)
         val hideKeyHint = switch(R.string.hide_key_hint, HIDE_KEY_HINT, false)
+
+        // 几何三件套：0 表示「跟随主题」，非 0 才覆盖。
+        // 范围刻意收窄 —— 滑块控件要求 (max - min) / step < 256，见 PreferenceDelegateOwner.int()。
+        // 键盘高度按 dp 存，默认主题是 250；给到 160..420 足以覆盖小屏与大屏的极端需求。
+        val keyboardHeightOverride = int(
+            R.string.keyboard_height_override,
+            KEYBOARD_HEIGHT_OVERRIDE,
+            0,
+            0,
+            420,
+            "dp",
+            10,
+            R.string.follow_theme,
+            useMinAsDefault = true,
+        )
+
+        // 键距按 dp 存，主题默认是 1；上限 20dp 已经很夸张（每格两侧各吃掉一半）。
+        val keyGapOverride = int(
+            R.string.key_gap_override,
+            KEY_GAP_OVERRIDE,
+            0,
+            0,
+            20,
+            "dp",
+            1,
+            R.string.follow_theme,
+            useMinAsDefault = true,
+        )
+
+        // 候选栏高度按 dp 存，主题默认是 32。
+        val candidateBarHeightOverride = int(
+            R.string.candidate_bar_height_override,
+            CANDIDATE_BAR_HEIGHT_OVERRIDE,
+            0,
+            0,
+            80,
+            "dp",
+            2,
+            R.string.follow_theme,
+            useMinAsDefault = true,
+        )
 
         // 默认开启按键音：本分支内置了钢琴音效包
         // （assets/shared/soundeffect/，随 DataManager.mirrorPackagedDirs 部署），

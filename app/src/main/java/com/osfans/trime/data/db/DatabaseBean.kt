@@ -25,7 +25,12 @@ data class DatabaseBean(
         const val TABLE_NAME = "t_data"
 
         fun fromClipData(clipData: ClipData): DatabaseBean? {
-            val str = clipData.getItemAt(0).text?.toString() ?: return null
+            // 部分应用（浏览器、微信等）会同时放入 uri 与 text，第 0 项未必带 text
+            val str =
+                (0 until clipData.itemCount)
+                    .mapNotNull { clipData.getItemAt(it).text?.toString() }
+                    .firstOrNull { it.isNotBlank() }
+                    ?: return null
             return DatabaseBean(text = str)
         }
 

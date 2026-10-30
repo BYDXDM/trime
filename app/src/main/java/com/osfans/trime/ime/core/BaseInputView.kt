@@ -24,6 +24,7 @@ import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.ThemeManager
 import com.osfans.trime.data.theme.ThemePrefs
 import com.osfans.trime.data.theme.ThemeScope
+import com.osfans.trime.data.userdict.BlacklistStore
 import com.osfans.trime.ime.keyboard.InputFeedbackManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -70,6 +71,9 @@ abstract class BaseInputView(
 
     private var candidateActionMenu: PopupMenu? = null
 
+    /** 黑名单被改动后的回调，由 [InputView] 接到候选栏上。 */
+    var onBlacklistUpdated: (() -> Unit)? = null
+
     fun showCandidateActionMenu(idx: Int, text: String, view: View, global: Boolean) {
         candidateActionMenu?.dismiss()
         candidateActionMenu = null
@@ -88,6 +92,13 @@ abstract class BaseInputView(
                     }
                     menu.add(R.string.forget_this_word).setOnMenuItemClickListener {
                         rime.runIfReady { deleteCandidate(idx, global) }
+                        true
+                    }
+                    menu.add(R.string.blacklist_add).setOnMenuItemClickListener {
+                        BlacklistStore.add(text)
+                        // 黑名单是纯显示层过滤，写盘后让候选栏重新过滤一遍即可，
+                        // 不用惊动 librime（它根本不认识这份名单）。
+                        onBlacklistUpdated?.invoke()
                         true
                     }
                     setOnDismissListener {

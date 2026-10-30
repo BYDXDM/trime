@@ -251,21 +251,15 @@ preset_keys:
   Keyboard_number: { label: '123', send: Eisu_toggle, select: number }
   Keyboard_letter: { label: 返回, send: Eisu_toggle, select: my_pinyin }
   Keyboard_default: { label: 返回, send: Eisu_toggle, select: .default }
-  # 符号面板右列的 ↑/↓：上/下一个分组（循环）。表情/颜文字页已删。
-  SymbolsToP2_symbols: { label: '↓', send: Eisu_toggle, select: symbols_p2 }
-  SymbolsToP1_symbols: { label: '↑', send: Eisu_toggle, select: symbols }
-  SymbolsToP2_symbols_cn: { label: '↓', send: Eisu_toggle, select: symbols_cn_p2 }
-  SymbolsToP1_symbols_cn: { label: '↑', send: Eisu_toggle, select: symbols_cn }
-  SymbolsToP2_symbols_en: { label: '↓', send: Eisu_toggle, select: symbols_en_p2 }
-  SymbolsToP1_symbols_en: { label: '↑', send: Eisu_toggle, select: symbols_en }
-  SymbolsToP2_symbols_net: { label: '↓', send: Eisu_toggle, select: symbols_net_p2 }
-  SymbolsToP1_symbols_net: { label: '↑', send: Eisu_toggle, select: symbols_net }
-  SymbolsToP2_symbols_math: { label: '↓', send: Eisu_toggle, select: symbols_math_p2 }
-  SymbolsToP1_symbols_math: { label: '↑', send: Eisu_toggle, select: symbols_math }
-  SymbolsToP2_symbols_arrow: { label: '↓', send: Eisu_toggle, select: symbols_arrow_p2 }
-  SymbolsToP1_symbols_arrow: { label: '↑', send: Eisu_toggle, select: symbols_arrow }
-  SymbolsToP2_symbols_num: { label: '↓', send: Eisu_toggle, select: symbols_num_p2 }
-  SymbolsToP1_symbols_num: { label: '↑', send: Eisu_toggle, select: symbols_num }
+  # 剪贴板窗口。必须写 send: FUNCTION，KeyAction 解析预设键时只有
+  # KeyCode.parse(send) 解不出 keycode、且 command 非空，才会落到
+  # KEYCODE_FUNCTION → handleFunctionCommand → "clipboard_window"。
+  clipboard_window: { label: 剪贴, send: FUNCTION, command: clipboard_window, option: '0' }
+  # 符号面板右列的两个箭头：整键盘上/下翻页，跨分组循环。
+  # 走 command 而不是 select，这样翻页方向由 SYMBOLS_PAGE_ORDER 统一决定，
+  # 不用给每个分组各写一对专用键（以前 14 个键里有一半是死键）。
+  SymbolsPageUp: { label: '∧', command: symbols_page, option: '-1' }
+  SymbolsPageDown: { label: '∨', command: symbols_page, option: '1' }
   # ---- 自定命令 ----
   IME_switch: { label: 🌐, send: LANGUAGE_SWITCH }
   Color_switch: { label: 配色, send: PROG_RED }
@@ -423,8 +417,12 @@ preset_keyboards:
 
     # ---------------- 第 4 行：底栏 ----------------
     # 符(10) 123(10) ，(10) 空格(30) 。(10) 中英(15) 换行(15) = 100
-    - { click: Keyboard_symbols, long_click: Keyboard_number }
-    - { click: Keyboard_number, long_click: Keyboard_symbols }
+    # 符 / 123 是相邻键，可直接点；互相写 long_click 会让 Key.symbolLabel
+    # 回落到长按动作的 label，两个键右上角各自显示对方，反而分不清。
+    # 长按「符」开剪贴板：底栏权重已排满 100，另起一键要挤掉空格宽度，
+    # 而 Key.symbolLabel 会把 long_click 的 label 画到右上角，正好当提示。
+    - { click: Keyboard_symbols, long_click: clipboard_window }
+    - { click: Keyboard_number }
     - { click: ',', label: '，', long_click: '<', swipe_up: '〈' }
     - { click: space_cursor, width: 30 }                 # 长按拖动移动光标
     - { click: '.', label: '。', long_click: '>', swipe_up: '〉' }
@@ -490,8 +488,10 @@ preset_keyboards:
     - { click: backspace_clear, swipe_up: ClearAll, swipe_left: BackToPreviousSyllable, width: 15 }
 
     # ---- 第 4 行 ----
-    - { click: Keyboard_symbols, long_click: Keyboard_number }
-    - { click: Keyboard_number, long_click: Keyboard_symbols }
+    # 符 / 123 是相邻键，可直接点；互相写 long_click 会让 Key.symbolLabel
+    # 回落到长按动作的 label，两个键右上角各自显示对方，反而分不清。
+    - { click: Keyboard_symbols, long_click: clipboard_window }
+    - { click: Keyboard_number }
     - { click: ',', label: ',', long_click: '<', swipe_up: '〈' }
     - { click: space_cursor, width: 30 }
     - { click: '.', label: '.', long_click: '>', swipe_up: '〉' }
@@ -510,19 +510,20 @@ preset_keyboards:
     columns: -1               # -1 = 不按键数截断，只按权重(100)换行
     width: 10
     height: 52
+    scrollable: true          # 行数超出视口时上下滑动浏览
     keys:
     # ---- 第 1 行 ----
     - { click: '，', label: '，', long_click: '<', width: 20 }
     - { click: '。', label: '。', long_click: '>', width: 20 }
     - { click: '？', label: '？', long_click: '¿', width: 20 }
     - { click: '！', label: '！', long_click: '¡', width: 20 }
-    - { click: SymbolsToP2_symbols, label: '↑', width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
     # ---- 第 2 行 ----
     - { click: '、', label: '、', long_click: '\', width: 20 }
     - { click: '；', label: '；', long_click: ';', width: 20 }
     - { click: '：', label: '：', long_click: ':', width: 20 }
     - { click: '“', label: '“', long_click: '‘', width: 20 }
-    - { click: SymbolsToP2_symbols, label: '↓', width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
     # ---- 第 3 行 ----
     - { click: '”', label: '”', long_click: '’', width: 20 }
     - { click: '…', label: '…', long_click: '——', width: 20 }
@@ -535,7 +536,31 @@ preset_keyboards:
     - { click: '《', label: '《', long_click: '<', width: 20 }
     - { click: '》', label: '》', long_click: '>', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
-    # ---- 分组页签（照搜狗的分组习惯）----
+    # ---- 第 5 行 ----
+    - { click: '〈', label: '〈', width: 20 }
+    - { click: '〉', label: '〉', width: 20 }
+    - { click: '「', label: '「', width: 20 }
+    - { click: '」', label: '」', width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    # ---- 第 6 行 ----
+    - { click: '『', label: '『', width: 20 }
+    - { click: '』', label: '』', width: 20 }
+    - { click: '～', label: '～', width: 20 }
+    - { click: '·', label: '·', width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    # ---- 第 7 行 ----
+    - { click: '•', label: '•', width: 20 }
+    - { click: '※', label: '※', width: 20 }
+    - { click: '‧', label: '‧', width: 20 }
+    - { click: '°', label: '°', width: 20 }
+    - { click: Keyboard_number, label: '123', width: 20 }
+    # ---- 第 8 行 ----
+    - { click: '〃', label: '〃', width: 20 }
+    - { click: '％', label: '％', width: 20 }
+    - { click: '‰', label: '‰', width: 20 }
+    - { click: '＠', label: '＠', width: 20 }
+    - { click: BackSpace, label: '⌫', width: 20 }
+    # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
@@ -544,7 +569,7 @@ preset_keyboards:
     - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    # 中文
+    # 中文（9 行可滚动：原第 1 页 4 行 + 原第 2 页 4 行 + 页签）
 
     # =========================================================================
     #  中文面板 —— 由 tools/sync_panels.py 从 panels.yaml 生成
@@ -557,19 +582,20 @@ preset_keyboards:
     columns: -1               # -1 = 不按键数截断，只按权重(100)换行
     width: 10
     height: 52
+    scrollable: true          # 行数超出视口时上下滑动浏览
     keys:
     # ---- 第 1 行 ----
     - { click: '，', label: '，', width: 20 }
     - { click: '。', label: '。', width: 20 }
     - { click: '、', label: '、', width: 20 }
     - { click: '；', label: '；', width: 20 }
-    - { click: SymbolsToP2_symbols_cn, label: '↑', width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
     # ---- 第 2 行 ----
     - { click: '：', label: '：', width: 20 }
     - { click: '？', label: '？', width: 20 }
     - { click: '！', label: '！', width: 20 }
     - { click: '…', label: '…', width: 20 }
-    - { click: SymbolsToP2_symbols_cn, label: '↓', width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
     # ---- 第 3 行 ----
     - { click: '—', label: '—', width: 20 }
     - { click: '～', label: '～', width: 20 }
@@ -582,6 +608,30 @@ preset_keyboards:
     - { click: '「', label: '「', width: 20 }
     - { click: '」', label: '」', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
+    # ---- 第 5 行 ----
+    - { click: '【', label: '【', width: 20 }
+    - { click: '】', label: '】', width: 20 }
+    - { click: '〔', label: '〔', width: 20 }
+    - { click: '〕', label: '〕', width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    # ---- 第 6 行 ----
+    - { click: '〖', label: '〖', width: 20 }
+    - { click: '〗', label: '〗', width: 20 }
+    - { click: '《', label: '《', width: 20 }
+    - { click: '》', label: '》', width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    # ---- 第 7 行 ----
+    - { click: '〈', label: '〈', width: 20 }
+    - { click: '〉', label: '〉', width: 20 }
+    - { click: '＋', label: '＋', width: 20 }
+    - { click: '－', label: '－', width: 20 }
+    - { click: Keyboard_number, label: '123', width: 20 }
+    # ---- 第 8 行 ----
+    - { click: '×', label: '×', width: 20 }
+    - { click: '÷', label: '÷', width: 20 }
+    - { click: '＝', label: '＝', width: 20 }
+    - { click: '～', label: '～', width: 20 }
+    - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -591,7 +641,7 @@ preset_keyboards:
     - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    # 英文
+    # 英文（9 行可滚动：原第 1 页 4 行 + 原第 2 页 4 行 + 页签）
 
     # =========================================================================
     #  英文面板 —— 由 tools/sync_panels.py 从 panels.yaml 生成
@@ -604,19 +654,20 @@ preset_keyboards:
     columns: -1               # -1 = 不按键数截断，只按权重(100)换行
     width: 10
     height: 52
+    scrollable: true          # 行数超出视口时上下滑动浏览
     keys:
     # ---- 第 1 行 ----
     - { click: ',', label: ',', width: 20 }
     - { click: '.', label: '.', width: 20 }
     - { click: '?', label: '?', width: 20 }
     - { click: '!', label: '!', width: 20 }
-    - { click: SymbolsToP2_symbols_en, label: '↑', width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
     # ---- 第 2 行 ----
     - { click: ';', label: ';', width: 20 }
     - { click: ':', label: ':', width: 20 }
     - { click: '"', label: '"', width: 20 }
     - { click: ''', label: ''', width: 20 }
-    - { click: SymbolsToP2_symbols_en, label: '↓', width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
     # ---- 第 3 行 ----
     - { click: '(', label: '(', width: 20 }
     - { click: ')', label: ')', width: 20 }
@@ -629,6 +680,30 @@ preset_keyboards:
     - { click: '-', label: '-', width: 20 }
     - { click: '_', label: '_', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
+    # ---- 第 5 行 ----
+    - { click: '{', label: '{', width: 20 }
+    - { click: '}', label: '}', width: 20 }
+    - { click: '|', label: '|', width: 20 }
+    - { click: '~', label: '~', width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    # ---- 第 6 行 ----
+    - { click: '=', label: '=', width: 20 }
+    - { click: '+', label: '+', width: 20 }
+    - { click: '\', label: '\', width: 20 }
+    - { click: '^', label: '^', width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    # ---- 第 7 行 ----
+    - { click: '`', label: '`', width: 20 }
+    - { click: '…', label: '…', width: 20 }
+    - { click: '–', label: '–', width: 20 }
+    - { click: '—', label: '—', width: 20 }
+    - { click: Keyboard_number, label: '123', width: 20 }
+    # ---- 第 8 行 ----
+    - { click: '«', label: '«', width: 20 }
+    - { click: '»', label: '»', width: 20 }
+    - { click: '‹', label: '‹', width: 20 }
+    - { click: '›', label: '›', width: 20 }
+    - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -638,7 +713,7 @@ preset_keyboards:
     - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    # 网络
+    # 网络（9 行可滚动：原第 1 页 4 行 + 原第 2 页 4 行 + 页签）
 
     # =========================================================================
     #  网络面板 —— 由 tools/sync_panels.py 从 panels.yaml 生成
@@ -651,19 +726,20 @@ preset_keyboards:
     columns: -1               # -1 = 不按键数截断，只按权重(100)换行
     width: 10
     height: 52
+    scrollable: true          # 行数超出视口时上下滑动浏览
     keys:
     # ---- 第 1 行 ----
     - { click: '@', label: '@', width: 20 }
     - { click: '#', label: '#', width: 20 }
     - { click: '&', label: '&', width: 20 }
     - { click: '*', label: '*', width: 20 }
-    - { click: SymbolsToP2_symbols_net, label: '↑', width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
     # ---- 第 2 行 ----
     - { click: '/', label: '/', width: 20 }
     - { click: '\', label: '\', width: 20 }
     - { click: '_', label: '_', width: 20 }
     - { click: '|', label: '|', width: 20 }
-    - { click: SymbolsToP2_symbols_net, label: '↓', width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
     # ---- 第 3 行 ----
     - { click: '^', label: '^', width: 20 }
     - { click: '~', label: '~', width: 20 }
@@ -676,6 +752,30 @@ preset_keyboards:
     - { click: '°', label: '°', width: 20 }
     - { click: '‰', label: '‰', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
+    # ---- 第 5 行 ----
+    - { click: '§', label: '§', width: 20 }
+    - { click: '¶', label: '¶', width: 20 }
+    - { click: '†', label: '†', width: 20 }
+    - { click: '‡', label: '‡', width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    # ---- 第 6 行 ----
+    - { click: 'µ', label: 'µ', width: 20 }
+    - { click: '•', label: '•', width: 20 }
+    - { click: '◦', label: '◦', width: 20 }
+    - { click: '‱', label: '‱', width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    # ---- 第 7 行 ----
+    - { click: '℃', label: '℃', width: 20 }
+    - { click: '℉', label: '℉', width: 20 }
+    - { click: '№', label: '№', width: 20 }
+    - { click: '★', label: '★', width: 20 }
+    - { click: Keyboard_number, label: '123', width: 20 }
+    # ---- 第 8 行 ----
+    - { click: '☆', label: '☆', width: 20 }
+    - { click: '✓', label: '✓', width: 20 }
+    - { click: '✗', label: '✗', width: 20 }
+    - { click: '✧', label: '✧', width: 20 }
+    - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -685,7 +785,7 @@ preset_keyboards:
     - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    # 数学
+    # 数学（9 行可滚动：原第 1 页 4 行 + 原第 2 页 4 行 + 页签）
 
     # =========================================================================
     #  数学面板 —— 由 tools/sync_panels.py 从 panels.yaml 生成
@@ -698,19 +798,20 @@ preset_keyboards:
     columns: -1               # -1 = 不按键数截断，只按权重(100)换行
     width: 10
     height: 52
+    scrollable: true          # 行数超出视口时上下滑动浏览
     keys:
     # ---- 第 1 行 ----
     - { click: '+', label: '+', width: 20 }
     - { click: '-', label: '-', width: 20 }
     - { click: '×', label: '×', width: 20 }
     - { click: '÷', label: '÷', width: 20 }
-    - { click: SymbolsToP2_symbols_math, label: '↑', width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
     # ---- 第 2 行 ----
     - { click: '=', label: '=', width: 20 }
     - { click: '≠', label: '≠', width: 20 }
     - { click: '≈', label: '≈', width: 20 }
     - { click: '±', label: '±', width: 20 }
-    - { click: SymbolsToP2_symbols_math, label: '↓', width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
     # ---- 第 3 行 ----
     - { click: '∞', label: '∞', width: 20 }
     - { click: '%', label: '%', width: 20 }
@@ -723,6 +824,30 @@ preset_keyboards:
     - { click: '$', label: '$', width: 20 }
     - { click: '€', label: '€', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
+    # ---- 第 5 行 ----
+    - { click: '∠', label: '∠', width: 20 }
+    - { click: '∛', label: '∛', width: 20 }
+    - { click: '∝', label: '∝', width: 20 }
+    - { click: '∑', label: '∑', width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    # ---- 第 6 行 ----
+    - { click: '∏', label: '∏', width: 20 }
+    - { click: '∫', label: '∫', width: 20 }
+    - { click: '∮', label: '∮', width: 20 }
+    - { click: '€', label: '€', width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    # ---- 第 7 行 ----
+    - { click: '£', label: '£', width: 20 }
+    - { click: '¢', label: '¢', width: 20 }
+    - { click: '⊥', label: '⊥', width: 20 }
+    - { click: '∥', label: '∥', width: 20 }
+    - { click: Keyboard_number, label: '123', width: 20 }
+    # ---- 第 8 行 ----
+    - { click: '∧', label: '∧', width: 20 }
+    - { click: '∨', label: '∨', width: 20 }
+    - { click: '≅', label: '≅', width: 20 }
+    - { click: '≡', label: '≡', width: 20 }
+    - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -732,7 +857,7 @@ preset_keyboards:
     - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    # 箭头
+    # 箭头（9 行可滚动：原第 1 页 4 行 + 原第 2 页 4 行 + 页签）
 
     # =========================================================================
     #  箭头面板 —— 由 tools/sync_panels.py 从 panels.yaml 生成
@@ -745,19 +870,20 @@ preset_keyboards:
     columns: -1               # -1 = 不按键数截断，只按权重(100)换行
     width: 10
     height: 52
+    scrollable: true          # 行数超出视口时上下滑动浏览
     keys:
     # ---- 第 1 行 ----
     - { click: '←', label: '←', width: 20 }
     - { click: '→', label: '→', width: 20 }
     - { click: '↑', label: '↑', width: 20 }
     - { click: '↓', label: '↓', width: 20 }
-    - { click: SymbolsToP2_symbols_arrow, label: '↑', width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
     # ---- 第 2 行 ----
     - { click: '↔', label: '↔', width: 20 }
     - { click: '↕', label: '↕', width: 20 }
     - { click: '↖', label: '↖', width: 20 }
     - { click: '↗', label: '↗', width: 20 }
-    - { click: SymbolsToP2_symbols_arrow, label: '↓', width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
     # ---- 第 3 行 ----
     - { click: '↘', label: '↘', width: 20 }
     - { click: '↙', label: '↙', width: 20 }
@@ -770,6 +896,30 @@ preset_keyboards:
     - { click: '▲', label: '▲', width: 20 }
     - { click: '▼', label: '▼', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
+    # ---- 第 5 行 ----
+    - { click: '⇐', label: '⇐', width: 20 }
+    - { click: '⇒', label: '⇒', width: 20 }
+    - { click: '⇑', label: '⇑', width: 20 }
+    - { click: '⇓', label: '⇓', width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    # ---- 第 6 行 ----
+    - { click: '⇔', label: '⇔', width: 20 }
+    - { click: '⇕', label: '⇕', width: 20 }
+    - { click: '⟲', label: '⟲', width: 20 }
+    - { click: '⟳', label: '⟳', width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    # ---- 第 7 行 ----
+    - { click: '↰', label: '↰', width: 20 }
+    - { click: '↱', label: '↱', width: 20 }
+    - { click: '↲', label: '↲', width: 20 }
+    - { click: '↳', label: '↳', width: 20 }
+    - { click: Keyboard_number, label: '123', width: 20 }
+    # ---- 第 8 行 ----
+    - { click: '⇤', label: '⇤', width: 20 }
+    - { click: '⇥', label: '⇥', width: 20 }
+    - { click: '↚', label: '↚', width: 20 }
+    - { click: '↛', label: '↛', width: 20 }
+    - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -779,7 +929,7 @@ preset_keyboards:
     - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
     - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    # 序号
+    # 序号（9 行可滚动：原第 1 页 4 行 + 原第 2 页 4 行 + 页签）
 
     # =========================================================================
     #  序号面板 —— 由 tools/sync_panels.py 从 panels.yaml 生成
@@ -792,19 +942,20 @@ preset_keyboards:
     columns: -1               # -1 = 不按键数截断，只按权重(100)换行
     width: 10
     height: 52
+    scrollable: true          # 行数超出视口时上下滑动浏览
     keys:
     # ---- 第 1 行 ----
     - { click: '①', label: '①', width: 20 }
     - { click: '②', label: '②', width: 20 }
     - { click: '③', label: '③', width: 20 }
     - { click: '④', label: '④', width: 20 }
-    - { click: SymbolsToP2_symbols_num, label: '↑', width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
     # ---- 第 2 行 ----
     - { click: '⑤', label: '⑤', width: 20 }
     - { click: '⑥', label: '⑥', width: 20 }
     - { click: '⑦', label: '⑦', width: 20 }
     - { click: '⑧', label: '⑧', width: 20 }
-    - { click: SymbolsToP2_symbols_num, label: '↓', width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
     # ---- 第 3 行 ----
     - { click: '⑨', label: '⑨', width: 20 }
     - { click: '⑩', label: '⑩', width: 20 }
@@ -817,6 +968,30 @@ preset_keyboards:
     - { click: '⑸', label: '⑸', width: 20 }
     - { click: '⑹', label: '⑹', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
+    # ---- 第 5 行 ----
+    - { click: '⑺', label: '⑺', width: 20 }
+    - { click: '⑻', label: '⑻', width: 20 }
+    - { click: '⑼', label: '⑼', width: 20 }
+    - { click: '⑽', label: '⑽', width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    # ---- 第 6 行 ----
+    - { click: 'Ⅰ', label: 'Ⅰ', width: 20 }
+    - { click: 'Ⅱ', label: 'Ⅱ', width: 20 }
+    - { click: 'Ⅲ', label: 'Ⅲ', width: 20 }
+    - { click: 'Ⅳ', label: 'Ⅳ', width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    # ---- 第 7 行 ----
+    - { click: 'Ⅴ', label: 'Ⅴ', width: 20 }
+    - { click: 'Ⅵ', label: 'Ⅵ', width: 20 }
+    - { click: 'Ⅶ', label: 'Ⅶ', width: 20 }
+    - { click: 'Ⅷ', label: 'Ⅷ', width: 20 }
+    - { click: Keyboard_number, label: '123', width: 20 }
+    # ---- 第 8 行 ----
+    - { click: 'Ⅸ', label: 'Ⅸ', width: 20 }
+    - { click: 'Ⅹ', label: 'Ⅹ', width: 20 }
+    - { click: 'ⅰ', label: 'ⅰ', width: 20 }
+    - { click: 'ⅱ', label: 'ⅱ', width: 20 }
+    - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -828,6 +1003,7 @@ preset_keyboards:
     - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
     # -----------------------------------------------------------------------------
     #  数字面板（照搜狗布局：左 %/− 右 ⌫/./@，中 3×4 数字）
+    #  4 行正好一屏，不滚动
     # -----------------------------------------------------------------------------
 
     # =========================================================================
@@ -866,297 +1042,3 @@ preset_keyboards:
     - { click: '0', label: '0', width: 22 }
     - { click: space, width: 22 }
     - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, width: 22 }
-    # 常用2（常用 第 2 页，↑/↓ 与第 1 页互切）
-
-    # =========================================================================
-    #  常用2面板 —— 由 tools/sync_panels.py 从 panels.yaml 生成
-    #  ⚠ 不要直接改这里；改 panels.yaml 后跑：python3 tools/sync_panels.py
-    # =========================================================================
-  symbols_p2:
-    name: 常用2
-    author: myime
-    ascii_mode: 1
-    columns: -1               # -1 = 不按键数截断，只按权重(100)换行
-    width: 10
-    height: 52
-    keys:
-    - { click: '〈', label: '〈', width: 20 }
-    - { click: '〉', label: '〉', width: 20 }
-    - { click: '「', label: '「', width: 20 }
-    - { click: '」', label: '」', width: 20 }
-    - { click: SymbolsToP1_symbols, label: '↑', width: 20 }
-    - { click: '『', label: '『', width: 20 }
-    - { click: '』', label: '』', width: 20 }
-    - { click: '～', label: '～', width: 20 }
-    - { click: '·', label: '·', width: 20 }
-    - { click: SymbolsToP1_symbols, label: '↓', width: 20 }
-    - { click: '•', label: '•', width: 20 }
-    - { click: '※', label: '※', width: 20 }
-    - { click: '‧', label: '‧', width: 20 }
-    - { click: '°', label: '°', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
-    - { click: '〃', label: '〃', width: 20 }
-    - { click: '％', label: '％', width: 20 }
-    - { click: '‰', label: '‰', width: 20 }
-    - { click: '＠', label: '＠', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
-    - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
-    - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_net, label: '4.网络', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    # 中文2（中文 第 2 页，↑/↓ 与第 1 页互切）
-
-    # =========================================================================
-    #  中文2面板 —— 由 tools/sync_panels.py 从 panels.yaml 生成
-    #  ⚠ 不要直接改这里；改 panels.yaml 后跑：python3 tools/sync_panels.py
-    # =========================================================================
-  symbols_cn_p2:
-    name: 中文2
-    author: myime
-    ascii_mode: 1
-    columns: -1               # -1 = 不按键数截断，只按权重(100)换行
-    width: 10
-    height: 52
-    keys:
-    - { click: '【', label: '【', width: 20 }
-    - { click: '】', label: '】', width: 20 }
-    - { click: '〔', label: '〔', width: 20 }
-    - { click: '〕', label: '〕', width: 20 }
-    - { click: SymbolsToP1_symbols_cn, label: '↑', width: 20 }
-    - { click: '〖', label: '〖', width: 20 }
-    - { click: '〗', label: '〗', width: 20 }
-    - { click: '《', label: '《', width: 20 }
-    - { click: '》', label: '》', width: 20 }
-    - { click: SymbolsToP1_symbols_cn, label: '↓', width: 20 }
-    - { click: '〈', label: '〈', width: 20 }
-    - { click: '〉', label: '〉', width: 20 }
-    - { click: '＋', label: '＋', width: 20 }
-    - { click: '－', label: '－', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
-    - { click: '×', label: '×', width: 20 }
-    - { click: '÷', label: '÷', width: 20 }
-    - { click: '＝', label: '＝', width: 20 }
-    - { click: '～', label: '～', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
-    - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
-    - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_net, label: '4.网络', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    # 英文2（英文 第 2 页，↑/↓ 与第 1 页互切）
-
-    # =========================================================================
-    #  英文2面板 —— 由 tools/sync_panels.py 从 panels.yaml 生成
-    #  ⚠ 不要直接改这里；改 panels.yaml 后跑：python3 tools/sync_panels.py
-    # =========================================================================
-  symbols_en_p2:
-    name: 英文2
-    author: myime
-    ascii_mode: 1
-    columns: -1               # -1 = 不按键数截断，只按权重(100)换行
-    width: 10
-    height: 52
-    keys:
-    - { click: '{', label: '{', width: 20 }
-    - { click: '}', label: '}', width: 20 }
-    - { click: '|', label: '|', width: 20 }
-    - { click: '~', label: '~', width: 20 }
-    - { click: SymbolsToP1_symbols_en, label: '↑', width: 20 }
-    - { click: '=', label: '=', width: 20 }
-    - { click: '+', label: '+', width: 20 }
-    - { click: '\', label: '\', width: 20 }
-    - { click: '^', label: '^', width: 20 }
-    - { click: SymbolsToP1_symbols_en, label: '↓', width: 20 }
-    - { click: '`', label: '`', width: 20 }
-    - { click: '…', label: '…', width: 20 }
-    - { click: '–', label: '–', width: 20 }
-    - { click: '—', label: '—', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
-    - { click: '«', label: '«', width: 20 }
-    - { click: '»', label: '»', width: 20 }
-    - { click: '‹', label: '‹', width: 20 }
-    - { click: '›', label: '›', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
-    - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
-    - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_net, label: '4.网络', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    # 网络2（网络 第 2 页，↑/↓ 与第 1 页互切）
-
-    # =========================================================================
-    #  网络2面板 —— 由 tools/sync_panels.py 从 panels.yaml 生成
-    #  ⚠ 不要直接改这里；改 panels.yaml 后跑：python3 tools/sync_panels.py
-    # =========================================================================
-  symbols_net_p2:
-    name: 网络2
-    author: myime
-    ascii_mode: 1
-    columns: -1               # -1 = 不按键数截断，只按权重(100)换行
-    width: 10
-    height: 52
-    keys:
-    - { click: '§', label: '§', width: 20 }
-    - { click: '¶', label: '¶', width: 20 }
-    - { click: '†', label: '†', width: 20 }
-    - { click: '‡', label: '‡', width: 20 }
-    - { click: SymbolsToP1_symbols_net, label: '↑', width: 20 }
-    - { click: 'µ', label: 'µ', width: 20 }
-    - { click: '•', label: '•', width: 20 }
-    - { click: '◦', label: '◦', width: 20 }
-    - { click: '‱', label: '‱', width: 20 }
-    - { click: SymbolsToP1_symbols_net, label: '↓', width: 20 }
-    - { click: '℃', label: '℃', width: 20 }
-    - { click: '℉', label: '℉', width: 20 }
-    - { click: '№', label: '№', width: 20 }
-    - { click: '★', label: '★', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
-    - { click: '☆', label: '☆', width: 20 }
-    - { click: '✓', label: '✓', width: 20 }
-    - { click: '✗', label: '✗', width: 20 }
-    - { click: '✧', label: '✧', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
-    - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
-    - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_net, label: '4.网络', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    # 数学2（数学 第 2 页，↑/↓ 与第 1 页互切）
-
-    # =========================================================================
-    #  数学2面板 —— 由 tools/sync_panels.py 从 panels.yaml 生成
-    #  ⚠ 不要直接改这里；改 panels.yaml 后跑：python3 tools/sync_panels.py
-    # =========================================================================
-  symbols_math_p2:
-    name: 数学2
-    author: myime
-    ascii_mode: 1
-    columns: -1               # -1 = 不按键数截断，只按权重(100)换行
-    width: 10
-    height: 52
-    keys:
-    - { click: '∠', label: '∠', width: 20 }
-    - { click: '∛', label: '∛', width: 20 }
-    - { click: '∝', label: '∝', width: 20 }
-    - { click: '∑', label: '∑', width: 20 }
-    - { click: SymbolsToP1_symbols_math, label: '↑', width: 20 }
-    - { click: '∏', label: '∏', width: 20 }
-    - { click: '∫', label: '∫', width: 20 }
-    - { click: '∮', label: '∮', width: 20 }
-    - { click: '€', label: '€', width: 20 }
-    - { click: SymbolsToP1_symbols_math, label: '↓', width: 20 }
-    - { click: '£', label: '£', width: 20 }
-    - { click: '¢', label: '¢', width: 20 }
-    - { click: '⊥', label: '⊥', width: 20 }
-    - { click: '∥', label: '∥', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
-    - { click: '∧', label: '∧', width: 20 }
-    - { click: '∨', label: '∨', width: 20 }
-    - { click: '≅', label: '≅', width: 20 }
-    - { click: '≡', label: '≡', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
-    - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
-    - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_net, label: '4.网络', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    # 箭头2（箭头 第 2 页，↑/↓ 与第 1 页互切）
-
-    # =========================================================================
-    #  箭头2面板 —— 由 tools/sync_panels.py 从 panels.yaml 生成
-    #  ⚠ 不要直接改这里；改 panels.yaml 后跑：python3 tools/sync_panels.py
-    # =========================================================================
-  symbols_arrow_p2:
-    name: 箭头2
-    author: myime
-    ascii_mode: 1
-    columns: -1               # -1 = 不按键数截断，只按权重(100)换行
-    width: 10
-    height: 52
-    keys:
-    - { click: '⇐', label: '⇐', width: 20 }
-    - { click: '⇒', label: '⇒', width: 20 }
-    - { click: '⇑', label: '⇑', width: 20 }
-    - { click: '⇓', label: '⇓', width: 20 }
-    - { click: SymbolsToP1_symbols_arrow, label: '↑', width: 20 }
-    - { click: '⇔', label: '⇔', width: 20 }
-    - { click: '⇕', label: '⇕', width: 20 }
-    - { click: '⟲', label: '⟲', width: 20 }
-    - { click: '⟳', label: '⟳', width: 20 }
-    - { click: SymbolsToP1_symbols_arrow, label: '↓', width: 20 }
-    - { click: '↰', label: '↰', width: 20 }
-    - { click: '↱', label: '↱', width: 20 }
-    - { click: '↲', label: '↲', width: 20 }
-    - { click: '↳', label: '↳', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
-    - { click: '⇤', label: '⇤', width: 20 }
-    - { click: '⇥', label: '⇥', width: 20 }
-    - { click: '↚', label: '↚', width: 20 }
-    - { click: '↛', label: '↛', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
-    - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
-    - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_net, label: '4.网络', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }
-    # 序号2（序号 第 2 页，↑/↓ 与第 1 页互切）
-
-    # =========================================================================
-    #  序号2面板 —— 由 tools/sync_panels.py 从 panels.yaml 生成
-    #  ⚠ 不要直接改这里；改 panels.yaml 后跑：python3 tools/sync_panels.py
-    # =========================================================================
-  symbols_num_p2:
-    name: 序号2
-    author: myime
-    ascii_mode: 1
-    columns: -1               # -1 = 不按键数截断，只按权重(100)换行
-    width: 10
-    height: 52
-    keys:
-    - { click: '⑺', label: '⑺', width: 20 }
-    - { click: '⑻', label: '⑻', width: 20 }
-    - { click: '⑼', label: '⑼', width: 20 }
-    - { click: '⑽', label: '⑽', width: 20 }
-    - { click: SymbolsToP1_symbols_num, label: '↑', width: 20 }
-    - { click: 'Ⅰ', label: 'Ⅰ', width: 20 }
-    - { click: 'Ⅱ', label: 'Ⅱ', width: 20 }
-    - { click: 'Ⅲ', label: 'Ⅲ', width: 20 }
-    - { click: 'Ⅳ', label: 'Ⅳ', width: 20 }
-    - { click: SymbolsToP1_symbols_num, label: '↓', width: 20 }
-    - { click: 'Ⅴ', label: 'Ⅴ', width: 20 }
-    - { click: 'Ⅵ', label: 'Ⅵ', width: 20 }
-    - { click: 'Ⅶ', label: 'Ⅶ', width: 20 }
-    - { click: 'Ⅷ', label: 'Ⅷ', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
-    - { click: 'Ⅸ', label: 'Ⅸ', width: 20 }
-    - { click: 'Ⅹ', label: 'Ⅹ', width: 20 }
-    - { click: 'ⅰ', label: 'ⅰ', width: 20 }
-    - { click: 'ⅱ', label: 'ⅱ', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
-    - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
-    - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_cn, label: '2.中文', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_en, label: '3.英文', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_net, label: '4.网络', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_math, label: '5.数学', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_arrow, label: '6.箭头', width: 12, key_text_size: 11 }
-    - { click: SymbolsTab_symbols_num, label: '7.序号', width: 12, key_text_size: 11 }

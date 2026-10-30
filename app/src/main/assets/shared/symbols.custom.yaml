@@ -1,21 +1,73 @@
-# Rime 补丁：覆盖 rime-prelude 里 symbols.yaml 的 half_shape 段。
+# Rime 补丁：让键盘上的快捷符号键直接上屏半角，不弹候选。
 #
 # ⚠ 为什么不能直接改 symbols.yaml：
 #   build-logic/convention/src/main/kotlin/RimeDataSyncPlugin.kt 的
 #   syncRimeSharedData 任务会在**每次构建时**把 app/data/rime/prelude/symbols.yaml
 #   镜像到 app/src/main/assets/shared/symbols.yaml（outputs.upToDateWhen { false }，
-#   永不跳过）。直接改后者会被下一次构建覆盖回去。
-#   而 prelude 是 git 子模块，改它既污染子模块又不会被提交。
+#   永不跳过）。直接改后者会被下一次构建覆盖回去；而 prelude 是 git 子模块。
 #
-#   所以走 rime 自己的补丁机制：同目录下的 symbols.custom.yaml 会在部署时
-#   被 patch 进 symbols.yaml。本文件在 data/rime 下没有对应源文件，
-#   sync 任务「不删自己没有源的文件」，因此能稳定存活。
+#   所以走 rime 的 auto-patch 机制：AutoPatchConfigPlugin
+#   (librime/src/rime/config/auto_patch_config_plugin.cc) 编译 symbols.yaml 时
+#   会自动追加 Reference{"symbols.custom", "patch", optional}，把本文件的
+#   patch: 段打上去。
 #
-# 用户要求（2026-10-18）：快捷 @ / 快捷 ~ 不要弹候选，直接上屏半角。
-#   原配置是列表形式，列表 = 出候选菜单：
-#     '~' : [ '~', ～, ˜, ... ]
-#     '@' : [ '@', ©, ®, ℗ ]
-#   改成 { commit: ... } 才是「直接上屏」。
+# ⚠ 为什么是「整段替换 half_shape」而不是逐键覆盖：
+#   patch 的键会被 ConfigData::SplitPath 按 "/" 切成路径段
+#   (config_data.cc:213-219)，逐段走 TypeCheckedCopyOnWrite，而它在 Cow 之前
+#   会做类型校验 (config_data.cc:165-179)：
+#       expected_node_type = is_list ? kList : kMap;
+#       if (existing_node && existing_node->type() != expected_node_type) 失败
+#   symbols.yaml 里这些键的值是**列表**（列表 = 弹候选菜单），而我们要把它换成
+#   **映射** { commit: ... }。按 "punctuator/half_shape/<" 逐键写时，遍历到 "<"
+#   时期望 kMap、实际是 kList → "copy on write failed; incompatible node type"
+#   → 整条 patch 报错，一个键都没生效。这正是之前 17 条逐键 patch 全部无效的原因。
+#
+#   而 "punctuator/half_shape" 这一段两边都是**映射**，类型校验通过，
+#   PatchLiteral::Resolve → EditNode(..., merge_tree=false)
+#   (config_compiler.cc:178-205) 走 else 分支直接 *target = value 整体赋值，
+#   新值内部的键不再被当成路径解析。所以整段替换最稳。
+#
+# ⚠ 代价：这里是 half_shape 的**完整副本**，prelude 上游改了 half_shape 不会
+#   自动跟进。改上游时记得回来对一遍。
+#
+# 用户要求（2026-10-25 m02988 / m03173）：快捷符号不要弹候选，直接上屏半角单字符。
+#   原本是**列表**（会弹候选）的 17 个键改成 { commit: 半角 }：
+#     '<' : [ 《, 〈, «, ‹, ⟨, ˂, ˱ ]  →  { commit: '<' }
+#     '@' : [ '@', ©, ®, ℗ ]             →  { commit: '@' }
+#   其余键保持 symbols.yaml 原样 —— 它们本来就不弹候选（, . ? ; : ! 的中文标点、
+#   ' 和 " 的成对引号、以及 ( ) - _ + & ^ 的标量值）。
+#   全角引号/括号（「」『』【】《》）改从符号面板输入。
 patch:
-  half_shape/@: { commit: '@' }
-  half_shape/~: { commit: '~' }
+  punctuator/half_shape:
+    ',' : { commit: ， }
+    '.' : { commit: 。 }
+    '<' : { commit: '<' }
+    '>' : { commit: '>' }
+    '/' : { commit: '/' }
+    '?' : { commit: ？ }
+    ';' : { commit: ； }
+    ':' : { commit: ： }
+    '''' : { pair: [ '‘', '’' ] }
+    '"' : { pair: [ '“', '”' ] }
+    '\' : { commit: '\' }
+    '|' : { commit: '|' }
+    '`' : { commit: '`' }
+    '~' : { commit: '~' }
+    '!' : { commit: ！ }
+    '@' : { commit: '@' }
+    '#' : { commit: '#' }
+    '%' : { commit: '%' }
+    '$' : { commit: '$' }
+    '^' : { commit: …… }
+    '&' : '&'
+    '*' : { commit: '*' }
+    '(' : （
+    ')' : ）
+    '-' : '-'
+    '_' : ——
+    '+' : '+'
+    '=' : { commit: '=' }
+    '[' : { commit: '[' }
+    ']' : { commit: ']' }
+    '{' : { commit: '{' }
+    '}' : { commit: '}' }

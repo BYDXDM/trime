@@ -12,6 +12,7 @@ import com.chad.library.adapter4.BaseQuickAdapter
 import com.google.android.flexbox.FlexboxLayoutManager
 import com.osfans.trime.core.CandidateProto
 import com.osfans.trime.data.theme.ThemeScope
+import com.osfans.trime.data.userdict.BlacklistStore
 import com.osfans.trime.ime.candidates.CandidateGlyphFilter
 import com.osfans.trime.ime.candidates.CandidateItemUi
 import com.osfans.trime.ime.candidates.CandidateViewHolder
@@ -69,14 +70,24 @@ open class CompactCandidateViewAdapter(
         highlightedIndex: Int,
     ) {
         val filtered = CandidateGlyphFilter.filter(data.toList(), CandidateGlyphFilter::canRender)
-        originalIndices = filtered.indices
-        visibleCount = filtered.candidates.size
-        filteredOut = data.size - filtered.candidates.size
+        // 黑名单串在字形过滤之后：两层都只减少条目，下标映射必须一路带着走，
+        // 否则上屏/删除会作用到别的候选上。
+        val blacklist = BlacklistStore.words()
+        val kept = ArrayList<CandidateProto>(filtered.candidates.size)
+        val keptIndices = ArrayList<Int>(filtered.candidates.size)
+        filtered.candidates.forEachIndexed { i, candidate ->
+            if (candidate.text in blacklist) return@forEachIndexed
+            kept += candidate
+            keptIndices += filtered.indices[i]
+        }
+        originalIndices = keptIndices.toIntArray()
+        visibleCount = kept.size
+        filteredOut = data.size - kept.size
         // total 保持 librime 的原始条数：展开面板的 CandidatesPagingSource 按下标取页，
         // 把它改成过滤后的条数会让末尾的候选永远翻不到。
         this.total = total
         this.highlightedIdx = highlightedIndex
-        super.submitList(filtered.candidates, null)
+        super.submitList(kept, null)
     }
 
     override fun onCreateViewHolder(

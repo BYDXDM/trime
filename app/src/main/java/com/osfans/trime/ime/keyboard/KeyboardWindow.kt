@@ -82,13 +82,21 @@ class KeyboardWindow(di: DI) :
         /** 符号分组翻页动画时长（ms）。 */
         private const val SLIDE_DURATION_MS = 180L
 
-        /** 符号分组的页序（页签顺序，每组 p1→p2）；翻页方向按此推断。 */
+        /**
+         * 符号分组的页序（页签顺序）。
+         *
+         * 2026-10-25 起每组只有一张长面板（原 p1/p2 两页已合并，组内靠上下滑动浏览），
+         * 所以这里不再有 *_p2 项；∧/∨ 直接跳到上/下一个分组。
+         */
         private val SYMBOLS_PAGE_ORDER =
             listOf(
-                "symbols", "symbols_p2", "symbols_cn", "symbols_cn_p2",
-                "symbols_en", "symbols_en_p2", "symbols_net", "symbols_net_p2",
-                "symbols_math", "symbols_math_p2", "symbols_arrow", "symbols_arrow_p2",
-                "symbols_num", "symbols_num_p2",
+                "symbols",
+                "symbols_cn",
+                "symbols_en",
+                "symbols_net",
+                "symbols_math",
+                "symbols_arrow",
+                "symbols_num",
             )
     }
 
@@ -257,6 +265,11 @@ class KeyboardWindow(di: DI) :
             currentKeyboard = it
         }
 
+        // 只有符号面板才吃整块键盘的左右拖动翻页，主键盘保持逐键手势
+        view.symbolsPaging = SYMBOLS_PAGE_ORDER.contains(target)
+        // 换分组时回到顶部，否则会继承上一组滚到的位置
+        view.resetScroll()
+
         view.let {
             keyboardView.apply {
                 (it.parent as? android.view.ViewGroup)?.removeView(it)
@@ -367,12 +380,9 @@ class KeyboardWindow(di: DI) :
     }
 
     /**
-     * 符号面板整键盘左右滑翻页。
+     * 符号面板整键盘左右滑翻页：按 [SYMBOLS_PAGE_ORDER] 循环切到上/下一个分组。
      *
-     * 页序表 [SYMBOLS_PAGE_ORDER] 里每组占两项（首页 / _p2 页），所以翻页时先在本组内
-     * 前后翻，翻到头再跨组：正序进下一组首页，逆序进上一组的 _p2 页，首尾循环。
-     *
-     * @param direction 负值 = 上一页，正值 = 下一页
+     * @param direction 负值 = 上一组，正值 = 下一组
      * @return 当前不是符号面板时返回 false，交给调用方兜底
      */
     fun swipeSymbolsPage(direction: Int): Boolean {

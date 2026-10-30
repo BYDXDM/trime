@@ -19,6 +19,7 @@ import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.daemon.launchOnReady
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.ThemeScope
+import com.osfans.trime.data.theme.model.effectiveCandidateBarHeight
 import com.osfans.trime.ime.bar.ui.ToolButton
 import com.osfans.trime.ime.broadcast.InputBroadcastReceiver
 import com.osfans.trime.ime.core.TrimeInputMethodService
@@ -207,7 +208,7 @@ class SwitchOptionWindow(di: DI) :
 
     private val barExternalView by lazy {
         context.constraintLayout {
-            val size = dp(theme.generalStyle.run { candidateViewHeight + commentHeight })
+            val size = dp(theme.generalStyle.effectiveCandidateBarHeight)
             add(
                 settingsButton,
                 lParams(size, size) {

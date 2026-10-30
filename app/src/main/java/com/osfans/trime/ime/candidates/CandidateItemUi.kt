@@ -16,6 +16,7 @@ import com.osfans.trime.data.theme.FontManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.ThemeScope
 import com.osfans.trime.data.theme.model.GeneralStyle
+import com.osfans.trime.data.theme.model.effectiveCandidateViewHeight
 import com.osfans.trime.ime.core.AutoScaleTextView
 import com.osfans.trime.ime.keyboard.GestureFrame
 import com.osfans.trime.util.roundedRippleDrawable
@@ -168,7 +169,7 @@ class CandidateItemUi(
     override val root = view(::GestureFrame) {
         add(
             content,
-            lParams(wrapContent, dp(theme.generalStyle.candidateViewHeight)) {
+            lParams(wrapContent, dp(theme.generalStyle.effectiveCandidateViewHeight)) {
                 gravity = gravityCenter
             },
         )

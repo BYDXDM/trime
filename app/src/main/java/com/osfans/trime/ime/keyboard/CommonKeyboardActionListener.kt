@@ -299,6 +299,10 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
 
                     "switch_hide_key_hint" -> switchHideKeyHint()
 
+                    // 符号面板右列的上/下箭头：整键盘翻页，跨分组循环。
+                    // option 是方向，-1 = 上一页，1 = 下一页。
+                    "symbols_page" -> keyboardWindow.swipeSymbolsPage(arg.toIntOrNull() ?: 1)
+
                     // 删除键**上滑**：清空（先清待选拼音，再删输入框正文）。
                     // 与单击区分：单击走 KEYCODE_DEL 分支逐字删。
                     "clear_all" -> clearInputAndComposition()

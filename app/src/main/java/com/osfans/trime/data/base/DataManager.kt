@@ -43,6 +43,9 @@ object DataManager {
     /** 自定义短语表（`table_translator@custom_phrase` 的 `db_class: stabledb` 数据源）。 */
     const val CUSTOM_PHRASE_FILE_NAME = "custom_phrase.txt"
 
+    /** 词组黑名单：一行一个词，输入法侧过滤候选用，librime 不读它。 */
+    const val BLACKLIST_FILE_NAME = "blacklist.txt"
+
     val POST_SCHEMA_DEPLOY_EXPORT_FILES =
         listOf(
             DEFAULT_CUSTOM_FILE_NAME,

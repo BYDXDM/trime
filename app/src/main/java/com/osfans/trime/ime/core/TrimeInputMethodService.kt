@@ -115,6 +115,11 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         prefs.keyboard.hideKeySymbol,
         prefs.keyboard.hideKeyHint,
         prefs.keyboard.hideInputBar,
+        // 几何三件套：Keyboard 的几何量全是构造时的 val 快照，候选栏高度也只在建视图时
+        // 读一次，所以改完必须整体重建 InputView + CandidatesView 才看得见。
+        prefs.keyboard.keyboardHeightOverride,
+        prefs.keyboard.keyGapOverride,
+        prefs.keyboard.candidateBarHeightOverride,
         prefs.advanced.ignoreSystemGestureInsets,
     )
 
@@ -124,7 +129,12 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     @Keep
     private val recreateInputViewListener =
         PreferenceDelegate.OnChangeListener<Any> { _, _ ->
-            themeScope?.let { replaceInputView(it) }
+            themeScope?.let {
+                replaceInputView(it)
+                // 候选栏高度同时决定悬浮候选窗里每个候选的高度，那一份在
+                // CandidatesView 里，不跟着换就只变一半。
+                replaceCandidateView(it)
+            }
         }
 
     @Keep

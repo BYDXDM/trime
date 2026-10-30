@@ -185,6 +185,12 @@
     <string name="no_effect_to_select">當前沒有按鍵音效可選擇。</string>
     <string name="setup_channel">設定精靈</string>
     <string name="forget_this_word">忘記該詞</string>
+    <string name="blacklist">詞組黑名單</string>
+    <string name="blacklist_add">加入黑名單</string>
+    <string name="blacklist_added">已把“%1$s”加入黑名單</string>
+    <string name="blacklist_word">詞組</string>
+    <string name="blacklist_delete_confirm">把“%1$s”移出黑名單？</string>
+    <string name="blacklist_empty">還沒有封鎖任何詞組</string>
     <string name="synchronization">同步</string>
     <string name="periodic_background_sync_interval">後台同步時間間隔（以分鐘為單位）</string>
     <string name="candidates_window">候选視窗</string>
@@ -266,4 +272,8 @@
     <string name="word_segment">分词</string>
     <string name="star_success">收藏成功</string>
     <string name="ignore_system_gesture_insets">忽略系統手勢插邊</string>
+    <string name="keyboard_height_override">鍵盤高度</string>
+    <string name="key_gap_override">鍵距</string>
+    <string name="candidate_bar_height_override">候選欄高度</string>
+    <string name="follow_theme">跟隨主題</string>
 </resources>

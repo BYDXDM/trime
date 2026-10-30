@@ -30,6 +30,7 @@ import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.theme.KeyActionManager
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.ThemeScope
+import com.osfans.trime.data.theme.model.effectiveCandidateBarHeight
 import com.osfans.trime.ime.bar.ui.AlwaysUi
 import com.osfans.trime.ime.bar.ui.CandidateUi
 import com.osfans.trime.ime.bar.ui.TabUi
@@ -73,7 +74,7 @@ class InputBarDelegate(override val di: DI) :
     private val candidate: CompactCandidateDelegate by instance()
     private val rime: RimeSession by instance()
 
-    val themedHeight = theme.generalStyle.run { candidateViewHeight + commentHeight }
+    val themedHeight = theme.generalStyle.effectiveCandidateBarHeight
 
     private val prefs = AppPrefs.defaultInstance()
 

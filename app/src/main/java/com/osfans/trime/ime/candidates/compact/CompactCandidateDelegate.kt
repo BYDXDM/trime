@@ -266,7 +266,16 @@ class CompactCandidateDelegate(override val di: DI) :
         }
     }
 
+    /** 最后一次候选快照。黑名单改动后要拿它重新过一遍过滤，不必等下一次按键。 */
+    private var lastBulk: Candidates.Bulk? = null
+
+    /** 黑名单变动后重刷候选栏。 */
+    fun refreshCandidates() {
+        lastBulk?.let { onCandidateListUpdate(it) }
+    }
+
     override fun onCandidateListUpdate(data: Candidates.Bulk) {
+        lastBulk = data
         val (total, highlighted, candidates) = data
 
         val maxSpanCount = maxSpanCountPref.getValue()

@@ -98,7 +98,6 @@ object ClipboardHelper :
     }
 
     fun init(context: Context) {
-        clipboardManager.addPrimaryClipChangedListener(this)
         clbDb =
             Room
                 .databaseBuilder(context, Database::class.java, "clipboard.db")
@@ -159,17 +158,13 @@ object ClipboardHelper :
      */
     override fun onPrimaryClipChanged() {
         val clip = clipboardManager.primaryClip ?: return
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val timestamp = clip.description.timestamp
-            if (timestamp == lastClipTimestamp) return
-            lastClipTimestamp = timestamp
-        } else {
-            val timestamp = System.currentTimeMillis()
-            val hash = clip.hashCode()
-            if (timestamp - lastClipTimestamp < 100L && hash == lastClipHash) return
-            lastClipTimestamp = timestamp
-            lastClipHash = hash
-        }
+        val timestamp = clip.description.timestamp
+        val hash = clip.hashCode()
+        // 部分应用（微信、浏览器等）连续复制不同内容时 timestamp 不变，
+        // 只看时间戳会把后续内容全当重复丢弃；时间戳与内容都相同才算重复
+        if (timestamp == lastClipTimestamp && hash == lastClipHash) return
+        lastClipTimestamp = timestamp
+        lastClipHash = hash
         launch {
             mutex.withLock {
                 val bean = DatabaseBean.fromClipData(clip) ?: return@withLock

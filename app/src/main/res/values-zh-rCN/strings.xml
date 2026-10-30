@@ -186,6 +186,12 @@
     <string name="no_effect_to_select">当前没有按键音效可选择。</string>
     <string name="setup_channel">设置向导</string>
     <string name="forget_this_word">忘记该词</string>
+    <string name="blacklist">词组黑名单</string>
+    <string name="blacklist_add">加入黑名单</string>
+    <string name="blacklist_added">已把“%1$s”加入黑名单</string>
+    <string name="blacklist_word">词组</string>
+    <string name="blacklist_delete_confirm">把“%1$s”移出黑名单？</string>
+    <string name="blacklist_empty">还没有屏蔽任何词组</string>
     <string name="synchronization">同步</string>
     <string name="periodic_background_sync_interval">后台同步时间间隔（以分钟为单位）</string>
     <string name="candidates_window">候选窗口</string>
@@ -270,4 +276,8 @@
     <string name="typed_today">今日已输入 %1$d 字</string>
     <string name="typed_chart_title">近 14 天输入趋势</string>
     <string name="ime_switch_hint">欢迎回来！长按空格键（或点地球键 🌐）可切换输入法</string>
+    <string name="keyboard_height_override">键盘高度</string>
+    <string name="key_gap_override">键距</string>
+    <string name="candidate_bar_height_override">候选栏高度</string>
+    <string name="follow_theme">跟随主题</string>
 </resources>

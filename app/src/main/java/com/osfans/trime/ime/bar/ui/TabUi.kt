@@ -12,6 +12,7 @@ import androidx.core.view.isVisible
 import com.osfans.trime.R
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.ThemeScope
+import com.osfans.trime.data.theme.model.effectiveCandidateBarHeight
 import splitties.dimensions.dp
 import splitties.views.dsl.constraintlayout.after
 import splitties.views.dsl.constraintlayout.centerHorizontally
@@ -59,7 +60,7 @@ class TabUi(
 
     private var external: View? = null
 
-    private val size = ctx.dp(theme.generalStyle.run { candidateViewHeight + commentHeight })
+    private val size = ctx.dp(theme.generalStyle.effectiveCandidateBarHeight)
 
     override val root =
         constraintLayout {

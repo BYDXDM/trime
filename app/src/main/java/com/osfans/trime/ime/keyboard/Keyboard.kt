@@ -8,6 +8,7 @@ package com.osfans.trime.ime.keyboard
 import android.content.Context
 import android.view.KeyEvent
 import com.osfans.trime.data.prefs.AppPrefs
+import com.osfans.trime.data.prefs.resolveUserOverride
 import com.osfans.trime.data.theme.Theme
 import com.osfans.trime.data.theme.model.TextKeyboard
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
@@ -27,7 +28,10 @@ class Keyboard(
 
     /** 按鍵默認水平間距  */
     internal val horizontalGap: Int =
-        resolvePositive(selfConfig?.horizontalGap, theme.generalStyle.horizontalGap) { context.dp(it) }
+        resolveUserOverride(
+            AppPrefs.defaultInstance().keyboard.keyGapOverride.getValue(),
+            resolvePositive(selfConfig?.horizontalGap, theme.generalStyle.horizontalGap) { context.dp(it) },
+        ) { context.dp(it) }
 
     /** 默認鍵寬  */
     private val keyWidth: Int = (allowedWidth * theme.generalStyle.keyWidth / 100).toInt()
@@ -38,7 +42,10 @@ class Keyboard(
 
     /** 默認行距  */
     internal val verticalGap: Int =
-        resolvePositive(selfConfig?.verticalGap, theme.generalStyle.verticalGap) { context.dp(it) }
+        resolveUserOverride(
+            AppPrefs.defaultInstance().keyboard.keyGapOverride.getValue(),
+            resolvePositive(selfConfig?.verticalGap, theme.generalStyle.verticalGap) { context.dp(it) },
+        ) { context.dp(it) }
 
     /** 默認按鍵圓角半徑  */
     val roundCorner: Float =
@@ -78,6 +85,12 @@ class Keyboard(
 
     var firstPressedKeyIndex: Int = -1
 
+    /**
+     * 可滚动面板：内容高过键盘视口时保持原始行高，由 [KeyboardView] 负责滚动，
+     * 而不是把所有行等比压扁到 [keyboardHeight] 里。
+     */
+    val scrollable: Boolean = selfConfig?.scrollable ?: false
+
     /** Keyboard default ascii mode  */
     val asciiMode = selfConfig?.asciiMode ?: false
     val resetAsciiMode = selfConfig?.resetAsciiMode ?: true
@@ -99,16 +112,22 @@ class Keyboard(
     val isLock = selfConfig?.lock ?: false // 切換程序時記憶鍵盤
     val asciiKeyboard: String? = selfConfig?.asciiKeyboard // 英文鍵盤
 
+    // 键盘高度：用户偏好 > 键盘级配置 > 主题样式。
+    // 偏好必须放在最外层 —— 主题给 my_pinyin / my_english 各写了一次
+    // keyboard_height: 250（键盘级配置），只在样式层覆盖的话主键盘根本不生效。
     val keyboardHeight: Int =
-        resolvePositive(
-            selfConfig?.let {
-                pickLandscape(it.keyboardHeight, it.keyboardHeightLand, context.isLandscapeMode())
-            },
-            pickLandscape(
-                theme.generalStyle.keyboardHeight,
-                theme.generalStyle.keyboardHeightLand,
-                context.isLandscapeMode(),
-            ),
+        resolveUserOverride(
+            AppPrefs.defaultInstance().keyboard.keyboardHeightOverride.getValue(),
+            resolvePositive(
+                selfConfig?.let {
+                    pickLandscape(it.keyboardHeight, it.keyboardHeightLand, context.isLandscapeMode())
+                },
+                pickLandscape(
+                    theme.generalStyle.keyboardHeight,
+                    theme.generalStyle.keyboardHeightLand,
+                    context.isLandscapeMode(),
+                ),
+            ) { context.dp(it) },
         ) { context.dp(it) }
 
     private val expandKeypressArea: Boolean by AppPrefs.defaultInstance().keyboard.expandKeypressArea
@@ -176,22 +195,32 @@ class Keyboard(
             rowRawHeight.add(rowHeight)
 
             val rows = rowRawHeight.size
-            val rawHeightSum = rowRawHeight.sum()
 
             // scaled row heights after fitting into keyboardHeight
             val rowHeightScaled = MutableList(rows) { 0 }
 
-            var remainHeight = keyboardHeight
-            val scale = keyboardHeight.toFloat() / rawHeightSum
+            if (scrollable) {
+                // 可滚动面板：行高按「视口正好放 VIEWPORT_ROWS 行」换算，
+                // 多出来的行不再压扁，而是让内容高过视口、交给 KeyboardView 滚动。
+                val rowScale = keyboardHeight.toFloat() / (keyHeight * VIEWPORT_ROWS)
+                for (i in 0 until rows) {
+                    rowHeightScaled[i] = (rowRawHeight[i] * rowScale).toInt()
+                }
+            } else {
+                val rawHeightSum = rowRawHeight.sum()
 
-            // scale row heights to keyboardHeight; last row absorbs rounding errors
-            for (i in 0 until rows - 1) {
-                val h = (rowRawHeight[i] * scale).toInt()
-                rowHeightScaled[i] = h
-                remainHeight -= h
+                var remainHeight = keyboardHeight
+                val scale = keyboardHeight.toFloat() / rawHeightSum
+
+                // scale row heights to keyboardHeight; last row absorbs rounding errors
+                for (i in 0 until rows - 1) {
+                    val h = (rowRawHeight[i] * scale).toInt()
+                    rowHeightScaled[i] = h
+                    remainHeight -= h
+                }
+
+                rowHeightScaled[rows - 1] = remainHeight
             }
-
-            rowHeightScaled[rows - 1] = remainHeight
 
             var xPos = 0
             var yPos = 0
@@ -519,6 +548,9 @@ class Keyboard(
         private const val GRID_HEIGHT = 5
         private const val GRID_SIZE = GRID_WIDTH * GRID_HEIGHT
         private const val MAX_TOTAL_WEIGHT = 100
+
+        /** 可滚动面板视口内的标准行数，与普通键盘的观感对齐。 */
+        private const val VIEWPORT_ROWS = 5
 
         /** Number of key widths from current touch point to search for nearest keys.  */
         const val SEARCH_DISTANCE = 1.4f

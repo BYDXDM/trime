@@ -188,6 +188,12 @@
     <string name="no_effect_to_select">Currently there is no key sound effect to select.</string>
     <string name="setup_channel">Setup Wizard</string>
     <string name="forget_this_word">Forget this word</string>
+    <string name="blacklist">Word blacklist</string>
+    <string name="blacklist_add">Add to blacklist</string>
+    <string name="blacklist_added">Added “%1$s” to the blacklist</string>
+    <string name="blacklist_word">Word</string>
+    <string name="blacklist_delete_confirm">Remove “%1$s” from the blacklist?</string>
+    <string name="blacklist_empty">No words blocked yet</string>
     <string name="synchronization">Synchronization</string>
     <string name="periodic_background_sync_interval">Interval of background syncing (in minutes)</string>
     <string name="candidates_window">Candidates Window</string>
@@ -272,4 +278,8 @@
     <string name="typed_today">Typed today: %1$d chars</string>
     <string name="typed_chart_title">Last 14 days</string>
     <string name="ime_switch_hint">Welcome back! Long-press the space bar (or tap the globe key) to switch input methods.</string>
+    <string name="keyboard_height_override">Keyboard height</string>
+    <string name="key_gap_override">Key spacing</string>
+    <string name="candidate_bar_height_override">Candidate bar height</string>
+    <string name="follow_theme">Follow theme</string>
 </resources>

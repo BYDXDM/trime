@@ -30,54 +30,25 @@ TRIME = os.path.join(ROOT, 'app/src/main/assets/shared/trime.yaml')
 PANELS = os.path.join(ROOT, 'app/src/main/assets/shared/panels.yaml')
 
 # panels.yaml 里的顶层键 → trime.yaml 里的键盘名与显示属性
-PANEL_MAP = {
-    'symbols_panel': {
-        'name': 'symbols',
-        'label': '符号',
+PANEL_MAP = {}
+for _panel, _name, _label, _scroll in [
+    ('symbols_panel', 'symbols', '符号', True),
+    ('symbols_cn_panel', 'symbols_cn', '中文', True),
+    ('symbols_en_panel', 'symbols_en', '英文', True),
+    ('symbols_net_panel', 'symbols_net', '网络', True),
+    ('symbols_math_panel', 'symbols_math', '数学', True),
+    ('symbols_arrow_panel', 'symbols_arrow', '箭头', True),
+    ('symbols_num_panel', 'symbols_num', '序号', True),
+    ('number_panel', 'number', '数字', False),
+]:
+    PANEL_MAP[_panel] = {
+        'name': _name,
+        'label': _label,
         'ascii_mode': 1,
-    },
-    'symbols_cn_panel': {
-        'name': 'symbols_cn',
-        'label': '中文',
-        'ascii_mode': 1,
-    },
-    'symbols_en_panel': {
-        'name': 'symbols_en',
-        'label': '英文',
-        'ascii_mode': 1,
-    },
-    'symbols_net_panel': {
-        'name': 'symbols_net',
-        'label': '网络',
-        'ascii_mode': 1,
-    },
-    'symbols_math_panel': {
-        'name': 'symbols_math',
-        'label': '数学',
-        'ascii_mode': 1,
-    },
-    'symbols_arrow_panel': {
-        'name': 'symbols_arrow',
-        'label': '箭头',
-        'ascii_mode': 1,
-    },
-    'symbols_num_panel': {
-        'name': 'symbols_num',
-        'label': '序号',
-        'ascii_mode': 1,
-    },
-    'number_panel': {
-        'name': 'number',
-        'label': '数字',
-        'ascii_mode': 1,
-    },
-}
-# 各分组第 2 页（↑/↓ 组内翻页）
-for _k, _label in {
-    'symbols': '常用', 'symbols_cn': '中文', 'symbols_en': '英文', 'symbols_net': '网络',
-    'symbols_math': '数学', 'symbols_arrow': '箭头', 'symbols_num': '序号',
-}.items():
-    PANEL_MAP[f'{_k}_p2_panel'] = {'name': f'{_k}_p2', 'label': _label + '2', 'ascii_mode': 1}
+        'scrollable': _scroll,
+    }
+# 2026-10-25：原 *_p2 面板已并入对应分组的长面板（见 tools/merge_panels.py），
+# 不再单独生成 —— ∧/∨ 现在是「上/下一个分组」，组内靠上下滑动浏览。
 
 HEADER = """    # =========================================================================
     #  {label}面板 —— 由 tools/sync_panels.py 从 panels.yaml 生成
@@ -124,6 +95,8 @@ def render_panel(key, items):
     out.append('    columns: -1               # -1 = 不按键数截断，只按权重(100)换行')
     out.append('    width: 10')
     out.append('    height: 52')
+    if meta.get('scrollable'):
+        out.append('    scrollable: true          # 行数超出视口时上下滑动浏览')
     out.append('    keys:')
     for kind, content in items:
         if kind == 'comment':
@@ -166,7 +139,9 @@ def main():
 
     # 找出 preset_keyboards 段里已有的面板键盘（连同其生成注释一起删掉），
     # 保留 my_pinyin / my_english 及任意自定义键盘。
+    # 旧版 *_p2 独立面板已并入长面板，这里一并清掉残留段
     panel_names = {m['name'] for m in PANEL_MAP.values()}
+    panel_names |= {'%s_p2' % m['name'] for m in PANEL_MAP.values() if m['scrollable']}
     keep, i = [], 0
     while i < len(body):
         line = body[i]
