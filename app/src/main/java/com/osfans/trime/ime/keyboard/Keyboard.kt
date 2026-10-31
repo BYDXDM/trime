@@ -77,6 +77,15 @@ class Keyboard(
     var minWidth = 0
         private set
 
+    /**
+     * 可滚动面板里固定在视口底部的行（分组页签）的顶部 y 与高度，非可滚动面板为 0。
+     * 由 [KeyboardView] 用来把这一行钉在底部、并把它从滚动范围里扣掉。
+     */
+    var pinnedTop = 0
+        private set
+    var pinnedHeight = 0
+        private set
+
     /** List of keys in this keyboard  */
     private val mKeys = mutableListOf<Key>()
     val appearanceStateKeys = mutableListOf<Key>()
@@ -335,6 +344,12 @@ class Keyboard(
             mKeys.lastOrNull()?.edgeFlags = mKeys.lastOrNull()?.edgeFlags?.or(EDGE_RIGHT) ?: 0
 
             height = yPos + currentRowHeight
+
+            // 可滚动面板的最后一行是分组页签，钉在视口底部不参与滚动
+            if (scrollable) {
+                pinnedTop = yPos
+                pinnedHeight = currentRowHeight
+            }
 
             mKeys.forEachIndexed { index, key ->
                 key.index = index

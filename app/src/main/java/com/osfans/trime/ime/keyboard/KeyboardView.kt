@@ -93,7 +93,15 @@ class KeyboardView(
         measureChildren(widthMeasureSpec, heightMeasureSpec)
         setMeasuredDimension(measuredWidth, measuredHeight)
 
-        scrollRange = if (keyboard.scrollable) (contentHeight - viewport).coerceAtLeast(0).toFloat() else 0f
+        // 页签行钉在视口底部，真正可滚动的只有它上面那一段
+        pinnedViewTop = (measuredHeight - keyboard.pinnedHeight).toFloat()
+        val scrollViewport = viewport - keyboard.pinnedHeight
+        scrollRange =
+            if (keyboard.scrollable) {
+                (keyboard.pinnedTop - scrollViewport).coerceAtLeast(0).toFloat()
+            } else {
+                0f
+            }
         applyScroll(scrollOffset)
     }
 
@@ -104,8 +112,37 @@ class KeyboardView(
     override fun dispatchDraw(canvas: Canvas) {
         // 惯性滑动每帧推进；不依赖 computeScroll 的回调时机
         if (!scroller.isFinished) computeScroll()
-        super.dispatchDraw(canvas)
+
+        // 没有钉底行、或还没量出视口高度时按普通绘制走，免得把内容整片裁掉
+        if (keyboard.pinnedHeight <= 0 || pinnedViewTop <= 0f) {
+            super.dispatchDraw(canvas)
+            return
+        }
+
+        // 页签行钉在底部，内容行滚到视口外不能画到页签行上面去
+        val childDrawingTime = drawingTime
+        val split = pinnedViewTop
+        canvas.save()
+        canvas.clipRect(0f, 0f, width.toFloat(), split)
+        drawChildrenExcept(canvas, childDrawingTime, pinned = false)
+        canvas.restore()
+        canvas.save()
+        canvas.clipRect(0f, split, width.toFloat(), height.toFloat())
+        drawChildrenExcept(canvas, childDrawingTime, pinned = true)
+        canvas.restore()
     }
+
+    private fun drawChildrenExcept(canvas: Canvas, drawingTime: Long, pinned: Boolean) {
+        val keys = keyboard.keys
+        for (i in 0 until childCount) {
+            val key = keys.getOrNull(i) ?: continue
+            if (isPinned(key) != pinned) continue
+            drawChild(canvas, getChildAt(i), drawingTime)
+        }
+    }
+
+    /** 该键是否属于钉在底部的页签行。 */
+    private fun isPinned(key: Key): Boolean = keyboard.pinnedHeight > 0 && key.y >= keyboard.pinnedTop
 
     fun invalidateAllKeys() {
         children.forEach { it.invalidate() }
@@ -159,16 +196,24 @@ class KeyboardView(
     private var scrollOffset = 0f
     private var scrollRange = 0f
 
+    /** 页签行在视口里的顶部 y（= 测量高度 - 页签行高）。 */
+    private var pinnedViewTop = 0f
+
     /** 上一帧触点 y；滚动按增量累加，避免 onMeasure 期间基准漂移。 */
     private var dragLastY = 0f
 
     private fun applyScroll(offset: Float) {
         scrollOffset = offset.coerceIn(0f, scrollRange.toFloat())
-        if (scrollRange <= 0) return
         val keys = keyboard.keys
         for (i in 0 until childCount) {
             val key = keys.getOrNull(i) ?: continue
-            getChildAt(i).translationY = key.y - scrollOffset
+            // 页签行钉在视口底部，不跟着内容滚
+            getChildAt(i).translationY =
+                if (key.y >= keyboard.pinnedTop && keyboard.pinnedHeight > 0) {
+                    pinnedViewTop
+                } else {
+                    key.y - scrollOffset
+                }
         }
     }
 

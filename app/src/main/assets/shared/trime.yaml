@@ -513,28 +513,28 @@ preset_keyboards:
     scrollable: true          # 行数超出视口时上下滑动浏览
     keys:
     # ---- 第 1 行 ----
-    - { click: '，', label: '，', long_click: '<', width: 20 }
-    - { click: '。', label: '。', long_click: '>', width: 20 }
-    - { click: '？', label: '？', long_click: '¿', width: 20 }
-    - { click: '！', label: '！', long_click: '¡', width: 20 }
+    - { click: '，', label: '，', width: 20 }
+    - { click: '。', label: '。', width: 20 }
+    - { click: '？', label: '？', width: 20 }
+    - { click: '！', label: '！', width: 20 }
     - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
     # ---- 第 2 行 ----
-    - { click: '、', label: '、', long_click: '\', width: 20 }
-    - { click: '；', label: '；', long_click: ';', width: 20 }
-    - { click: '：', label: '：', long_click: ':', width: 20 }
-    - { click: '“', label: '“', long_click: '‘', width: 20 }
+    - { click: '、', label: '、', width: 20 }
+    - { click: '；', label: '；', width: 20 }
+    - { click: '：', label: '：', width: 20 }
+    - { click: '“', label: '“', width: 20 }
     - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
     # ---- 第 3 行 ----
-    - { click: '”', label: '”', long_click: '’', width: 20 }
-    - { click: '…', label: '…', long_click: '——', width: 20 }
-    - { click: '（', label: '（', long_click: '(', width: 20 }
-    - { click: '）', label: '）', long_click: ')', width: 20 }
+    - { click: '”', label: '”', width: 20 }
+    - { click: '…', label: '…', width: 20 }
+    - { click: '（', label: '（', width: 20 }
+    - { click: '）', label: '）', width: 20 }
     - { click: Keyboard_number, label: '123', width: 20 }
     # ---- 第 4 行 ----
-    - { click: '【', label: '【', long_click: '[', width: 20 }
-    - { click: '】', label: '】', long_click: ']', width: 20 }
-    - { click: '《', label: '《', long_click: '<', width: 20 }
-    - { click: '》', label: '》', long_click: '>', width: 20 }
+    - { click: '【', label: '【', width: 20 }
+    - { click: '】', label: '】', width: 20 }
+    - { click: '《', label: '《', width: 20 }
+    - { click: '》', label: '》', width: 20 }
     - { click: BackSpace, label: '⌫', width: 20 }
     # ---- 第 5 行 ----
     - { click: '〈', label: '〈', width: 20 }

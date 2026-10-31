@@ -269,6 +269,10 @@ class KeyboardWindow(di: DI) :
         view.symbolsPaging = SYMBOLS_PAGE_ORDER.contains(target)
         // 换分组时回到顶部，否则会继承上一组滚到的位置
         view.resetScroll()
+        // 翻页动画会把离场的视图停在屏幕外，视图是缓存复用的，
+        // 不归位的话下次挂载回来整块跑到屏幕左边 —— 表现为符号面板一片空白
+        view.animate().cancel()
+        view.translationX = 0f
 
         view.let {
             keyboardView.apply {
@@ -427,7 +431,10 @@ class KeyboardWindow(di: DI) :
             .translationX(-slideDir * w)
             .setDuration(SLIDE_DURATION_MS)
             .setInterpolator(interp)
-            .withEndAction { keyboardView.removeView(oldView) }
+            .withEndAction {
+                // 动画期间又切回这个视图时它已被重新挂载，不能再摘掉
+                if (oldView !== currentKeyboardView) keyboardView.removeView(oldView)
+            }
             .start()
         newView
             .animate()
