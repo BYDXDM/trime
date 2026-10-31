@@ -203,7 +203,7 @@ def main():
         f.write(new_text)
 
     total = sum(len(v) for v in panels.values())
-    print('已同步 ✓  3 个面板，共 %d 行' % total)
+    print('已同步 ✓  %d 个面板，共 %d 行' % (len(panels), total))
     return 0
 
 

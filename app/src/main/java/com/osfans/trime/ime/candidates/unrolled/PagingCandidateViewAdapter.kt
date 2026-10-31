@@ -8,25 +8,24 @@ package com.osfans.trime.ime.candidates.unrolled
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import com.osfans.trime.core.CandidateProto
 import com.osfans.trime.data.theme.ThemeScope
 import com.osfans.trime.ime.candidates.CandidateItemUi
 import com.osfans.trime.ime.candidates.CandidateViewHolder
 
 open class PagingCandidateViewAdapter(
     val scope: ThemeScope,
-) : PagingDataAdapter<CandidateProto, CandidateViewHolder>(diffCallback) {
+) : PagingDataAdapter<IndexedCandidate, CandidateViewHolder>(diffCallback) {
     companion object {
         private val diffCallback =
-            object : DiffUtil.ItemCallback<CandidateProto>() {
+            object : DiffUtil.ItemCallback<IndexedCandidate>() {
                 override fun areItemsTheSame(
-                    oldItem: CandidateProto,
-                    newItem: CandidateProto,
-                ): Boolean = oldItem === newItem
+                    oldItem: IndexedCandidate,
+                    newItem: IndexedCandidate,
+                ): Boolean = oldItem.index == newItem.index
 
                 override fun areContentsTheSame(
-                    oldItem: CandidateProto,
-                    newItem: CandidateProto,
+                    oldItem: IndexedCandidate,
+                    newItem: IndexedCandidate,
                 ): Boolean = oldItem == newItem
             }
     }
@@ -53,11 +52,10 @@ open class PagingCandidateViewAdapter(
         position: Int,
     ) {
         val item = getItem(position) ?: return
-        val idx = position + offset
-        val highlighted = idx == highlightedIndex
-        holder.ui.update(item, highlighted)
-        holder.text = item.text
-        holder.comment = item.comment
-        holder.idx = idx
+        // 分页源已经滤掉黑名单候选，显示位置不再等于 librime 下标，下标随项携带。
+        holder.ui.update(item.proto, item.index == highlightedIndex)
+        holder.text = item.proto.text
+        holder.comment = item.proto.comment
+        holder.idx = item.index
     }
 }

@@ -136,6 +136,11 @@ abstract class BaseUnrolledCandidateWindow(di: DI) :
             }
     }
 
+    /** 黑名单改动后重取分页数据；分页源每次重建都会重读黑名单。 */
+    fun refreshCandidates() {
+        if (::candidateLayout.isInitialized) adapter.refresh()
+    }
+
     fun bindCandidateUiViewHolder(holder: CandidateViewHolder) {
         holder.itemView.run {
             setOnClickListener { _ ->

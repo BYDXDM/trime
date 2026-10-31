@@ -30,6 +30,7 @@ import com.osfans.trime.ime.broadcast.InputBroadcastReceiver
 import com.osfans.trime.ime.broadcast.InputBroadcaster
 import com.osfans.trime.ime.candidates.compact.CompactCandidateDelegate
 import com.osfans.trime.ime.candidates.popup.PopupCandidatesMode
+import com.osfans.trime.ime.candidates.unrolled.window.BaseUnrolledCandidateWindow
 import com.osfans.trime.ime.composition.PreeditDelegate
 import com.osfans.trime.ime.keyboard.CommonKeyboardActionListener
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
@@ -178,7 +179,11 @@ class InputView(
 
     init {
         // 黑名单是纯显示层过滤，改完只需让候选栏重新过滤一遍。
-        onBlacklistUpdated = { compactCandidate.refreshCandidates() }
+        onBlacklistUpdated = {
+            compactCandidate.refreshCandidates()
+            // 展开面板直连 librime 分页，不重取的话被拉黑的词还留在上面
+            (windowManager.attachedWindow as? BaseUnrolledCandidateWindow)?.refreshCandidates()
+        }
 
         // MUST call before any operation
         val receivers: List<InputBroadcastReceiver> by allInstances()

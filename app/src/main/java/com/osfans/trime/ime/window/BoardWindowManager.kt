@@ -37,6 +37,10 @@ class BoardWindowManager(override val di: DI) : DIAware {
     private var currentWindow: BoardWindow? = null
     private var currentView: View? = null
 
+    /** 当前挂在屏幕上的窗口，供外部（如黑名单刷新）按类型判断。 */
+    val attachedWindow: BoardWindow?
+        get() = currentWindow
+
     private fun prepareAnimation(
         exitAnimation: Transition?,
         enterAnimation: Transition?,
