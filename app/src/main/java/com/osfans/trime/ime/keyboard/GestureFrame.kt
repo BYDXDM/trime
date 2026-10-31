@@ -63,6 +63,9 @@ open class GestureFrame(context: Context) : FrameLayout(context) {
 
     var onSlide: ((delta: Int, x: Float, y: Float) -> Unit)? = null
 
+    /** 长按进入拖动模式时触发（仅 [isSlideCursor] 的键，如空格）——iOS 式光标条在这时显示。 */
+    var onSlideCursorArmed: (() -> Unit)? = null
+
     var onPress: (() -> Unit)? = null
     var onRelease: ((behavior: KeyBehavior, longPress: Boolean) -> Unit)? = null
     var onCancel: (() -> Unit)? = null
@@ -249,6 +252,7 @@ open class GestureFrame(context: Context) : FrameLayout(context) {
             // 既不能置 isLongPressed（会挡死滑动分支），也不能走 repeat（会一直上屏空格）。
             if (isSlideCursor && onSlide != null) {
                 slideArmed = true
+                onSlideCursorArmed?.invoke()
                 return@launch
             }
 

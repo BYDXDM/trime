@@ -52,6 +52,8 @@ class KeyboardWindow(di: DI) :
     private val commonKeyboardActionListener: CommonKeyboardActionListener by instance()
     private val popup: PopupDelegate by instance()
     private val enterKeyDisplay: EnterKeyDisplayDelegate by instance()
+    private val loupe: CursorLoupeUi by instance()
+    private val trackpad: TrackpadUi by instance()
 
     private val cursorCapsMode: Int
         get() =
@@ -238,7 +240,7 @@ class KeyboardWindow(di: DI) :
 
         val config = selectKeyboardConfig(target)
         val keyboard = activeKeyboard ?: Keyboard(context, theme, computeAllowedWidth(), config)
-        val view = currentKeyboardView ?: KeyboardView(context, theme, keyboard, popup, service, keyboardActionListener, enterKeyDisplay)
+        val view = currentKeyboardView ?: KeyboardView(context, theme, keyboard, popup, service, keyboardActionListener, enterKeyDisplay, loupe, trackpad)
 
         if (activeKeyboard == null) {
             cachedKeyboards[target] = keyboard to view

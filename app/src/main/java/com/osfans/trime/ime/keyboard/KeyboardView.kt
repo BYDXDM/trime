@@ -31,6 +31,8 @@ class KeyboardView(
     val service: TrimeInputMethodService,
     private val keyboardActionListener: KeyboardActionListener,
     private val enterKeyDisplay: EnterKeyDisplayDelegate,
+    var loupe: CursorLoupeUi? = null,
+    var trackpad: TrackpadUi? = null,
 ) : FrameLayout(context) {
 
     private val keys get() = keyboard.keys

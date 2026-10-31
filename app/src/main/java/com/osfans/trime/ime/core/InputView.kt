@@ -32,6 +32,8 @@ import com.osfans.trime.ime.candidates.compact.CompactCandidateDelegate
 import com.osfans.trime.ime.candidates.popup.PopupCandidatesMode
 import com.osfans.trime.ime.candidates.unrolled.window.BaseUnrolledCandidateWindow
 import com.osfans.trime.ime.composition.PreeditDelegate
+import com.osfans.trime.ime.keyboard.CursorLoupeUi
+import com.osfans.trime.ime.keyboard.TrackpadUi
 import com.osfans.trime.ime.keyboard.CommonKeyboardActionListener
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
 import com.osfans.trime.ime.keyboard.KeyboardWindow
@@ -119,6 +121,8 @@ class InputView(
         bindSingleton { CompactCandidateDelegate(di) }
         bindSingleton { KeyboardWindow(di) }
         bindSingleton { LiquidWindow(di) }
+        bindSingleton { CursorLoupeUi(themedContext, scope, service) }
+        bindSingleton { TrackpadUi(themedContext, scope) }
     }
 
     private val broadcaster: InputBroadcaster by instance()
@@ -127,6 +131,8 @@ class InputView(
     private val preedit: PreeditDelegate by instance()
     private val windowManager: BoardWindowManager by instance()
     private val inputBar: InputBarDelegate by instance()
+    private val loupe: CursorLoupeUi by instance()
+    private val trackpad: TrackpadUi by instance()
     private val keyboardWindow: KeyboardWindow by instance()
     private val liquidWindow: LiquidWindow by instance()
     private val compactCandidate: CompactCandidateDelegate by instance()
@@ -281,6 +287,26 @@ class InputView(
                 centerInParent()
             },
         )
+
+        add(
+            trackpad,
+            // 只盖键盘区：IME 窗口本身近乎全屏（1080x2199），
+            // matchParent 铺满会把屏幕上半部分也涂成纯色。
+            // height = 0 即 MATCH_CONSTRAINT，上下约束到 keyboardView 后高度等于键盘高度。
+            lParams(matchParent, 0) {
+                topToTop = keyboardView.id
+                bottomToBottom = keyboardView.id
+            },
+        )
+
+        add(
+            loupe,
+            // 位置由 CursorLoupeUi 自己按光标锚点算（translationX/Y），这里只给个左上角起点。
+            lParams(wrapContent, wrapContent) {
+                topOfParent()
+                startOfParent()
+            },
+        )
     }
 
     private fun updateKeyboardSize() {
@@ -376,6 +402,33 @@ class InputView(
             else -> {}
         }
         broadcastKeyAppearanceUpdate()
+    }
+
+    /**
+     * 服务端把光标锚点（**屏幕坐标**）转给放大镜，这里换算到 InputView 本地坐标。
+     *
+     * 必须走屏幕坐标：锚点原本是目标 App decorView 的坐标系，而放大镜挂在
+     * 输入法自己的窗口里，两个原点不同（输入法窗口从屏幕 y≈141 才开始）。
+     */
+    fun updateCursorAnchor(x: Float, top: Float, bottom: Float) {
+        val selfLoc = IntArray(2)
+        getLocationOnScreen(selfLoc)
+        val dX = selfLoc[0].toFloat()
+        val dY = selfLoc[1].toFloat()
+        loupe.updateAnchor(x - dX, top - dY, bottom - dY)
+    }
+
+    /** 长按空格进入拖动模式时由 KeyView 调起。 */
+    fun showCursorLoupe() {
+        loupe.show()
+    }
+
+    fun hideCursorLoupe() {
+        loupe.hide()
+    }
+
+    fun refreshCursorLoupe() {
+        loupe.refresh()
     }
 
     fun updateSelection(

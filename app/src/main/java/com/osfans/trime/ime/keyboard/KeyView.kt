@@ -48,6 +48,14 @@ class KeyView(
 
     private val deletedTextBuffer = ArrayDeque<String>()
 
+    /** iOS 式光标放大镜，长按空格拖动光标期间贴在正文光标处显示（全局唯一，挂在 InputView 根上）。 */
+    private val loupe: CursorLoupeUi?
+        get() = keyboardView.loupe
+
+    /** 触摸板覆盖层：长按拖动期间盖住键盘，键帽隐去（与光标条同步显隐）。 */
+    private val trackpad: TrackpadUi?
+        get() = keyboardView.trackpad
+
     private var keyPressed = false
     override fun isPressed(): Boolean = keyPressed
 
@@ -92,7 +100,8 @@ class KeyView(
             if (keyboard.firstPressedKeyIndex == -1) keyboard.firstPressedKeyIndex = id
             setPressedState(true)
             key.getCode(KeyBehavior.CLICK).let { keyboardActionListener.onPress(it) }
-            showPopupPreview()
+            // 拖动光标的键（空格）不弹键顶字符预览：长按后由 iOS 式光标编辑条接管
+            if (!isSlideCursor) showPopupPreview()
         }
 
         onRelease = { behavior, isFromLongPress ->
@@ -149,12 +158,18 @@ class KeyView(
             showPopupPreview(direction)
         }
 
+        onSlideCursorArmed = {
+            trackpad?.show()
+            loupe?.show()
+        }
+
         onSlide = { delta, _, _ ->
             if (isSlideCursor) {
                 when {
                     delta > 0 -> keyboardActionListener.onAction(KeyActionManager.getAction("Right"))
                     delta < 0 -> keyboardActionListener.onAction(KeyActionManager.getAction("Left"))
                 }
+                if (delta != 0) loupe?.refresh()
             } else if (isSlideDelete) {
                 val ic = service.currentInputConnection
                 when {
@@ -198,6 +213,8 @@ class KeyView(
             deletedTextBuffer.clear()
             setPressedState(false)
             dismissPopupPreview()
+            loupe?.hide()
+            trackpad?.hide()
         }
     }
 

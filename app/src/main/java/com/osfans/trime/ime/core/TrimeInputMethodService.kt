@@ -474,6 +474,9 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         val (dX, dY) = decorLocation
         anchorPosition.offset(-dX, -dY)
         candidatesView?.updateCursorAnchor(anchorPosition, contentSize)
+        // 光标放大镜贴在正文插入点上：锚点在这里还原成屏幕坐标再交出去，
+        // 因为它要贴的是目标 App 的正文，不是输入法窗口内部。
+        inputView?.updateCursorAnchor(anchorPosition.left + dX, anchorPosition.top + dY, anchorPosition.bottom + dY)
     }
 
     override fun onUpdateSelection(
