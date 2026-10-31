@@ -217,6 +217,34 @@ class KeyboardView(
         }
     }
 
+    /**
+     * 换组左右滑的位移。
+     *
+     * 只移动内容键：[Key.slideFixed] 的右侧功能列（∧/∨/123/⌫）和钉底的页签行原地不动，
+     * 否则整块面板一起甩出去，视觉上会「闪」一下再回来。
+     *
+     * @param duration 0 = 直接落位（手指跟手），> 0 = 动画（松手回弹、翻组滑出滑入）
+     */
+    fun applySlide(dx: Float, duration: Long = 0L) {
+        val keys = keyboard.keys
+        for (i in 0 until childCount) {
+            val key = keys.getOrNull(i) ?: continue
+            if (key.slideFixed || isPinned(key)) continue
+            val view = getChildAt(i)
+            val target = key.x - key.extraWidthLeft + dx
+            view.animate().cancel()
+            if (duration <= 0L) {
+                view.translationX = target
+            } else {
+                view.animate()
+                    .translationX(target)
+                    .setDuration(duration)
+                    .setInterpolator(android.view.animation.DecelerateInterpolator())
+                    .start()
+            }
+        }
+    }
+
     override fun computeScroll() {
         if (scroller.computeScrollOffset()) {
             applyScroll(scroller.currY.toFloat())
@@ -229,6 +257,12 @@ class KeyboardView(
         scroller.forceFinished(true)
         scrollOffset = 0f
         applyScroll(0f)
+        applySlide(0f)
+    }
+
+    /** 松手回弹：内容键平滑滑回原位，比硬切顺眼。 */
+    private fun settleSlide() {
+        applySlide(0f, SLIDE_SETTLE_MS)
     }
 
     private fun beginDrag(ev: MotionEvent) {
@@ -281,7 +315,7 @@ class KeyboardView(
                     dragLastY = ev.y
                     applyScroll(scrollOffset + dy)
                 } else {
-                    translationX = ev.x - touchStartX
+                    applySlide(ev.x - touchStartX)
                 }
             }
 
@@ -295,7 +329,7 @@ class KeyboardView(
                     }
                 } else {
                     val delta = ev.x - touchStartX
-                    translationX = 0f
+                    settleSlide()
                     if (ev.actionMasked == MotionEvent.ACTION_UP && abs(delta) > pagingCommitPx) {
                         // 手指左移 = 看下一组
                         keyboardActionListener.onKeyboardPaging(if (delta < 0f) 1 else -1)
@@ -311,5 +345,8 @@ class KeyboardView(
 
     private companion object {
         const val FLING_MIN_VELOCITY = 120f
+
+        /** 横向拖动松手后内容键回弹/落位的动画时长（ms）。 */
+        const val SLIDE_SETTLE_MS = 140L
     }
 }

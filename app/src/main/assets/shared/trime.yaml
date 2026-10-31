@@ -419,9 +419,8 @@ preset_keyboards:
     # 符(10) 123(10) ，(10) 空格(30) 。(10) 中英(15) 换行(15) = 100
     # 符 / 123 是相邻键，可直接点；互相写 long_click 会让 Key.symbolLabel
     # 回落到长按动作的 label，两个键右上角各自显示对方，反而分不清。
-    # 长按「符」开剪贴板：底栏权重已排满 100，另起一键要挤掉空格宽度，
-    # 而 Key.symbolLabel 会把 long_click 的 label 画到右上角，正好当提示。
-    - { click: Keyboard_symbols, long_click: clipboard_window }
+    # 长按「符」仍开剪贴板，但不再在键顶角标出「剪贴」二字（hide_symbol）。
+    - { click: Keyboard_symbols, long_click: clipboard_window, hide_symbol: true }
     - { click: Keyboard_number }
     - { click: ',', label: '，', long_click: '<', swipe_up: '〈' }
     - { click: space_cursor, width: 30 }                 # 长按拖动移动光标
@@ -490,7 +489,8 @@ preset_keyboards:
     # ---- 第 4 行 ----
     # 符 / 123 是相邻键，可直接点；互相写 long_click 会让 Key.symbolLabel
     # 回落到长按动作的 label，两个键右上角各自显示对方，反而分不清。
-    - { click: Keyboard_symbols, long_click: clipboard_window }
+    # 长按「符」仍开剪贴板，但不再在键顶角标出「剪贴」二字（hide_symbol）。
+    - { click: Keyboard_symbols, long_click: clipboard_window, hide_symbol: true }
     - { click: Keyboard_number }
     - { click: ',', label: ',', long_click: '<', swipe_up: '〈' }
     - { click: space_cursor, width: 30 }
@@ -517,49 +517,49 @@ preset_keyboards:
     - { click: '。', label: '。', width: 20 }
     - { click: '？', label: '？', width: 20 }
     - { click: '！', label: '！', width: 20 }
-    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 2 行 ----
     - { click: '、', label: '、', width: 20 }
     - { click: '；', label: '；', width: 20 }
     - { click: '：', label: '：', width: 20 }
     - { click: '“', label: '“', width: 20 }
-    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 3 行 ----
     - { click: '”', label: '”', width: 20 }
     - { click: '…', label: '…', width: 20 }
     - { click: '（', label: '（', width: 20 }
     - { click: '）', label: '）', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: Keyboard_number, label: '123', slide_fixed: true, width: 20 }
     # ---- 第 4 行 ----
     - { click: '【', label: '【', width: 20 }
     - { click: '】', label: '】', width: 20 }
     - { click: '《', label: '《', width: 20 }
     - { click: '》', label: '》', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
+    - { click: BackSpace, label: '⌫', slide_fixed: true, width: 20 }
     # ---- 第 5 行 ----
     - { click: '〈', label: '〈', width: 20 }
     - { click: '〉', label: '〉', width: 20 }
     - { click: '「', label: '「', width: 20 }
     - { click: '」', label: '」', width: 20 }
-    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 6 行 ----
     - { click: '『', label: '『', width: 20 }
     - { click: '』', label: '』', width: 20 }
     - { click: '～', label: '～', width: 20 }
     - { click: '·', label: '·', width: 20 }
-    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 7 行 ----
     - { click: '•', label: '•', width: 20 }
     - { click: '※', label: '※', width: 20 }
     - { click: '‧', label: '‧', width: 20 }
     - { click: '°', label: '°', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: Keyboard_number, label: '123', slide_fixed: true, width: 20 }
     # ---- 第 8 行 ----
     - { click: '〃', label: '〃', width: 20 }
     - { click: '％', label: '％', width: 20 }
     - { click: '‰', label: '‰', width: 20 }
     - { click: '＠', label: '＠', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
+    - { click: BackSpace, label: '⌫', slide_fixed: true, width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -589,49 +589,49 @@ preset_keyboards:
     - { click: '。', label: '。', width: 20 }
     - { click: '、', label: '、', width: 20 }
     - { click: '；', label: '；', width: 20 }
-    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 2 行 ----
     - { click: '：', label: '：', width: 20 }
     - { click: '？', label: '？', width: 20 }
     - { click: '！', label: '！', width: 20 }
     - { click: '…', label: '…', width: 20 }
-    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 3 行 ----
     - { click: '—', label: '—', width: 20 }
     - { click: '～', label: '～', width: 20 }
     - { click: '“', label: '“', width: 20 }
     - { click: '”', label: '”', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: Keyboard_number, label: '123', slide_fixed: true, width: 20 }
     # ---- 第 4 行 ----
     - { click: '‘', label: '‘', width: 20 }
     - { click: '’', label: '’', width: 20 }
     - { click: '「', label: '「', width: 20 }
     - { click: '」', label: '」', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
+    - { click: BackSpace, label: '⌫', slide_fixed: true, width: 20 }
     # ---- 第 5 行 ----
     - { click: '【', label: '【', width: 20 }
     - { click: '】', label: '】', width: 20 }
     - { click: '〔', label: '〔', width: 20 }
     - { click: '〕', label: '〕', width: 20 }
-    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 6 行 ----
     - { click: '〖', label: '〖', width: 20 }
     - { click: '〗', label: '〗', width: 20 }
     - { click: '《', label: '《', width: 20 }
     - { click: '》', label: '》', width: 20 }
-    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 7 行 ----
     - { click: '〈', label: '〈', width: 20 }
     - { click: '〉', label: '〉', width: 20 }
     - { click: '＋', label: '＋', width: 20 }
     - { click: '－', label: '－', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: Keyboard_number, label: '123', slide_fixed: true, width: 20 }
     # ---- 第 8 行 ----
     - { click: '×', label: '×', width: 20 }
     - { click: '÷', label: '÷', width: 20 }
     - { click: '＝', label: '＝', width: 20 }
     - { click: '～', label: '～', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
+    - { click: BackSpace, label: '⌫', slide_fixed: true, width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -661,49 +661,49 @@ preset_keyboards:
     - { click: '.', label: '.', width: 20 }
     - { click: '?', label: '?', width: 20 }
     - { click: '!', label: '!', width: 20 }
-    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 2 行 ----
     - { click: ';', label: ';', width: 20 }
     - { click: ':', label: ':', width: 20 }
     - { click: '"', label: '"', width: 20 }
     - { click: ''', label: ''', width: 20 }
-    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 3 行 ----
     - { click: '(', label: '(', width: 20 }
     - { click: ')', label: ')', width: 20 }
     - { click: '[', label: '[', width: 20 }
     - { click: ']', label: ']', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: Keyboard_number, label: '123', slide_fixed: true, width: 20 }
     # ---- 第 4 行 ----
     - { click: '<', label: '<', width: 20 }
     - { click: '>', label: '>', width: 20 }
     - { click: '-', label: '-', width: 20 }
     - { click: '_', label: '_', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
+    - { click: BackSpace, label: '⌫', slide_fixed: true, width: 20 }
     # ---- 第 5 行 ----
     - { click: '{', label: '{', width: 20 }
     - { click: '}', label: '}', width: 20 }
     - { click: '|', label: '|', width: 20 }
     - { click: '~', label: '~', width: 20 }
-    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 6 行 ----
     - { click: '=', label: '=', width: 20 }
     - { click: '+', label: '+', width: 20 }
     - { click: '\', label: '\', width: 20 }
     - { click: '^', label: '^', width: 20 }
-    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 7 行 ----
     - { click: '`', label: '`', width: 20 }
     - { click: '…', label: '…', width: 20 }
     - { click: '–', label: '–', width: 20 }
     - { click: '—', label: '—', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: Keyboard_number, label: '123', slide_fixed: true, width: 20 }
     # ---- 第 8 行 ----
     - { click: '«', label: '«', width: 20 }
     - { click: '»', label: '»', width: 20 }
     - { click: '‹', label: '‹', width: 20 }
     - { click: '›', label: '›', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
+    - { click: BackSpace, label: '⌫', slide_fixed: true, width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -733,49 +733,49 @@ preset_keyboards:
     - { click: '#', label: '#', width: 20 }
     - { click: '&', label: '&', width: 20 }
     - { click: '*', label: '*', width: 20 }
-    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 2 行 ----
     - { click: '/', label: '/', width: 20 }
     - { click: '\', label: '\', width: 20 }
     - { click: '_', label: '_', width: 20 }
     - { click: '|', label: '|', width: 20 }
-    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 3 行 ----
     - { click: '^', label: '^', width: 20 }
     - { click: '~', label: '~', width: 20 }
     - { click: '©', label: '©', width: 20 }
     - { click: '®', label: '®', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: Keyboard_number, label: '123', slide_fixed: true, width: 20 }
     # ---- 第 4 行 ----
     - { click: '™', label: '™', width: 20 }
     - { click: '§', label: '§', width: 20 }
     - { click: '°', label: '°', width: 20 }
     - { click: '‰', label: '‰', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
+    - { click: BackSpace, label: '⌫', slide_fixed: true, width: 20 }
     # ---- 第 5 行 ----
     - { click: '§', label: '§', width: 20 }
     - { click: '¶', label: '¶', width: 20 }
     - { click: '†', label: '†', width: 20 }
     - { click: '‡', label: '‡', width: 20 }
-    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 6 行 ----
     - { click: 'µ', label: 'µ', width: 20 }
     - { click: '•', label: '•', width: 20 }
     - { click: '◦', label: '◦', width: 20 }
     - { click: '‱', label: '‱', width: 20 }
-    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 7 行 ----
     - { click: '℃', label: '℃', width: 20 }
     - { click: '℉', label: '℉', width: 20 }
     - { click: '№', label: '№', width: 20 }
     - { click: '★', label: '★', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: Keyboard_number, label: '123', slide_fixed: true, width: 20 }
     # ---- 第 8 行 ----
     - { click: '☆', label: '☆', width: 20 }
     - { click: '✓', label: '✓', width: 20 }
     - { click: '✗', label: '✗', width: 20 }
     - { click: '✧', label: '✧', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
+    - { click: BackSpace, label: '⌫', slide_fixed: true, width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -805,49 +805,49 @@ preset_keyboards:
     - { click: '-', label: '-', width: 20 }
     - { click: '×', label: '×', width: 20 }
     - { click: '÷', label: '÷', width: 20 }
-    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 2 行 ----
     - { click: '=', label: '=', width: 20 }
     - { click: '≠', label: '≠', width: 20 }
     - { click: '≈', label: '≈', width: 20 }
     - { click: '±', label: '±', width: 20 }
-    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 3 行 ----
     - { click: '∞', label: '∞', width: 20 }
     - { click: '%', label: '%', width: 20 }
     - { click: '‰', label: '‰', width: 20 }
     - { click: '√', label: '√', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: Keyboard_number, label: '123', slide_fixed: true, width: 20 }
     # ---- 第 4 行 ----
     - { click: '¥', label: '¥', width: 20 }
     - { click: '￥', label: '￥', width: 20 }
     - { click: '$', label: '$', width: 20 }
     - { click: '€', label: '€', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
+    - { click: BackSpace, label: '⌫', slide_fixed: true, width: 20 }
     # ---- 第 5 行 ----
     - { click: '∠', label: '∠', width: 20 }
     - { click: '∛', label: '∛', width: 20 }
     - { click: '∝', label: '∝', width: 20 }
     - { click: '∑', label: '∑', width: 20 }
-    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 6 行 ----
     - { click: '∏', label: '∏', width: 20 }
     - { click: '∫', label: '∫', width: 20 }
     - { click: '∮', label: '∮', width: 20 }
     - { click: '€', label: '€', width: 20 }
-    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 7 行 ----
     - { click: '£', label: '£', width: 20 }
     - { click: '¢', label: '¢', width: 20 }
     - { click: '⊥', label: '⊥', width: 20 }
     - { click: '∥', label: '∥', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: Keyboard_number, label: '123', slide_fixed: true, width: 20 }
     # ---- 第 8 行 ----
     - { click: '∧', label: '∧', width: 20 }
     - { click: '∨', label: '∨', width: 20 }
     - { click: '≅', label: '≅', width: 20 }
     - { click: '≡', label: '≡', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
+    - { click: BackSpace, label: '⌫', slide_fixed: true, width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -877,49 +877,49 @@ preset_keyboards:
     - { click: '→', label: '→', width: 20 }
     - { click: '↑', label: '↑', width: 20 }
     - { click: '↓', label: '↓', width: 20 }
-    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 2 行 ----
     - { click: '↔', label: '↔', width: 20 }
     - { click: '↕', label: '↕', width: 20 }
     - { click: '↖', label: '↖', width: 20 }
     - { click: '↗', label: '↗', width: 20 }
-    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 3 行 ----
     - { click: '↘', label: '↘', width: 20 }
     - { click: '↙', label: '↙', width: 20 }
     - { click: '↺', label: '↺', width: 20 }
     - { click: '↻', label: '↻', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: Keyboard_number, label: '123', slide_fixed: true, width: 20 }
     # ---- 第 4 行 ----
     - { click: '▶', label: '▶', width: 20 }
     - { click: '◀', label: '◀', width: 20 }
     - { click: '▲', label: '▲', width: 20 }
     - { click: '▼', label: '▼', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
+    - { click: BackSpace, label: '⌫', slide_fixed: true, width: 20 }
     # ---- 第 5 行 ----
     - { click: '⇐', label: '⇐', width: 20 }
     - { click: '⇒', label: '⇒', width: 20 }
     - { click: '⇑', label: '⇑', width: 20 }
     - { click: '⇓', label: '⇓', width: 20 }
-    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 6 行 ----
     - { click: '⇔', label: '⇔', width: 20 }
     - { click: '⇕', label: '⇕', width: 20 }
     - { click: '⟲', label: '⟲', width: 20 }
     - { click: '⟳', label: '⟳', width: 20 }
-    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 7 行 ----
     - { click: '↰', label: '↰', width: 20 }
     - { click: '↱', label: '↱', width: 20 }
     - { click: '↲', label: '↲', width: 20 }
     - { click: '↳', label: '↳', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: Keyboard_number, label: '123', slide_fixed: true, width: 20 }
     # ---- 第 8 行 ----
     - { click: '⇤', label: '⇤', width: 20 }
     - { click: '⇥', label: '⇥', width: 20 }
     - { click: '↚', label: '↚', width: 20 }
     - { click: '↛', label: '↛', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
+    - { click: BackSpace, label: '⌫', slide_fixed: true, width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -949,49 +949,49 @@ preset_keyboards:
     - { click: '②', label: '②', width: 20 }
     - { click: '③', label: '③', width: 20 }
     - { click: '④', label: '④', width: 20 }
-    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 2 行 ----
     - { click: '⑤', label: '⑤', width: 20 }
     - { click: '⑥', label: '⑥', width: 20 }
     - { click: '⑦', label: '⑦', width: 20 }
     - { click: '⑧', label: '⑧', width: 20 }
-    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 3 行 ----
     - { click: '⑨', label: '⑨', width: 20 }
     - { click: '⑩', label: '⑩', width: 20 }
     - { click: '⑴', label: '⑴', width: 20 }
     - { click: '⑵', label: '⑵', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: Keyboard_number, label: '123', slide_fixed: true, width: 20 }
     # ---- 第 4 行 ----
     - { click: '⑶', label: '⑶', width: 20 }
     - { click: '⑷', label: '⑷', width: 20 }
     - { click: '⑸', label: '⑸', width: 20 }
     - { click: '⑹', label: '⑹', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
+    - { click: BackSpace, label: '⌫', slide_fixed: true, width: 20 }
     # ---- 第 5 行 ----
     - { click: '⑺', label: '⑺', width: 20 }
     - { click: '⑻', label: '⑻', width: 20 }
     - { click: '⑼', label: '⑼', width: 20 }
     - { click: '⑽', label: '⑽', width: 20 }
-    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageUp, label: '∧', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 6 行 ----
     - { click: 'Ⅰ', label: 'Ⅰ', width: 20 }
     - { click: 'Ⅱ', label: 'Ⅱ', width: 20 }
     - { click: 'Ⅲ', label: 'Ⅲ', width: 20 }
     - { click: 'Ⅳ', label: 'Ⅳ', width: 20 }
-    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, width: 20 }
+    - { click: SymbolsPageDown, label: '∨', key_text_size: 24, slide_fixed: true, width: 20 }
     # ---- 第 7 行 ----
     - { click: 'Ⅴ', label: 'Ⅴ', width: 20 }
     - { click: 'Ⅵ', label: 'Ⅵ', width: 20 }
     - { click: 'Ⅶ', label: 'Ⅶ', width: 20 }
     - { click: 'Ⅷ', label: 'Ⅷ', width: 20 }
-    - { click: Keyboard_number, label: '123', width: 20 }
+    - { click: Keyboard_number, label: '123', slide_fixed: true, width: 20 }
     # ---- 第 8 行 ----
     - { click: 'Ⅸ', label: 'Ⅸ', width: 20 }
     - { click: 'Ⅹ', label: 'Ⅹ', width: 20 }
     - { click: 'ⅰ', label: 'ⅰ', width: 20 }
     - { click: 'ⅱ', label: 'ⅱ', width: 20 }
-    - { click: BackSpace, label: '⌫', width: 20 }
+    - { click: BackSpace, label: '⌫', slide_fixed: true, width: 20 }
     # ---- 分组页签 ----
     - { click: Keyboard_letter, label: '返回', width: 16, key_text_size: 11 }
     - { click: SymbolsTab_symbols, label: '1.常用', width: 12, key_text_size: 11 }
@@ -1019,19 +1019,19 @@ preset_keyboards:
     height: 52
     keys:
     # ---- 第 1 行 ----
-    - { click: '%', label: '%', long_click: '‰', width: 12 }
+    - { click: '%', label: '%', long_click: '‰', hide_symbol: true, width: 12 }
     - { click: '1', label: '1', width: 22 }
     - { click: '2', label: '2', width: 22 }
     - { click: '3', label: '3', width: 22 }
     - { click: '.', label: '.', width: 22 }
     # ---- 第 2 行 ----
-    - { click: '/', label: '/', long_click: '÷', width: 12 }
+    - { click: '/', label: '/', long_click: '÷', hide_symbol: true, width: 12 }
     - { click: '4', label: '4', width: 22 }
     - { click: '5', label: '5', width: 22 }
     - { click: '6', label: '6', width: 22 }
-    - { click: '@', label: '@', long_click: '·', width: 22 }
+    - { click: '@', label: '@', long_click: '·', hide_symbol: true, width: 22 }
     # ---- 第 3 行 ----
-    - { click: '-', label: '−', long_click: '＋', width: 12 }
+    - { click: '-', label: '−', long_click: '＋', hide_symbol: true, width: 12 }
     - { click: '7', label: '7', width: 22 }
     - { click: '8', label: '8', width: 22 }
     - { click: '9', label: '9', width: 22 }
@@ -1041,4 +1041,4 @@ preset_keyboards:
     - { click: Keyboard_symbols, label: '符', width: 22 }
     - { click: '0', label: '0', width: 22 }
     - { click: space, width: 22 }
-    - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, width: 22 }
+    - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, hide_symbol: true, width: 22 }

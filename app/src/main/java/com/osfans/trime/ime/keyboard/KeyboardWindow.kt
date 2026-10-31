@@ -398,7 +398,12 @@ class KeyboardWindow(di: DI) :
         return true
     }
 
-    /** 符号分组翻页动画：旧视图保留到动画结束再移除，两页同屏滑动。 */
+    /**
+     * 符号分组翻页动画：旧视图保留到动画结束再移除，两页同屏滑动。
+     *
+     * 位移走 [KeyboardView.applySlide] 逐键做，而不是整块 View 平移 —— 页签栏和
+     * 右侧功能列（`slide_fixed`）必须留在原地，否则翻组时它们会跟着甩出去再弹回来。
+     */
     private fun switchWithSlide(
         target: String,
         slideDir: Int,
@@ -424,24 +429,14 @@ class KeyboardWindow(di: DI) :
             keyboardView.removeView(oldView)
             return
         }
-        val interp = android.view.animation.DecelerateInterpolator()
-        newView.translationX = slideDir * w
-        oldView
-            .animate()
-            .translationX(-slideDir * w)
-            .setDuration(SLIDE_DURATION_MS)
-            .setInterpolator(interp)
-            .withEndAction {
-                // 动画期间又切回这个视图时它已被重新挂载，不能再摘掉
-                if (oldView !== currentKeyboardView) keyboardView.removeView(oldView)
-            }
-            .start()
-        newView
-            .animate()
-            .translationX(0f)
-            .setDuration(SLIDE_DURATION_MS)
-            .setInterpolator(interp)
-            .start()
+        // 新页先整体偏到滑入侧，下一帧再动画回原位（同帧设值 + 启动动画起点不可靠）
+        newView.applySlide(slideDir * w)
+        newView.post { newView.applySlide(0f, SLIDE_DURATION_MS) }
+        oldView.applySlide(-slideDir * w, SLIDE_DURATION_MS)
+        oldView.postDelayed({
+            // 动画期间又切回这个视图时它已被重新挂载，不能再摘掉
+            if (oldView !== currentKeyboardView) keyboardView.removeView(oldView)
+        }, SLIDE_DURATION_MS)
     }
 
     /**

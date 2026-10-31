@@ -55,6 +55,12 @@ class Key(
 
     private val label = selfConfig?.label ?: ""
     private val labelSymbol = selfConfig?.labelSymbol ?: ""
+
+    /** 不画键顶角标；长按动作的 label 回落也不画（见 [symbolLabel]）。 */
+    private val hideSymbol: Boolean = selfConfig?.hideSymbol ?: false
+
+    /** 换组左右滑时保持不动（右侧功能列）。 */
+    val slideFixed: Boolean = selfConfig?.slideFixed ?: false
     val hint: String = selfConfig?.hint ?: ""
     val popup = selfConfig?.popup ?: emptyList()
 
@@ -285,7 +291,7 @@ class Key(
     }
 
     val symbolLabel: String
-        get() = labelSymbol.ifEmpty { longClick?.getLabel(parent) ?: "" }
+        get() = if (hideSymbol) "" else labelSymbol.ifEmpty { longClick?.getLabel(parent) ?: "" }
 
     private val appearanceType: Int
         get() {

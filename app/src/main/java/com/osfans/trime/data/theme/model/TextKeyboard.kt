@@ -65,6 +65,10 @@ data class TextKeyboard(
         val keyBorder: Int = -1,
         val label: String = "",
         val labelSymbol: String = "",
+        /** 不画键顶角标（长按动作的 label 回落到 [labelSymbol] 那条路也一并关掉）。 */
+        val hideSymbol: Boolean = false,
+        /** 换组左右滑时保持不动（右侧功能列 ∧/∨/123/⌫）。 */
+        val slideFixed: Boolean = false,
         val hint: String = "",
         val sendBindings: Boolean = true,
         val keyTextSize: Float = 0f,
@@ -99,6 +103,8 @@ data class TextKeyboard(
                 keyBorder = node.pairs["key_border"]?.int ?: DEFAULTS.keyBorder,
                 label = node.pairs["label"]?.string ?: DEFAULTS.label,
                 labelSymbol = node.pairs["label_symbol"]?.string ?: DEFAULTS.labelSymbol,
+                hideSymbol = node.pairs["hide_symbol"]?.boolean ?: DEFAULTS.hideSymbol,
+                slideFixed = node.pairs["slide_fixed"]?.boolean ?: DEFAULTS.slideFixed,
                 hint = node.pairs["hint"]?.string ?: DEFAULTS.hint,
                 sendBindings = node.pairs["send_bindings"]?.boolean ?: DEFAULTS.sendBindings,
                 keyTextSize = node.pairs["key_text_size"]?.float ?: DEFAULTS.keyTextSize,
