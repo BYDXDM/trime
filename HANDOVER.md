@@ -24,7 +24,8 @@
 - 候选栏横向滚动能滑到末端（§2.7）
 - 背景 GIF 换素材，循环缝 2.76× → 0.845×（§2.9）
 - 修右上角 `)` 误触（§2.10）、左括号自动补右括号（§2.11，仅英文模式）
-- 候选栏不再显示缺字形的豆腐块（§2.12，未装机验证）
+- 候选栏与展开候选面板都不再显示缺字形的豆腐块（§2.12，真机已验证）
+- 候选首位老是生僻字的根因查清并清理（用户词典污染，§2.13）
 
 **下一批功能的方向与优先级见 `PLAN-功能扩展.md`**（P0/P1/P2 分级 + 实施要点）。
 
@@ -46,7 +47,7 @@
 | ④ | 背景 GIF 换素材 + 循环缝优化 | ⚠ 离线指标已达标（0.845×），**未装机看观感**，见 §2.9 |
 | ⑤ | 右上角 `)` 误触 | ⚠ 布局检查通过，**未装机验证**，见 §2.10 |
 | ⑥ | 左括号自动补右括号（英文模式） | ⚠ 单测通过，**未装机验证**；中文模式是否也补全角待定，见 §2.11 |
-| ⑦ | 候选栏「空白词条」（缺字形豆腐块） | ⚠ 代码接完、编译+单测通过，**未装机验证**，见 §2.12 |
+| ⑦ | 候选栏「空白词条」（缺字形豆腐块） | ✅ **真机验证通过**（紧凑栏与展开面板全格有字、点击可上屏），见 §2.12 |
 
 **① 自定义短语编辑界面**
 
@@ -378,7 +379,7 @@ WebView / 老 EditText 可能吞掉这个导航键，那样光标会停在 `)` �
 `TrimeInputMethodService.kt` 里有 `setSelection` 的先例（L1036/1049/1063），
 但那要 `getExtractedText` 取绝对偏移，在 `beginBatchEdit` 内不可靠，所以没换。
 
-### 2.12 候选栏「空白词条」= 缺字形豆腐块（2026-10-18，**未装机验证**）
+### 2.12 候选栏「空白词条」= 缺字形豆腐块（2026-10-18 修，2026-11-01 真机验证）
 
 **根因**：不是渲染 bug。librime 会返回**补充平面汉字**（CJK 扩展 B/C/D，U+20000 以上），
 而 `candidate_font`（用户没放 `han.ttf` 时就是 `Typeface.DEFAULT`）没有这些码位，
@@ -403,11 +404,59 @@ WebView / 老 EditText 可能吞掉这个导航键，那样光标会停在 `)` �
 否则过滤掉几条后展开按钮会一直显示。`total` 保持 librime 原始条数（展开面板的
 `CandidatesPagingSource` 按下标取页）。
 
-**已知作用域缺口**：展开面板（`CandidatesPagingSource` / `BaseUnrolledCandidateWindow`）
-与 `ime/composition/CandidatesView.kt` 仍会显示豆腐块。
+**展开面板的作用域缺口已补（`72883b22`）**：`CandidatesPagingSource` 的
+`load()` 里加了 `CandidateGlyphFilter.canRender(proto.text)`，与黑名单并列过滤。
+分页 key 始终是 librime **原始下标**，过滤不会让翻页错位。
+真机上展开面板此前「大量白色空白格 + 点候选没反应」两个症状都由它引起：
+缺字形的候选在 `AutoScaleTextView` 里量不出字形宽度，格子留白且窄到点不中。
 
-**验证状态**：`:app:compileDebugKotlin` 与 `:app:testDebugUnitTest` 通过
-（新增 `CandidateGlyphFilterTest`，5 例）；**还没装机看图**。
+**仍未覆盖**：`app/src/main/java/com/osfans/trime/ime/composition/CandidatesView.kt`
+（悬浮候选窗，走 `Candidates.Paged` 消息，与展开面板是两条链路）仍会显示豆腐块。
+
+**验证状态**（2026-11-01，真机 `EAT0220316001355`）：
+紧凑候选栏打 `a` 无豆腐块；展开面板 5 行 × 9 列**全格有字**；
+点击展开面板第一格候选可正常上屏；`:app:testDebugUnitTest` 384 例全绿。
+
+**顺带发现**：展开面板本身**能正常滚动**（打 `a` 连翻 19+ 屏到菜单尽头），
+不是「一屏就滑不动」——之前以为滑不动，其实是缺字形候选占满了前几屏
+且没有滚动提示。
+
+
+### 2.13 候选首位老是生僻字 = 用户词典（userdb）被污染（2026-11-01）
+
+**症状**：打 `fen` 首位不是「分」而是「澍」「蕡」这类生僻字；换方案也一样。
+
+**根因**：librime 的**用户词典**（`$RIME/<方案>.userdb/`）里累积了学习条目，
+不是词库、不是排序算法、不是字体渲染。决定性证据：
+
+- `luna_pinyin.userdb` 的明文导出只有一条 `fen 	蕡	c=1 d=1 t=1` → 切纯
+  `luna_pinyin` 方案时 `fen` 首位就是「蕡」；删掉该 userdb 重新部署后
+  立刻恢复成「分 風 份 封 粉 峯 瘋」。
+- `mydomain.user.userdb` 有 12 条**跨音节复合编码**污染，例如
+  `fen feng 	昐漨	t=3`、`golang gong 	昐漨`、`gei ding hui diao hong 	給定回調虹`、
+  `hei fa ka e jie 	給定回調虹`。这些条目一旦被选中过，`initial_quality` 再高也压不住。
+- `essay.txt` 权重解释了为什么一污染就顶到首位：分 29738 / 風 13091 / 份 7307 /
+  封 7046 / 粉 5189 / 峯 4372 / **蕡 395** / 纷 0 / 愤 0 —— **很多常用字权重是 0**，
+  生僻字反而有值，所以词库权重排不出好候选。
+
+**清理办法**（设备端，无需重装）：
+
+```bash
+RIME=/storage/emulated/0/Android/data/com.osfans.trime/files/rime
+adb -s <设备> shell "am force-stop com.osfans.trime; rm -rf $RIME/luna_pinyin.userdb $RIME/mydomain.user.userdb"
+adb -s <设备> shell "am start -n com.osfans.trime/.MainLauncherAlias"   # 先拉起进程
+sleep 3
+adb -s <设备> shell "am broadcast -a com.osfans.trime.action.DEPLOY -p com.osfans.trime"
+# 等 40s，build/ 下重新出现 *.schema.yaml 即部署完成
+```
+
+⚠ 删 userdb 前先备份：`$RIME/sync/<installation-id>/` 下有 librime 的**明文导出**
+`*.userdb.txt`（本次备份留在 `D:\ai\工作\_userdb_backup_20261101.txt`）。
+
+⚠ **App 里没有「重置用户词典」的 UI**，只能走上面的命令行；全仓库只有
+`app/src/main/java/com/osfans/trime/data/sync/SafTreeWalker.kt:28` 与
+`app/src/main/java/com/osfans/trime/data/sync/SyncPathPolicy.kt:87` 两处提到 .userdb，
+都是同步相关，不做清理。
 
 
 ---
@@ -651,10 +700,10 @@ x：QWERTY `68 + 105n`；ASDF `110 + 105n`；ZXCV `235 + 105n`（⌫ 在 x≈101
 
 ### 8.1 第三轮 + 第四轮的遗留（**全部改动仍未 commit**，见 §0.1）
 
-1. **⑦ 候选栏豆腐块：装机验证还没做**。`CandidateGlyphFilter` 已接进紧凑候选栏，
-   编译与单测通过，但没在设备上看过「打 `a` 不再出现豆腐块」。
-   验的时候顺手确认：点击第 2 个候选选中的确实是屏幕上那个词（下标映射没串）。
-   已知未覆盖：展开面板与 `ime/composition/CandidatesView.kt` 仍会显示豆腐块。
+1. ~~**⑦ 候选栏豆腐块：装机验证还没做**~~ —— **2026-11-01 已在真机验证通过**（§2.12）。
+   紧凑候选栏无豆腐块、展开面板全格有字、点击候选能上屏（下标映射没串）。
+   展开面板那一半的作用域缺口也已补（`72883b22`）。
+   仍剩：`ime/composition/CandidatesView.kt`（悬浮候选窗）还没接字形过滤。
 2. **④⑤⑥ 的装机验证**（GIF 观感、`p` 键不再出 `)`、英文模式 `(` → `()`）。
    ② 也要重测一遍——第四轮又改了候选栏，怕回归。
 3. **中文模式要不要补全角 `（）`** —— 需用户拍板，代码里 `commitAutoPair` 的
