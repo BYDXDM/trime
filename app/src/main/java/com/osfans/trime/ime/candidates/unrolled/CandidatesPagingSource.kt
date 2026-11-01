@@ -10,6 +10,7 @@ import androidx.paging.PagingState
 import com.osfans.trime.core.CandidateProto
 import com.osfans.trime.daemon.RimeSession
 import com.osfans.trime.data.userdict.BlacklistStore
+import com.osfans.trime.ime.candidates.CandidateGlyphFilter
 import timber.log.Timber
 
 /** 展开面板里的一项：候选本体 + 它在 librime 原始候选列表里的下标。 */
@@ -31,6 +32,9 @@ class CandidatesPagingSource(
         val kept = ArrayList<IndexedCandidate>(pageSize)
         // 黑名单命中的候选不下发，一页往往要跨好几批原始候选才凑够。
         // key 始终是 librime 的原始下标，所以过滤不会让翻页错位。
+        // 缺字形的候选同样要滤掉：候选字体覆盖不到补充平面汉字（U+20000 以上），
+        // 这些词在 AutoScaleTextView 里量不出字形宽度，格子会留成一块空白，
+        // 而且窄到点不中——正是「展开面板有大量空白格、点候选没反应」的根因。
         var cursor = startIndex
         var reachedEnd = false
         while (kept.size < pageSize && !reachedEnd) {
@@ -41,7 +45,10 @@ class CandidatesPagingSource(
                 break
             }
             batch.forEachIndexed { i, proto ->
-                if (kept.size < pageSize && proto.text !in blacklist) {
+                if (kept.size < pageSize &&
+                    proto.text !in blacklist &&
+                    CandidateGlyphFilter.canRender(proto.text)
+                ) {
                     kept += IndexedCandidate(cursor + i, proto)
                 }
             }

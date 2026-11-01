@@ -32,11 +32,11 @@ import com.osfans.trime.ime.candidates.compact.CompactCandidateDelegate
 import com.osfans.trime.ime.candidates.popup.PopupCandidatesMode
 import com.osfans.trime.ime.candidates.unrolled.window.BaseUnrolledCandidateWindow
 import com.osfans.trime.ime.composition.PreeditDelegate
-import com.osfans.trime.ime.keyboard.CursorLoupeUi
-import com.osfans.trime.ime.keyboard.TrackpadUi
 import com.osfans.trime.ime.keyboard.CommonKeyboardActionListener
+import com.osfans.trime.ime.keyboard.CursorLoupeUi
 import com.osfans.trime.ime.keyboard.KeyboardPrefs.isLandscapeMode
 import com.osfans.trime.ime.keyboard.KeyboardWindow
+import com.osfans.trime.ime.keyboard.TrackpadUi
 import com.osfans.trime.ime.popup.PopupDelegate
 import com.osfans.trime.ime.symbol.LiquidWindow
 import com.osfans.trime.ime.window.BoardWindowManager
