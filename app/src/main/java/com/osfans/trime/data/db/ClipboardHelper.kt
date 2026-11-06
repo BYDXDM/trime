@@ -5,6 +5,7 @@
 
 package com.osfans.trime.data.db
 
+import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
@@ -165,13 +166,65 @@ object ClipboardHelper :
         if (timestamp == lastClipTimestamp && hash == lastClipHash) return
         lastClipTimestamp = timestamp
         lastClipHash = hash
+        ingest(clip)
+    }
+
+    /** 键盘这一次弹出期间已经处理过的剪贴板内容，避免切换输入框时反复弹提示 */
+    private var lastSyncedText: String? = null
+
+    private fun currentClipText(): String? = clipboardManager.primaryClip?.let { DatabaseBean.fromClipData(it)?.text }
+
+    /** 键盘收起时把当时的剪贴板内容记为「用户已见过」；读不到就不覆盖，避免下次误判为「有新内容」 */
+    fun onKeyboardHidden() {
+        currentClipText()?.let { lastSyncedText = it }
+    }
+
+    /**
+     * 键盘每次显示时补读一次系统剪贴板。
+     *
+     * [onPrimaryClipChanged] 只在「复制的那一刻」有回调，而常见路径是先在别的应用里复制、
+     * 再切回来打开键盘：那时建议条早已按默认 20s 超时消失；若复制时输入法进程还没起来，
+     * 监听器压根不存在，回调直接丢掉。此刻本输入法已获得焦点，读剪贴板一定合法，补录一次即可。
+     *
+     * 与「收起键盘时的内容」一致就不做任何事，因此不会每次弹键盘都重复提示。
+     */
+    fun syncOnKeyboardShown() {
+        if (!enabledPref.getValue()) {
+            Timber.d("syncOnKeyboardShown: clipboard listening disabled")
+            return
+        }
+        val clip = clipboardManager.primaryClip
+        if (clip == null) {
+            Timber.d("syncOnKeyboardShown: primaryClip is null (system denied clipboard read)")
+            return
+        }
+        val text = DatabaseBean.fromClipData(clip)?.text
+        if (text == null) {
+            Timber.d("syncOnKeyboardShown: clip has no text")
+            return
+        }
+        if (text == lastSyncedText) {
+            Timber.d("syncOnKeyboardShown: same as last synced, skip")
+            return
+        }
+        lastSyncedText = text
+        Timber.d("syncOnKeyboardShown: ingest %s", text.take(48))
+        ingest(clip)
+    }
+
+    private fun ingest(clip: ClipData) {
         launch {
             mutex.withLock {
-                val bean = DatabaseBean.fromClipData(clip) ?: return@withLock
+                val bean = DatabaseBean.fromClipData(clip)
+                if (bean == null) {
+                    Timber.d("ingest: clip produced no bean")
+                    return@withLock
+                }
                 if (bean.text.isNullOrBlank()) return@withLock
                 if (bean.text.matchesAny(outputRules) ||
                     bean.text.removeRegexSet(compareRules).isEmpty()
                 ) {
+                    Timber.d("ingest: filtered by output/compare rules: %s", bean.text.take(48))
                     return@withLock
                 }
                 try {

@@ -42,6 +42,7 @@ import com.osfans.trime.core.RimeKeyMapping
 import com.osfans.trime.core.RimeMessage
 import com.osfans.trime.daemon.RimeDaemon
 import com.osfans.trime.daemon.RimeSession
+import com.osfans.trime.data.db.ClipboardHelper
 import com.osfans.trime.data.prefs.AppPrefs
 import com.osfans.trime.data.prefs.PreferenceDelegate
 import com.osfans.trime.data.prefs.PreferenceDelegateProvider
@@ -639,6 +640,9 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
             inputDeviceManager.evaluateOnStartInputView(attribute, this)
         if (useVirtualKeyboard) {
             inputView?.startInput(attribute, restarting)
+            // 复制通常发生在键盘收起时，只靠 onPrimaryClipChanged 的回调会因建议条超时、
+            // 或输入法进程当时没起来而漏掉；键盘一出现就补读一次系统剪贴板。
+            ClipboardHelper.syncOnKeyboardShown()
         }
         if (useCandidatesView) {
             if (currentInputConnection?.monitorCursorAnchor() != true) {
@@ -658,6 +662,8 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         englishBuffer.flush()?.let { applyCorrection(it) }
         englishBuffer.clear()
         decorLocationUpdated = false
+        // 收起键盘时记下当前剪贴板内容，下次弹出时据此判断期间是否又复制了新东西
+        ClipboardHelper.onKeyboardHidden()
         inputView?.dismissCandidateActionMenu()
         candidatesView?.dismissCandidateActionMenu()
         inputDeviceManager.onFinishInputView()
