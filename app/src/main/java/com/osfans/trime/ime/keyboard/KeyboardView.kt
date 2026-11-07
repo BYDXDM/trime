@@ -146,6 +146,25 @@ class KeyboardView(
     /** 该键是否属于钉在底部的页签行。 */
     private fun isPinned(key: Key): Boolean = keyboard.pinnedHeight > 0 && key.y >= keyboard.pinnedTop
 
+    /**
+     * 命中测试：落点是否在「按钮键」上 —— 钉底页签行（返回/分组页签）或右侧
+     * slide_fixed 功能列（∧/∨/123/⌫）。这些键自己处理点按，容器不该抢走手势。
+     */
+    private fun hitTestButtonKey(x: Float, y: Float): Boolean {
+        val keys = keyboard.keys
+        for (i in 0 until childCount) {
+            val key = keys.getOrNull(i) ?: continue
+            if (!key.slideFixed && !isPinned(key)) continue
+            val view = getChildAt(i)
+            val left = view.translationX
+            val top = view.translationY
+            if (x >= left && x < left + view.width && y >= top && y < top + view.height) {
+                return true
+            }
+        }
+        return false
+    }
+
     fun invalidateAllKeys() {
         children.forEach { it.invalidate() }
     }
@@ -180,6 +199,14 @@ class KeyboardView(
     private var touchStartX = 0f
     private var touchStartY = 0f
     private var dragging = false
+
+    /**
+     * 本次按下的落点是否在「按钮键」上（钉底页签行的返回/分组页签、右侧 slide_fixed
+     * 功能列）。落在按钮上时不启动滚动/翻页拦截：真实手指点按带几像素纵向抖动，
+     * 一旦超过 touchSlop 就被滚动判定拦截，子键收到 ACTION_CANCEL，点击静默丢失
+     * —— 表现为符号面板左下角的「返回」有时失效。
+     */
+    private var touchOnButtonKey = false
 
     /** 拖起来之后锁定的主轴：true = 纵向滚动，false = 横向翻组。 */
     private var draggingVertical = false
@@ -280,11 +307,12 @@ class KeyboardView(
                 touchStartX = ev.x
                 touchStartY = ev.y
                 dragging = false
+                touchOnButtonKey = hitTestButtonKey(ev.x, ev.y)
                 scroller.forceFinished(true)
             }
 
             MotionEvent.ACTION_MOVE -> {
-                if (!dragging) {
+                if (!dragging && !touchOnButtonKey) {
                     val dx = ev.x - touchStartX
                     val dy = ev.y - touchStartY
                     // 主轴取位移大的那个，且要比另一轴明显大，避免斜着划时来回跳

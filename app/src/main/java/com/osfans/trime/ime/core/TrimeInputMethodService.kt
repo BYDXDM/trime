@@ -708,6 +708,21 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     }
 
     /**
+     * 快捷符号（键帽滑动出的 ASCII 标点，如 B 键上滑的 ':'）直接上屏半角单字符。
+     *
+     * 不能把这些键码发给 Rime 的标点处理器：Punctuator 收键后 PushInput 把符号塞进
+     * 原始输入，再靠「末段已是翻译完的 punct 段」才自动提交；在句首预测条、组词中
+     * 等瞬态下该条件不成立，符号就滞留在组词里——表现为挂在候选栏末尾等二次确认
+     * （打 ： 有概率不上屏）。与全角符号的 onText 路径同款待遇：先结清组词再上屏。
+     */
+    fun commitQuickSymbol(text: String) {
+        postRimeJob {
+            if (statusCached.isComposing) commitComposition()
+            this@TrimeInputMethodService.commitText(text)
+        }
+    }
+
+    /**
      * 成对符号提交：一次上屏 open+close，并把光标移到两者之间。
      * 仅在「没有未上屏的预编辑、没有选区、光标后没有内容」时使用；
      * 任一条件不满足就返回 false，调用方回退为普通单字上屏。

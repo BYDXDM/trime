@@ -126,7 +126,9 @@ class ThemeGoldenTest :
                     // 41 → 42：新增 ClearAll（删除键上滑「清空」）。
                     // 42 → 43：新增 SymbolsTab_kaomoji（颜文字分组页签）。
                     // 43 → 44：符号面板改可滚动长面板，删掉颜文字页、补 SymbolsPageUp/PageDown。
-                    theme.presetKeys.size shouldBe 44
+                    // 44 → 45：数字盘空格改 Number_space 预设键（动作带 label，ascii_mode 下
+                    // Key.getLabel 只认动作的 label，裸 space 会兜底显示方案名）。
+                    theme.presetKeys.size shouldBe 45
                     // 补回的预设里 copy/paste 曾经是哑键，这里守住它们
                     theme.presetKeys.getValue("copy").send shouldBe "Control+c"
                     theme.presetKeys.getValue("paste").send shouldBe "Control+v"

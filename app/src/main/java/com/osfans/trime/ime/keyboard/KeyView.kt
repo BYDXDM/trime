@@ -24,6 +24,7 @@ import com.osfans.trime.data.theme.KeyActionManager
 import com.osfans.trime.ime.core.TrimeInputMethodService
 import com.osfans.trime.ime.popup.PopupAction
 import com.osfans.trime.ime.popup.PopupDelegate
+import com.osfans.trime.util.isAsciiPrintable
 import com.osfans.trime.util.sp
 import splitties.bitflags.hasFlag
 import splitties.dimensions.dp
@@ -139,7 +140,13 @@ class KeyView(
                     // 上下滑不再兜底翻分组：符号面板改成整块纵向滚动（KeyboardView 负责），
                     // 没被容器拦下的竖向手势直接忽略，避免「想滚一点却整组跳走」。
                     KeyBehavior.SWIPE_UP, KeyBehavior.SWIPE_DOWN ->
-                        key.getAction(behavior)?.let { processKeyAction(it, behavior) }
+                        key.getAction(behavior)?.let { action ->
+                            // 快捷符号（B 键上滑 ':' 这类 ASCII 标点）应用层直接上屏，
+                            // 不进 Rime 标点队列 —— 否则在预测条/组词等瞬态下会滞留成
+                            // 候选栏末尾的半角符号，等二次确认才上屏（见 commitQuickSymbol）。
+                            quickSymbolText(action)?.let { service.commitQuickSymbol(it) }
+                                ?: processKeyAction(action, behavior)
+                        }
 
                     KeyBehavior.DOUBLE_CLICK, KeyBehavior.LAZY_DOUBLE_CLICK ->
                         key.getAction(behavior)?.let { processKeyAction(it, behavior) }
@@ -228,6 +235,25 @@ class KeyView(
             }
             invalidate()
         }
+    }
+
+    /**
+     * 快捷符号判定：动作是「无命令/无文本的单个 ASCII 标点键码」时返回该字符
+     * （如 B 键上滑的 ':' → 10005）。字母数字不算——QWERTY 上滑的数字在组词中
+     * 要保留 Rime 按位选候选的语义；全角符号（swipe_down '：'）走 text 路径，
+     * 上游已直接上屏，也不算。
+     */
+    private fun quickSymbolText(action: KeyAction): String? {
+        if (action.isModifierKey || action.command.isNotEmpty() || action.select.isNotEmpty() ||
+            action.toggle.isNotEmpty() || action.commit.isNotEmpty() || action.text.isNotEmpty()
+        ) {
+            return null
+        }
+        val label = KeyCode.getDisplayLabel(action.code, action.modifier)
+        if (label.length != 1) return null
+        val ch = label[0]
+        if (!ch.isAsciiPrintable() || ch.isLetterOrDigit()) return null
+        return label
     }
 
     private fun processKeyAction(action: KeyAction, behavior: KeyBehavior) {

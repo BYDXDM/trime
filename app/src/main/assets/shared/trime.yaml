@@ -251,6 +251,11 @@ preset_keys:
   Keyboard_number: { label: '123', send: Eisu_toggle, select: number }
   Keyboard_letter: { label: 返回, send: Eisu_toggle, select: my_pinyin }
   Keyboard_default: { label: 返回, send: Eisu_toggle, select: .default }
+  # 数字盘的空格。必须走预设键让「动作」带 label：数字盘 ascii_mode=1，
+  # Key.getLabel 在 ASCII 模式下只认动作的 label，键上的 label 会被跳过；
+  # 裸 space 动作没有 label 时兜底显示当前方案名（KeyAction.getLabel 的空格特例），
+  # 于是数字盘空格键上冒出「myime拼音」。
+  Number_space: { label: 空格, send: space }
   # 剪贴板窗口。必须写 send: FUNCTION，KeyAction 解析预设键时只有
   # KeyCode.parse(send) 解不出 keycode、且 command 非空，才会落到
   # KEYCODE_FUNCTION → handleFunctionCommand → "clipboard_window"。
@@ -1037,8 +1042,10 @@ preset_keyboards:
     - { click: '9', label: '9', width: 22 }
     - { click: BackSpace, label: '⌫', width: 22 }
     # ---- 第 4 行 ----
+    # 空格走 Number_space 预设键（动作带 label 空格）：数字盘 ascii_mode=1 时
+    # Key.getLabel 只认动作的 label，裸 space 会兜底显示方案名「myime拼音」。
     - { click: Keyboard_letter, label: '返回', width: 12 }
     - { click: Keyboard_symbols, label: '符', width: 22 }
     - { click: '0', label: '0', width: 22 }
-    - { click: space, width: 22 }
+    - { click: Number_space, width: 22 }
     - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, hide_symbol: true, width: 22 }

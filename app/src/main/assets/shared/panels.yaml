@@ -526,9 +526,11 @@ number_panel:
   - { click: BackSpace, label: '⌫', width: 22 }
 
   # ---- 第 4 行 ----
+  # 空格走 Number_space 预设键（动作带 label 空格）：数字盘 ascii_mode=1 时
+  # Key.getLabel 只认动作的 label，裸 space 会兜底显示方案名「myime拼音」。
   - { click: Keyboard_letter, label: '返回', width: 12 }
   - { click: Keyboard_symbols, label: '符', width: 22 }
   - { click: '0', label: '0', width: 22 }
-  - { click: space, width: 22 }
+  - { click: Number_space, width: 22 }
   - { click: Return, label: '⏎', composing: Return1, long_click: CommitComment, hide_symbol: true, width: 22 }
 
