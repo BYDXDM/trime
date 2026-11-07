@@ -1390,3 +1390,51 @@ MuMu debug 包验证：弹出→补读→入库（clipboard.db 出现当刻文�
 **构建/装机记录**：arm64-v8a release 13.4MB，13.41 装入真机 EAT0220316001355
 （`install -r` Success，lastUpdateTime=2026-11-07 13:41:16）。
 真机行为待用户确认；MuMu 上行为验证只覆盖 ①。
+
+## 0.11 2026-11-07 第十二轮（返回失效 / 快捷符号：不上屏 / 数字盘空格 三连修，已装机）
+
+用户报的三个新 bug，全部复现、定位、修复并在 MuMu 实例1 验证（b5306489）。
+
+**① 符号面板左下角「返回」有时失效（KeyboardView.kt）**：
+复现方法：`adb shell input swipe 127 860 127 840 180`（在返回键上带 20px 纵向漂移的
+点按）——修复前日志里**没有** KeyView release，点击被吞。根因：符号面板
+scrollable，`onInterceptTouchEvent` 的纵向拦截只判 `touchSlop`，真实手指点页签行
+时的几像素抖动就中招，子键收 ACTION_CANCEL。修：DOWN 落点命中**钉底页签行或
+slide_fixed 功能列**（hitTestButtonKey）时容器不启动拦截；横滑翻组不受影响——
+键级 SWIPE_LEFT/RIGHT 没绑定时仍兜底 `onKeyboardPaging`（已验证）。
+
+**② 快捷符号打：有概率不上屏 + 候选栏挂半角冒号（KeyView.kt + TrimeInputMethodService.kt）**：
+用户补充的线索是关键：「B 键上滑有概率触发半角选择（只要半角）」= 候选栏末尾挂出
+**半角 ':' 候选**。机制（MuMu debug 包 logcat 实证）：swipe_up 的 ':' 被解析成
+键码 10005（"colon"），text 为空 → `handleDefaultKeyAction` → `processKey(XK_colon)`
+进 Rime。`Punctuator::ProcessKeyEvent` 对标点键 `PushInput` 后，只有
+`punctuation_is_translated`（末段已是翻译完的 punct 段）才 Confirm/AutoCommit，
+在句首预测条（"$" 联想）、组词中等瞬态下不满足 → **冒号滞留组词**，随输入挂在
+候选栏末尾等二次确认。组词空时同路径却直接上屏（express_editor/raw 路径），
+所以「有概率」。修：KeyView 的 SWIPE_UP/SWIPE_DOWN 分支先过 `quickSymbolText()`
+——「无命令/无文本的单个 ASCII 标点键码」→ `service.commitQuickSymbol()`：
+postRimeJob 里先 `commitComposition()`（结清组词，同全角 '：' 的 onText 待遇）
+再 `commitText`，完全绕开 Rime 标点队列。字母数字不劫持（已验证组词中 Q 键上滑
+'1' 仍走 processKey 选候选）。**注意**：这层的判定与 Rime 的 half_shape/ascii_punct
+无关，永远上半角单字符——与 2026-10-25「快捷符号直接上屏半角」的拍板一致。
+
+**③ 数字盘空格显示「myime拼音」（panels.yaml + trime.yaml）**：
+那不是 bug 键，是**空格键**：数字盘 `ascii_mode: 1`，`Key.getLabel()` 在 ASCII 模式
+（`isAsciiMode || isAsciiPunct`）下**只认动作的 label**，键上配 label 会被跳过
+（第一版只给键配 label 无效的原因）；裸 space 动作无 label 时
+`KeyAction.getLabel` 的空格特例兜底显示**当前方案名**。修：preset_keys 新增
+`Number_space: { label: 空格, send: space }`，number_panel 第 4 行改用它；
+ThemeGoldenTest 基线 44 → 45。
+
+**验证**：MuMu 实例1（`MuMuManager create --vmindex 1`，adb 16416，x86_64 debug）
+逐项复现+修复后回归：返回漂移点按 3 次全过、翻组/滚动不受影响、组词中上滑 B
+直接上屏「理财:」、数字盘空格显示「空格」。`spotlessCheck :app:testDebugUnitTest`
+384 用例 0 失败。
+
+**环境（重要）**：仓库必须从 `subst T:` 盘构建——`subst T: D:\ai\工作\trime-build`
+（重启会丢，丢了 checksums/ninja 会报「different roots: T:\...」或中文路径 mojibake
+「D:\ai\宸ヤ綔」，ninja chdir 失败）。构建一律 `cd /t && gradlew.bat ...`。
+另：MuMu 实例0 是用户在打游戏，**别动**；测试用实例1。
+
+**装机记录**：arm64-v8a release 14.0MB，18:17 构建，装入真机 EAT0220316001355
+（`install -r -t` Success）。真机行为待用户确认。
