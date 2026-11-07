@@ -1,163 +1,49 @@
-<!--
-SPDX-FileCopyrightText: 2015 - 2024 Rime community
+# trime-build — Trime(同文输入法)fork 活跃主仓库
 
-SPDX-License-Identifier: GPL-3.0-or-later
--->
+> 工作区盘点版 README(2026-11-07),替换了上游同名文件。上游原版内容可随时取回:
+> `git show HEAD:README.md`,或看 `README_sc.md` / `README_tc.md`(中文版)。
+> fork 的功能差异与键盘方案详解见 **README-FORK.md**;开发过程实录见 **HANDOVER.md**。
 
-# Trime
+Trime = Rime 输入法引擎的 Android 前端(Java/Kotlin + JNI C++)。本目录是 osfans/trime 的二次开发主仓库,日常构建、改码、装机都在这里。
 
-Rime IME for Android
+## 分支与远程
 
-![build](https://github.com/osfans/trime/actions/workflows/commit-ci.yml/badge.svg?branch=develop)
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![GitHub release](https://img.shields.io/github/release/osfans/trime.svg)](https://github.com/osfans/trime/releases)
-[![F-Droid release](https://img.shields.io/f-droid/v/com.osfans.trime.svg)](https://f-droid.org/packages/com.osfans.trime)
-[![Latest build](https://img.shields.io/github/last-commit/osfans/trime.svg)](http://osfans.github.io/trime/)
+| 项 | 值 |
+|---|---|
+| 分支 | `develop`(唯一工作分支) |
+| origin | `https://github.com/BYDXDM/trime.git`(自己的 fork,推送目标) |
+| upstream | `https://github.com/osfans/trime.git`(上游) |
+| 本地 vs origin | **领先 3 个提交未推送**,无落后(2026-11-07 快照,当天有 fetch) |
+| 本地 vs upstream | 领先 88 / 落后 15 |
 
-English | [简体中文](README_sc.md) | [繁體中文](README_tc.md)
+最新提交(36f89c99,2026-11-07):剪贴板建议条两连修、候选面板缺字形过滤、空格长按 iOS 式触摸板+光标放大镜等。
 
-## About
+**工作区状态**:4 个源文件已改未提交(候选/键盘 UI)+ 2 个 typechange + 47 个未跟踪文件(多为 `tools/_*.py` 截图工具与构建日志),submodule `librime-lua-deps` 有本地改动。根目录 `_commit_msg.txt`、`rebuild_predict_db.sh`、`relink_plugin.bat` 为工作残留。
 
-Trime is originally a frontend of open-source [Android Traditional Chinese IME], based on [RIME] input method framework and written in Java/Kotlin with JNI. It is designed to protect the native language of various local dialects of Chinese and is a universal shape-based and phonetic-based input method platform.
+## 构建要点
 
-[Documentation](https://github.com/osfans/trime/wiki)
+- 命令:`gradlew assembleDebug` / `assembleRelease`(本地构建日志 `build-arm64*.log`、`b-*.log` 即产物)。风格检查 `make spotlessCheck`。
+- 原生层:externalNativeBuild → `app/src/main/jni/CMakeLists.txt`,聚合 librime 及其依赖(glog/yaml-cpp/snappy/leveldb/marisa/OpenCC)+ JNI 层 `librime_jni`。NDK `28.0.13004108`、CMake `3.31.6` 版本由 `build-logic/convention/.../Versions.kt` 统一定义。
+- submodule 必须先同步:`git submodule update --init`(`.gitmodules` 里 librime、librime-lua、OpenCC、snappy、octagram、trime-predict 等;`librime-predict` 指向 BYDXDM/trime-predict)。
+- **Boost 自动下载坑**:`jni/cmake/Boost.cmake` 首次 configure 自动下载 `boost-1.89.0-cmake.tar.xz`(SHA256 校验),但 `file(DOWNLOAD)` 的目标是**相对路径,落点是 cmake 进程的 cwd**,不是源码目录 —— 正常从 gradle 走,tar.xz 落在 `app/boost-1.89.0.tar.xz`(约 102MB,下载缓存);解包才落到 `CMAKE_SOURCE_DIR` 即 `jni/boost/`。若绕过 gradle 从别的目录手动 configure,会在那个 cwd 多出一份 tar.xz(可删)。**`jni/boost/` 是解包产物,不算源码,勿提交。**
+- **路径坑**:现路径 `D:\ai\工作` 含中文,历史上中文路径曾导致 ninja 构建失败(故曾迁 ASCII 路径构建,迁移记录在 HANDOVER.md §0.9);如今在中文路径下构建需 `android.overridePathCheck=true`(构建日志有 experimental warning)。若 cmake/ninja 报诡异"文件找不到",优先怀疑中文路径。
+- 签名:`keystore.properties` + `release.jks`(含口令,**敏感**)。CI 走 `.github/workflows/build-fork.yml`(可出 release 并发 Release),配置详见 CI-BUILD.md。
+- `Makefile` 另有 `patch-apply`(CI 用,给 librime 打补丁,补丁在 `patches/`)、clang-format 等目标。
 
-## Download
+## 目录要点
 
-- Stable Channel <br>
-  [<img alt='Get it on F-Droid' src='https://fdroid.gitlab.io/artwork/badge/get-it-on.png' height='80px'/>](https://f-droid.org/packages/com.osfans.trime)
-  [<img alt='Google Play Download Now' src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png' height='80px'/>](https://play.google.com/store/apps/details?id=com.osfans.trime)
+- `app/src/main/java/com/osfans/trime/` — 主代码:`ime/`(输入法服务、键盘、候选)、`core/`、`data/`、`ui/`、`provider/` 等;入口 `TrimeApplication.kt`。
+- `app/src/main/jni/` — 原生层:7 个 submodule(librime/librime-lua/OpenCC/snappy/octagram/predict/lua-deps)+ `librime_jni/`(JNI 胶水,`rime_jni.cc` 等)+ `cmake/`(Boost.cmake 等查找/下载脚本)。
+- `app/src/main/assets/shared/` — **词库方案目录**:luna_pinyin 系列、`mydomain.*`(自建域名词方案)、`pinyin.yaml`、`trime.yaml`(键盘布局)、`predict.db`(联想库)等。
+- `app/data/rime/` — 随包 rime 方案子模块(prelude/luna-pinyin/stroke/essay)。
+- `docs/`(仅 english-correction.md)、`doc/`(Keyboard.md、trime-schema.json)、`fastlane/`(商店元数据)。
+- 构建产物/缓存(**盘点勿进、勿递归**,本仓共 6.6G 主要就是它们):`app/build/`、`.gradle/`、`app/.cxx/`、`jni/boost/`、`build/`、`dist/`(APK 产物)。
 
-- Nightly Channel [Download](https://github.com/osfans/trime/releases/tag/nightly)
+## 关联说明
 
-- Canary Channel [Download](https://github.com/osfans/trime/actions)
+- 工作区根目录的 `_dev_luna.custom.yaml`、`_dev_mydomain.custom.yaml`、`_dev_pinyin.yaml`、`_dev_trime.yaml`、`_built_mydomain.yaml` 是本仓 `assets/shared/` 词库方案的桌面侧配套/构建中间产物,已确认留在根目录,与本仓联动但互不隶属,勿删。
+- `_archive/trime-old-clone-03eb40eb/` 是本仓的历史祖先克隆,仅作考古。
 
-- Configurations [rimerc](https://github.com/Bambooin/rimerc)
+## 敏感文件(存在即可,内容勿复述、勿提交)
 
-## History
-
-TRIME is the abbreviation of _Tongwen RIME_ or _ThaeRv Input Method_.
-
-From the beginning, TRIME was written for TaeRv Pinyin, and named _TaeRv Input Method (泰如输入法)_.
-
-Then, we created an input method platform with some code tables, such as Wu dialect (吴语). We renamed it to _Chinese Character Dialect Input Method (汉字方言输入法)_.
-
-Later, it supports Wubi and Liangbi and other shape-based input method, we branded it [_Tongwen Input Method Platform 2.0 (同文输入法平台 2.0)_](https://github.com/osfans/trime-legacy), which implies that the phonetic-based and shape-based input method on one platform, while dialects and Mandrain share one kind of characters.
-
-Benefit from the [librime](https://github.com/rime/librime) project by JNI, we are now in version 3.0 of TRIME aka _Tongwen Input Method (同文输入法)_.
-
-Your are now welcome to [contribution](CONTRIBUTING.md) ~ !
-
-## Getting Started for developer
-
-### Prepare
-
-#### Requirements:
-
-- Android SDK and Android NDK
-  * If you are new to Android development, please install [Android Studio](https://developer.android.com/studio).
-
-- JDK (OpenJDK) 17
-- Python 3 (required by OpenCC to generate dictionary text files)
-
-#### Prerequisites for Windows
-
-Symbolic links will be created according to current build configurations, developers need:
-
-- Enable [Developer Mode](https://learn.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development) so that symlinks can be created without administrator privilege.
-
-- Enable symlink support for `git`:
-
-  ```powershell
-  git config --global core.symlinks true
-  ```
-
-If you cannot or wouldn't like to enable anything, it doesn't matter. Copying will be used instead when error on creating symbolic links.
-
-### Build
-
-#### 1. Clone this project and fetch all submodules:
-
-```sh
-git clone git@github.com:osfans/trime.git
-git submodule update --init --recursive
-# use partial clone to save time
-git submodule update --init --recursive --filter=blob:none
-```
-
-#### 2. Debug version without signature:
-
-```sh
-# On Linux or macOS
-make debug
-
-# On Windows
-.\gradlew assembleDebug
-```
-
-#### 3. Release version with signture:
-
-Create `keystore.properties` file which contains following contents for [signing information](https://developer.android.com/studio/publish/app-signing.html):
-
-```gradle.properties
-storePassword=myStorePassword
-keyPassword=mykeyPassword
-keyAlias=myKeyAlias
-storeFile=myStoreFileLocation
-```
-
-Then, you may run:
-
-```sh
-# On Linux or macOS
-make release
-
-# On Windows
-.\gradlew assembleRelease
-```
-
-### Troubleshooting
-
-```
-Target "boost_log_setup" links to target "Boost::coroutine" but the target was not found.
-```
-
-Run `make clean` on Linux or macOS, or run `.\gradlew clean` on Windows.
-
-Other issues:
-
-1. Try `make clean`
-2. Make sure your repo is up-to-date. If one or more submodules are modified, also make sure they are compatible with the current version.
-3. If the problem still exists(very unlikely), try to make a new clone.
-4. Check if this is there is an issue/PR related to your problem. If yes, try their solutions.
-5. If none of them works, you may make an issue to ask for help.(optional)
-
-## Acknowledgments
-
-- Developer: [osfans](https://github.com/osfans)
-- Contributors: [boboIqiqi](https://github.com/boboIqiqi)、[Bambooin](https://github.com/Bambooin)、[senchi96](https://github.com/senchi96)、[heiher](https://github.com/heiher)、[abay](https://github.com/a342191555)、[iovxw](https://github.com/iovxw)、[huyz-git](https://github.com/huyz-git)、[tumuyan](https://github.com/tumuyan)、[WhiredPlanck](https://github.com/WhiredPlanck)、[nopdan](https://github.com/nopdan)...
-- [Wiki Editors](https://github.com/osfans/trime/wiki): [xiaoqun2016](https://github.com/xiaoqun2016)、[boboIqiqi](https://github.com/boboIqiqi)...
-- Translators: 天真可爱的满满 (Chinese Traditional), 点解 (English) ...
-- Keyboard Designers: 天真可爱的满满、皛筱晓小笨鱼、吴琛 11、熊猫阿 Bo、默默ㄇㄛ ˋ...
-- Donations: See QR Code in [Releases](https://github.com/osfans/trime/releases)
-- Community: Netizens who feedback in [Issues](https://github.com/osfans/trime/issues)、[QQ Group (811142286)](https://jq.qq.com/?_wv=1027&k=AXdR80HN)、[QQ Group (224230445)](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=pg_q7UVumWYLq1Rk8kIAqkK1xGt64VnX&authKey=04m9l7OBO5H5vgrEL8IbpsmtnptWM60xy%2FUwYCfyvw9VcRhe8zRzAS1ezoemZdFr&noverify=0&group_code=224230445)、[Tieba](http://tieba.baidu.com/f?kw=rime)、[Google Play](https://play.google.com/store/apps/details?id=com.osfans.trime)、[Telegram](https://t.me/trime_dev)...
-- Projects: [RIME]、[OpenCC]、[Android Traditional Chinese IME] and so on.
-
-## Third Party Libraries
-
-- [Boost C++ Libraries](https://www.boost.org/) (Boost Software License)
-- [darts-clone](https://github.com/s-yata/darts-clone) (New BSD License)
-- [LevelDB](https://github.com/google/leveldb) (New BSD License)
-- [libiconv](https://www.gnu.org/software/libiconv/) (LGPL License)
-- [marisa-trie](https://github.com/s-yata/marisa-trie) (BSD License)
-- [glog](https://github.com/google/glog) (New BSD License)
-- [OpenCC](https://github.com/BYVoid/OpenCC) (Apache License 2.0)
-- [RIME](https://rime.im) (BSD License)
-- [snappy](https://github.com/google/snappy)(BSD License)
-- [utfcpp](https://github.com/nemtrif/utfcpp) (Boost Software License)
-- [yaml-cpp](https://github.com/jbeder/yaml-cpp) (MIT License)
-- [Android Traditional Chinese IME](https://code.google.com/p/android-traditional-chinese-ime/) (Apache License 2.0)
-
-[Android Traditional Chinese IME]: https://code.google.com/p/android-traditional-chinese-ime/
-[RIME]: http://rime.im
-[OpenCC]: https://github.com/BYVoid/OpenCC
+`keystore.properties`(签名口令)、`release.jks`(签名密钥库)、`dist/release.jks.base64.txt`(等价私钥)。
