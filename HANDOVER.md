@@ -1370,3 +1370,23 @@ seam 2.04 / 0.39× 已达标。`InputView.kt` 的 -46 行回滚 + 新 GIF 已提
 目录被整体移动，非重装）。所有构建、adb、文档引用一律用新路径；
 本文件、NEXT-STEPS.md 与 PROMPT-NEXT-AGENT.md 中的旧路径已全部替换。
 其余（远端 BYDXDM/trime、分支 develop、真机 EAT0220316001355、签名）不变。
+
+## 0.10 2026-11-06～07 第十一轮（剪贴板建议条两连修，已装机）
+
+**① 复制后不显示建议条（ca185cea，2026-11-07 装机验证）**：
+用户在 B 站 App 复制链接后键盘里什么都不弹。根因：`onPrimaryClipChanged` 只在复制瞬间生效，
+而复制时键盘收起（后台读剪贴板在 Android 10+ 还可能被拒返回 null），等打开键盘时建议条要么已超时
+要么根本没收到。修法（`ClipboardHelper.kt` + `TrimeInputMethodService.kt`）：
+键盘收起时记 `lastSyncedText` 快照（`onKeyboardHidden()`，读不到不覆盖），
+`onStartInputView` 调 `syncOnKeyboardShown()` 主动补读一次系统剪贴板，与快照不同才 ingest 入库并弹建议条。
+MuMu debug 包验证：弹出→补读→入库（clipboard.db 出现当刻文本）→建议条全链生效。
+注意 release 包无 Timber 日志（仅 DEBUG plant），EMUI 还会屏蔽第三方 logcat，验证只能靠行为。
+
+**② 建议条「只提示一次」（54fa978c，2026-11-07 装机）**：
+用户反馈：打完字上屏后建议条还赖在候选栏直到 20s 超时。修法（`InputBarDelegate.kt:228`
+`onCandidateListUpdate` 开头）：`isClipboardFresh` 且候选**非空**时立即 `dismissClipboardSuggestion()`。
+空候选不算打字——上屏清空、键盘初开都会推空列表，若对空也退位，建议条刚弹出就被自己的初始广播杀掉。
+
+**构建/装机记录**：arm64-v8a release 13.4MB，13.41 装入真机 EAT0220316001355
+（`install -r` Success，lastUpdateTime=2026-11-07 13:41:16）。
+真机行为待用户确认；MuMu 上行为验证只覆盖 ①。
