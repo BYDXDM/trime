@@ -226,6 +226,11 @@ class InputBarDelegate(override val di: DI) :
     }
 
     override fun onCandidateListUpdate(data: Candidates.Bulk) {
+        // 剪贴板建议条只提示一次：一旦开始打字（出现非空候选）立即让位，不等超时。
+        // 空候选（上屏后清空、键盘刚打开的初始推送）不算打字，避免建议条刚弹出就被误杀。
+        if (isClipboardFresh && data.candidates.isNotEmpty()) {
+            dismissClipboardSuggestion()
+        }
         barStateMachine.push(
             QuickBarStateMachine.TransitionEvent.CandidatesUpdated,
             QuickBarStateMachine.BooleanKey.CandidateEmpty to data.candidates.isEmpty(),
