@@ -46,6 +46,8 @@ object ColorManager {
 
     private var isNightMode = false
 
+    private var isLandscape = false
+
     val activeColorScheme: ColorScheme
         get() = requireNotNull(requireScope().activeColorScheme) { "ColorManager is not initialized" }
 
@@ -78,9 +80,17 @@ object ColorManager {
         onChangeListeners.forEach { it.onColorChange(requireScope().theme) }
     }
 
-    fun init(configuration: Configuration) {
+    fun init(
+        configuration: Configuration,
+        landscape: Boolean,
+    ) {
         isNightMode = configuration.isNightMode()
-        activateScheme(notify = false)
+        isLandscape = landscape
+        // ThemeManager.init attaches the theme before it calls init here, and
+        // attachTheme already activated the scheme with the default landscape
+        // flag. Without force the early return below keeps that portrait table,
+        // so a landscape start would show the portrait background.
+        activateScheme(notify = false, force = true)
 
         val maxMemory = Runtime.getRuntime().maxMemory() / 1024
         val cacheSize = maxMemory / 8
@@ -93,9 +103,30 @@ object ColorManager {
             }
     }
 
-    fun onSystemNightModeChange(isNight: Boolean) {
-        isNightMode = isNight
-        activateScheme(notify = true)
+    /**
+     * Re-resolves the active scheme after the system configuration changed
+     * (day/night mode, screen orientation).
+     *
+     * [landscape] is decided by the caller, not read from [configuration]:
+     * the keyboard lays itself out in landscape mode on any wide screen
+     * (`KeyboardPrefs.isLandscapeMode`), and the wallpaper must follow the
+     * keyboard it sits behind, not the display orientation.
+     *
+     * A direction change must force the rebuild: the landscape override only
+     * lives in the scope's color table, while [activateScheme] returns early
+     * for an unchanged scheme, which would leave the portrait background in
+     * place after rotating.
+     */
+    fun onConfigurationChanged(
+        configuration: Configuration,
+        landscape: Boolean,
+    ) {
+        val night = configuration.isNightMode()
+        if (night == isNightMode && landscape == isLandscape) return
+        val directionChanged = landscape != isLandscape
+        isNightMode = night
+        isLandscape = landscape
+        activateScheme(notify = true, force = directionChanged)
     }
 
     /** The current theme scope, or null before the first theme is attached. */
@@ -133,11 +164,12 @@ object ColorManager {
     private fun activateScheme(
         scheme: ColorScheme? = null,
         notify: Boolean,
+        force: Boolean = false,
     ) {
         val activeScope = scope ?: return
         val target = scheme ?: resolveActiveScheme(activeScope.theme)
-        if (activeScope.activeColorScheme == target) return
-        activeScope.updateScheme(target)
+        if (!force && activeScope.activeColorScheme == target) return
+        activeScope.updateScheme(target, isLandscape)
         generation++
         if (notify) fireChange()
     }

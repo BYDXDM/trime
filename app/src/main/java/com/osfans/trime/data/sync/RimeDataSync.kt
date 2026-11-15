@@ -168,8 +168,14 @@ object RimeDataSync {
                         skipUserDb = skipUserDb,
                         skipPrefix = skipPrefix,
                     )
-                val externalPaths = files.map { it.relativePath }.toSet()
-                val toCopy = files.filter { SyncPathPolicy.shouldImport(it.relativePath, ownId, syncDir) }
+                val pathMapping = SyncPathMap.map(files.map { it.relativePath })
+                pathMapping.duplicates.forEach { Timber.w("Skip colliding sync path $it") }
+                val externalPaths = pathMapping.targets.values.toSet()
+                val toCopy =
+                    files.filter {
+                        pathMapping.targets.containsKey(it.relativePath) &&
+                            SyncPathPolicy.shouldImport(it.relativePath, ownId, syncDir)
+                    }
                 val createdDirs = LocalDirectoryGate()
                 val copyResults =
                     BoundedCopyPool.mapParallel(toCopy, parallelism) { entry ->
@@ -183,9 +189,24 @@ object RimeDataSync {
                             createdDirs,
                         )
                     }
-                val removeResult = OrphanCleaner.removeLocalOrphans(destRoot, externalPaths, ownId, syncDir)
+                val failedLocalPaths =
+                    toCopy
+                        .zip(copyResults)
+                        .filter { (_, result) -> result.result.failed > 0 }
+                        .map { (entry, _) -> pathMapping.targets.getValue(entry.relativePath) }
+                        .toSet()
+                val removeResult =
+                    OrphanCleaner.removeLocalOrphans(
+                        destRoot,
+                        externalPaths,
+                        ownId,
+                        syncDir,
+                        protectPaths = failedLocalPaths,
+                    )
                 SyncIndex.save(SyncIndex.withCurrentTree(mergeIndexEntries(index.entries, copyResults)))
-                val importStats = mergeStats(copyResults.map { it.result })
+                val collisionStats =
+                    CopyResult(0, 0, deleted = 0, failed = pathMapping.duplicates.size, bytesCopied = 0)
+                val importStats = mergeStats(copyResults.map { it.result } + collisionStats)
                 if (UserDbMigration.shouldImportUserDb() && importStats.failed == 0) {
                     UserDbMigration.markImported()
                 }

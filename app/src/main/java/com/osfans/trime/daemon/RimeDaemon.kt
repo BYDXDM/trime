@@ -62,6 +62,9 @@ object RimeDaemon {
     @Volatile
     private var startupRetryJob: Job? = null
 
+    /** A finalize request that arrived while the engine was still starting (F04). */
+    private var stopPending = false
+
     private fun establish(name: String) = object : RimeSession {
         private inline fun <T> ensureEstablished(block: () -> T) = if (name in sessions) {
             block()
@@ -145,7 +148,23 @@ object RimeDaemon {
         if (sessions.isEmpty()) {
             startupRetryJob?.cancel()
             startupRetryJob = null
-            realRime.finalize()
+            requestFinalizeLocked()
+        }
+    }
+
+    private fun requestFinalizeLocked() {
+        when (DeferredStopPolicy.actionFor(realRime.lifecycle.currentState)) {
+            DeferredStopPolicy.Action.STOP_NOW -> {
+                stopPending = false
+                realRime.finalize()
+            }
+
+            DeferredStopPolicy.Action.DEFER -> {
+                stopPending = true
+                Timber.i("Rime is still starting, defer finalize until it becomes ready")
+            }
+
+            DeferredStopPolicy.Action.IGNORE -> stopPending = false
         }
     }
 
@@ -161,6 +180,39 @@ object RimeDaemon {
         TrimeApplication.getInstance().coroutineScope.launch {
             realRime.messageFlow.collect {
                 handleRimeMessage(it)
+            }
+        }
+        TrimeApplication.getInstance().coroutineScope.launch {
+            realRime.lifecycle.stateFlow.collect { state ->
+                when (state) {
+                    RimeLifecycle.State.READY -> {
+                        val stopNow =
+                            lock.withLock {
+                                val stop = DeferredStopPolicy.shouldStopOnReady(stopPending, sessions.size)
+                                stopPending = false
+                                stop
+                            }
+                        if (stopNow) {
+                            Timber.i("Rime became ready without any session, finalize the deferred stop")
+                            realRime.finalize()
+                            // R2: finalize 在锁外执行，其间 createSession 可能已把会话接回来。
+                            // 停止后在锁内复核会话数，仍有会话就按既有路径把引擎拉回来，
+                            // 消除「有会话却没有引擎」的窗口。
+                            lock.withLock {
+                                if (DeferredStopPolicy.shouldRestartAfterFinalize(sessions.size)) {
+                                    Timber.i("A session reconnected while finalizing, restart rime")
+                                    if (!tryStartRimeLocked()) {
+                                        scheduleStartupRetry()
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    RimeLifecycle.State.STOPPED -> lock.withLock { stopPending = false }
+
+                    else -> Unit
+                }
             }
         }
     }

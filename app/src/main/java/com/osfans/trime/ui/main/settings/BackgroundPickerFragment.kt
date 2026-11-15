@@ -50,8 +50,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.osfans.trime.R
 import com.osfans.trime.data.base.DataManager
+import com.osfans.trime.data.theme.BackgroundPalette
 import com.osfans.trime.data.theme.BackgroundPatch
 import com.osfans.trime.data.theme.ColorManager
+import com.osfans.trime.data.theme.LandscapeOverlay
 import com.osfans.trime.data.theme.ThemeManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -87,17 +89,6 @@ class BackgroundPickerFragment : Fragment() {
          * 背景图不是 Rime 配置，不该混进那条链路。
          */
         private val BUNDLED = listOf(R.raw.bg_preview to "preview.gif")
-
-        /** 亮/暗背景的分界亮度，与 KeyboardBackground.LUM_THRESHOLD 保持一致 */
-        private const val LUM_THRESHOLD = 140.0
-
-        /**
-         * 蒙层不透明度（约 60%）。
-         *
-         * 亮/暗背景共用同一个值：蒙层颜色已经承担了「压暗 / 提亮」的方向，
-         * 再让透明度也随亮度变化只会让观感不稳定，没有额外收益。
-         */
-        private const val OVERLAY_ALPHA = 0x99
     }
 
     private lateinit var listContainer: LinearLayout
@@ -147,6 +138,7 @@ class BackgroundPickerFragment : Fragment() {
         root.addView(
             TextView(requireContext()).apply {
                 text = "支持 JPG / PNG / WebP / GIF。建议不超过 1 MB，过大或帧数过多的 GIF 会让键盘卡顿。" +
+                    "\n竖屏和横屏可以各用一张图：横屏那张会自动铺满横向键盘，不会再被拉伸。" +
                     "\n图片存放目录：${dir.absolutePath}"
                 textSize = 12f
                 setPadding(0, 0, 0, 24)
@@ -307,9 +299,13 @@ class BackgroundPickerFragment : Fragment() {
 
     private fun buildRow(file: File): View {
         val ctx = requireContext()
-        val row = LinearLayout(ctx).apply {
-            orientation = LinearLayout.HORIZONTAL
+        val column = LinearLayout(ctx).apply {
+            orientation = LinearLayout.VERTICAL
             setPadding(0, 12, 0, 12)
+        }
+
+        val head = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL
         }
 
@@ -323,32 +319,45 @@ class BackgroundPickerFragment : Fragment() {
             val bmp = withContext(Dispatchers.IO) { decodeSampled(file, 200, 140) }
             if (bmp != null) thumb.setImageBitmap(bmp)
         }
-        row.addView(thumb)
+        head.addView(thumb)
 
-        // 文件名 + 大小
+        // 文件名 + 大小 + 当前用在哪个方向
+        val marks = currentMarks(file)
         val info = TextView(ctx).apply {
             text = buildString {
                 append(file.name)
                 append("\n")
                 append(String.format(Locale.ROOT, "%.0f KB", file.length() / 1024.0))
                 if (file.extension.equals("gif", true)) append("  · 动图")
+                if (marks.isNotEmpty()) {
+                    append("\n")
+                    append(marks.joinToString("  "))
+                }
             }
             textSize = 13f
             setPadding(24, 0, 0, 0)
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         }
-        row.addView(info)
+        head.addView(info)
+        column.addView(head)
 
-        // 应用
-        row.addView(
+        val actions = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, 8, 0, 0)
+        }
+        actions.addView(
             android.widget.Button(ctx).apply {
-                text = "应用"
-                setOnClickListener { applyAsBackground(file) }
+                text = "设为竖屏"
+                setOnClickListener { applyAsBackground(file, landscape = false) }
             },
         )
-
-        // 删除
-        row.addView(
+        actions.addView(
+            android.widget.Button(ctx).apply {
+                text = "设为横屏"
+                setOnClickListener { applyAsBackground(file, landscape = true) }
+            },
+        )
+        actions.addView(
             android.widget.Button(ctx).apply {
                 text = "删除"
                 setOnClickListener {
@@ -361,8 +370,25 @@ class BackgroundPickerFragment : Fragment() {
                 }
             },
         )
+        column.addView(actions)
 
-        return row
+        return column
+    }
+
+    /**
+     * 这张图当前被哪个方向使用。
+     *
+     * 直接读配色方案里的键：竖屏看 `keyboard_back_color`，横屏看它的 `_land`
+     * 变体。两者都指向同一个文件名时两个方向共用一张图。
+     */
+    private fun currentMarks(file: File): List<String> {
+        val colors =
+            ThemeManager.activeTheme.colorSchemes
+                .find { it.id == SCHEME_ID }?.colors ?: return emptyList()
+        val marks = mutableListOf<String>()
+        if (colors["keyboard_back_color"] == file.name) marks += "竖屏 ✓"
+        if (colors["keyboard_back_color${LandscapeOverlay.SUFFIX}"] == file.name) marks += "横屏 ✓"
+        return marks
     }
 
     private fun decodeSampled(file: File, reqW: Int, reqH: Int): Bitmap? {
@@ -392,10 +418,13 @@ class BackgroundPickerFragment : Fragment() {
      * 为什么不直接改 trime.yaml？
      *   trime.yaml 打包在 APK 资源里，运行时不可写，且升级会被覆盖。
      */
-    private fun applyAsBackground(file: File) {
+    private fun applyAsBackground(
+        file: File,
+        landscape: Boolean,
+    ) {
         viewLifecycleOwner.lifecycleScope.launch {
             val themeId = ThemeManager.prefs.selectedTheme.getValue()
-            val ok = withContext(Dispatchers.IO) { doApply(file, themeId) }
+            val ok = withContext(Dispatchers.IO) { doApply(file, themeId, landscape) }
             if (!ok) {
                 toast("应用失败")
                 return@launch
@@ -411,54 +440,40 @@ class BackgroundPickerFragment : Fragment() {
             }
             // setColorScheme 会同时切换当前配色并持久化 prefs.normalModeColor
             ColorManager.setColorScheme(scheme)
-            toast("已应用背景：${file.name}")
+            toast(if (landscape) "已设为横屏背景：${file.name}" else "已设为竖屏背景：${file.name}")
         }
     }
 
     private fun doApply(
         file: File,
         themeId: String,
+        landscape: Boolean,
     ): Boolean = runCatching {
         // 检测图片平均亮度，决定蒙层深浅和文字颜色
         val bmp = decodeSampled(file, 64, 64) ?: return@runCatching false
         val luminance = averageLuminance(bmp)
         bmp.recycle()
 
-        // 这里写的是 key_back_color —— 按键自身的半透明底色，会叠在背景图上，
-        // 文字再画在按键之上。所以要保证「按键合成后的明度」与文字色相反：
-        //   亮背景 → 按键盖白色（更亮）+ 深色字
-        //   暗背景 → 按键盖黑色（更暗）+ 浅色字
-        // 注意这与 KeyboardBackground.overlayColorFor() 不是同一个机制：
-        // 那个是整块键盘上方的统一蒙层，作用于所有键的缝隙。
-        val light = luminance > LUM_THRESHOLD
-        val overlay = if (light) {
-            String.format(Locale.ROOT, "0x%02XFFFFFF", OVERLAY_ALPHA)
-        } else {
-            String.format(Locale.ROOT, "0x%02X000000", OVERLAY_ALPHA)
-        }
-        val textColor = if (light) "0xFF1A1A1A" else "0xFFF5F5F5"
-        val subColor = if (light) "0xCC444444" else "0xCCDDDDDD"
-        val shadow = if (light) "0x40000000" else "0x80000000"
+        val palette = BackgroundPalette.forImage(file.name, luminance)
 
         // 只产出「我们这个配色的键值」；整个 preset_color_schemes 表由
         // BackgroundPatch.buildPatchBody 从当前主题现取 ——
         // librime 的 patch 对顶层键是整体替换，必须带上全表才不会删掉其它配色。
-        val ownColors =
-            linkedMapOf(
-                "name" to "自定义背景",
-                "author" to "myime",
-                "keyboard_back_color" to file.name,
-                "candidate_back_color" to file.name,
-                "root_background" to file.name,
-                "key_back_color" to overlay,
-                "key_border_color" to "0x22FFFFFF",
-                "key_text_color" to textColor,
-                "key_symbol_color" to subColor,
-                "label_color" to textColor,
-                "candidate_text_color" to textColor,
-                "comment_text_color" to subColor,
-                "shadow_color" to shadow,
-            )
+        //
+        // 以已有配色为基底：另一个方向设过的图、以及用户手动改过的键都要保留，
+        // 否则「先设竖屏、再设横屏」会把竖屏那张冲掉。
+        val ownColors = LinkedHashMap<String, String>()
+        ThemeManager.activeTheme.colorSchemes
+            .find { it.id == SCHEME_ID }?.colors?.let { ownColors.putAll(it) }
+        if (ownColors.isEmpty()) {
+            ownColors["name"] = "自定义背景"
+            ownColors["author"] = "myime"
+            ownColors["key_border_color"] = "0x22FFFFFF"
+        }
+
+        // 横屏写在 `_land` 变体上，由 LandscapeOverlay 在横屏时覆盖到基础键。
+        val suffix = if (landscape) LandscapeOverlay.SUFFIX else ""
+        palette.forEach { (key, value) -> ownColors["$key$suffix"] = value }
 
         writeBackgroundPatch(themeId, ownColors)
         true

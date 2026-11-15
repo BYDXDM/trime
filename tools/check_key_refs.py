@@ -27,6 +27,7 @@ check_key_refs.py —— 键盘引用完整性校验器
 
 import os
 import re
+import string
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -44,6 +45,10 @@ ACTION_FIELDS = (
 )
 
 MODIFIERS = {'Shift', 'Control', 'Alt', 'Lock'}
+
+# 多字符键名实测只用这些字符：430 个可解析名字里 340 个多字符名的字符集并集就是
+# [0-9A-Za-z_\]。详见 is_resolvable 里的 R6 说明。
+KEY_NAME_SAFE = set(string.ascii_letters + string.digits + '_\\')
 
 # 合法键名的权威来源是 RimeKeyMapping（由 KSP 从 librime 的 key_table 生成）。
 # 手抄白名单会随时间漂移，所以这里直接从生成源码里抽表；
@@ -155,18 +160,27 @@ def parse_inline_dict(body):
 
 
 def parse_key_line(line):
-    """返回 (顶层字段 dict, 行内嵌套 dict 列表)。"""
+    """返回 (顶层字段 dict, 行内嵌套 dict 列表)。
+
+    R6：只有**引号之外**的 `{...}` 才是嵌套字段。`click: '‹›{Left}'` 里的
+    {Left} 属于待上屏文本，旧实现把它替换成 __NESTED0__ 占位符后又没有还原，
+    于是输出里出现 `‹›__NESTED0__` 这种伪键名。现在引号内的花括号原样保留，
+    引号外的仍按嵌套字段处理（`{click: {send: X}}` 这种写法不受影响）。
+    """
     m = KEY_RE.match(line)
     if not m:
         return None, []
     body = m.group(1)
-    top, nested = {}, []
+    top, nested, originals = {}, [], []
 
     def grab(match):
+        originals.append(match.group(0))
         nested.append(parse_inline_dict(match.group(1)))
         return '__NESTED%d__' % (len(nested) - 1)
 
-    flattened = re.sub(r'\{([^{}]*)\}', grab, body)
+    flattened = ''.join(
+        piece if piece[:1] in ('"', "'") else re.sub(r'\{([^{}]*)\}', grab, piece)
+        for piece in re.split(r"('[^']*'|\"[^\"]*\")", body))
     for item in split_top_level(flattened):
         if ':' not in item:
             top.setdefault('click', unquote(item))
@@ -178,6 +192,9 @@ def parse_key_line(line):
             nested[int(mm.group(1))]['__field__'] = k.strip()
             continue
         top[k.strip()] = unquote(v)
+    for k in list(top):
+        top[k] = re.sub(r'__NESTED(\d+)__',
+                        lambda mm: originals[int(mm.group(1))], top[k])
     return top, nested
 
 
@@ -194,12 +211,21 @@ def load_yaml_model(path):
         line = raw.rstrip()
         stripped = line.strip()
 
-        if line and not line[0].isspace():
-            top_section = stripped.split(':')[0] if ':' in stripped else None
-            cur_board = None
-            cur_preset = None
-            continue
+        # 注释与空行不结束当前区块，也不丢弃当前键盘。主题里 preset_keyboards
+        # 段落内部出现顶格注释很常见（如 tongwenfeng.trime.yaml:1244 的
+        # "#符号键盘之二"），旧实现把它当成新的顶层区块，导致该行之后的键盘
+        # 全部不再参与检查。
         if not stripped or stripped.startswith("#"):
+            continue
+
+        if not line[0].isspace():
+            # 离开 preset_keyboards 之前先把当前键盘收尾，否则本节最后一个
+            # 键盘会被直接丢掉（EOF 收尾只覆盖「文件到结尾」这一种情况）。
+            if cur_board is not None:
+                keyboards.append(cur_board)
+                cur_board = None
+            top_section = stripped.split(':')[0] if ':' in stripped else None
+            cur_preset = None
             continue
 
         if top_section == 'preset_keyboards':
@@ -270,6 +296,13 @@ def is_resolvable(name, preset_names, keyboard_names, rime_key_names):
     # 非 ASCII 的纯文字值（如 long_click: '——'）：KeyCode.parse 认不出时
     # KeyAction 会把它当文本直接上屏（KeyAction.kt 的 text = token.token 分支），
     # 这是「长按输入这个符号」的正常写法，不算哑键。
+    # R6：出现键名不可能包含的字符时，这压根不是键名，而是「直接上屏一段文字」
+    # 的写法（kao_happy 的 click: '^_^' / 'Y(^_^)Y'、long_click: '‹›' 之类）。
+    # 真正的拼写错误（Clear/Help/Info/CLEAR/HELP/INFO、NotARealKey_xyz）全部由
+    # 安全字符组成，不会被这条豁免吞掉——判据取「含键名不可能出现的字符」，
+    # 而不是「看起来像颜文字」，规则可解释也不会随主题内容漂移。
+    if any(ch not in KEY_NAME_SAFE for ch in name):
+        return None
     if any(ord(ch) > 127 for ch in name):
         return None
     if '{' in name and '}' in name:

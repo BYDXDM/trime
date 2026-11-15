@@ -52,12 +52,14 @@ import com.osfans.trime.data.theme.ThemeManager
 import com.osfans.trime.data.theme.ThemeScope
 import com.osfans.trime.ime.composition.CandidatesView
 import com.osfans.trime.ime.keyboard.InputFeedbackManager
+import com.osfans.trime.ime.text.CorrectionPolicy
 import com.osfans.trime.ime.text.EnglishCorrector
 import com.osfans.trime.ime.text.EnglishInputBuffer
 import com.osfans.trime.receiver.RimeIntentReceiver
 import com.osfans.trime.util.any
 import com.osfans.trime.util.findSectionFrom
 import com.osfans.trime.util.forceShowSelf
+import com.osfans.trime.util.isLandscapeBySize
 import com.osfans.trime.util.monitorCursorAnchor
 import com.osfans.trime.util.styledFloat
 import kotlinx.coroutines.CoroutineScope
@@ -108,6 +110,21 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     private val englishBuffer = EnglishInputBuffer()
 
     private var composingText: String = ""
+
+    /**
+     * 输入会话代际：每次输入目标开始/结束都自增。
+     *
+     * 供延迟动作（删除键上滑「清空」等）在挂起返回后复核目标是否还是原来那个编辑框——
+     * 延迟窗口内用户可能已经切到别的编辑框，此时继续操作 [currentInputConnection]
+     * 会改到另一个编辑框的内容。
+     */
+    @Volatile
+    var inputSessionId: Long = 0L
+        private set
+
+    private fun beginNewInputSession() {
+        inputSessionId += 1L
+    }
 
     private var cursorUpdateIndex = 0
 
@@ -222,7 +239,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         // ensure theme and color managers are initialized after rime is ready
         lifecycleScope.launch {
             rime.runOnReady {
-                ThemeManager.init(resources.configuration)
+                ThemeManager.init(resources.configuration, resources.isLandscapeBySize())
                 ThemeManager.addOnChangedListener(onThemeChangeListener)
                 ColorManager.addOnChangedListener(onColorChangeListener)
                 // Rime 就绪后 ThemeScope 才可用。若 onCreateInputView 当时因
@@ -362,6 +379,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     }
 
     override fun onDestroy() {
+        beginNewInputSession()
         InputFeedbackManager.destroy()
         inputView = null
         recreateInputViewPrefs.forEach {
@@ -409,6 +427,10 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
      */
     override fun onConfigurationChanged(newConfig: Configuration) {
         postRimeJob { clearComposition() }
+        // 旋转后必须重建配色表，否则横屏仍用竖屏那张背景图。
+        // 这里也调一次而不只依赖 Application 的回调：输入法服务一定收得到，
+        // 重复调用由 ColorManager 内部的方向比较挡掉。
+        ColorManager.onConfigurationChanged(newConfig, resources.isLandscapeBySize())
         val keyboardUiModeMask = ActivityInfo.CONFIG_KEYBOARD or
             ActivityInfo.CONFIG_KEYBOARD_HIDDEN or
             ActivityInfo.CONFIG_UI_MODE
@@ -590,6 +612,13 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         restarting: Boolean,
     ) {
         composingText = ""
+        beginNewInputSession()
+        // 进入编辑框先丢弃上一个编辑框残留的缓冲，**不 flush**：
+        // 一 flush 就会把 A 编辑框里打了一半的词改写进 B（跨框误改）。
+        englishBuffer.clear()
+        // 纠错许可随编辑框走：密码、可见密码、Web/数字密码及禁止建议的字段一律关闭。
+        EnglishCorrector.inputAllowsCorrection =
+            CorrectionPolicy.allowsCorrection(attribute.inputType, attribute.imeOptions)
         Timber.d("onStartInput: restarting=$restarting")
         val isNullType = attribute.inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_NULL
         postRimeJob {
@@ -599,6 +628,11 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
             }
             setNullInputType(isNullType)
         }
+    }
+
+    override fun onFinishInput() {
+        beginNewInputSession()
+        super.onFinishInput()
     }
 
     private val inlineSuggestions by prefs.general.inlineSuggestions
@@ -630,6 +664,8 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         // 切换输入目标：丢掉上一个编辑框残留的英文缓冲，
         // 否则 A 应用里打了一半的词会跑到 B 应用里去纠错。
         englishBuffer.clear()
+        EnglishCorrector.inputAllowsCorrection =
+            CorrectionPolicy.allowsCorrection(attribute.inputType, attribute.imeOptions)
         postRimeJob {
             updateRimeOption(this)
             // 覆盖"进入输入框时已经是英文模式"的场景：
@@ -658,6 +694,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
 
     override fun onFinishInputView(finishingInput: Boolean) {
         Timber.d("onFinishInputView: finishingInput=$finishingInput")
+        beginNewInputSession()
         // 没有空格/标点收尾的最后一个词，也要在离开输入框前结算。
         englishBuffer.flush()?.let { applyCorrection(it) }
         englishBuffer.clear()
@@ -719,6 +756,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         postRimeJob {
             if (statusCached.isComposing) commitComposition()
             this@TrimeInputMethodService.commitText(text)
+            inputView?.returnFromSymbolsAfterCommit(text)
         }
     }
 
@@ -760,6 +798,9 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
      * 对不上就放弃纠错。宁可漏纠，绝不能删错用户的内容。
      */
     private fun applyCorrection(result: EnglishInputBuffer.Result) {
+        // 兜底复核：任何路径把纠错动作送到这里，只要当前编辑框不允许就原地放弃，
+        // 既不改写内容，也不会把密码/敏感字段的内容写进日志。
+        if (!EnglishCorrector.active) return
         val ic = currentInputConnection ?: return
         val original = result.original
         // 多取一个字符，检查原词前面是否仍在一个更长的英文单词中。

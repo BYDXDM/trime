@@ -45,6 +45,49 @@ PROP_RE = re.compile(r'^    ([A-Za-z_][A-Za-z0-9_]*):\s*(.*)$')
 
 # 不需要 click 也算「有动作」的字段
 QUOTED_RE = re.compile(r'"([^"]*)"|\'([^\']*)\'')
+# YAML 锚点定义（`height: &jpgd5 26.5`）与引用（`height: *jpgd5`）。主题里
+# 行高/宽度大量用别名书写，不解析就会把 `*jpgd5` 当数字并抛 ValueError。
+ANCHOR_RE = re.compile(r'&([A-Za-z0-9_-]+)\s+(\S+)')
+
+
+def load_anchors(lines):
+    anchors = {}
+    for line in lines:
+        for m in ANCHOR_RE.finditer(line.split('#')[0]):
+            anchors[m.group(1)] = m.group(2)
+    return anchors
+
+
+def resolve_alias(value, anchors):
+    if not value:
+        return value
+    v = value.strip()
+    if v.startswith('*'):
+        return anchors.get(v[1:], '')
+    return v
+
+
+def to_float(value, default=0.0, issues=None, label=None):
+    """容忍别名与表达式的数字解析；绝不抛异常。
+
+    R5：以前解析失败一律静默返回默认值，于是 `width: abc` 这种真错误被吞掉，
+    检查器还报「通过」。现在把「非空字面量解析不出来」记进 issues（main() 据此
+    以非零退出），空值/None 仍按缺省处理——那对应 Trime 源码里的「未设置」。
+    别名（`*jpgd5`）在 parse_key/props 阶段已由 resolve_alias 换成数字字面量，
+    因此正常主题不会走到报错分支。
+    """
+    if value is None:
+        return default
+    text = str(value).strip()
+    if not text:
+        return default
+    try:
+        return float(text)
+    except ValueError:
+        if issues is not None:
+            issues.append('%s 不是数字：%r（检查器按 %s 估算）'
+                          % (label or '数值', text, default))
+        return default
 
 
 def unquote(v):
@@ -81,20 +124,21 @@ def split_top_level(body):
     return [p for p in (p.strip() for p in parts) if p]
 
 
-def parse_key(line):
+def parse_key(line, anchors=None):
     """解析一行按键，返回 dict 或 None。"""
     m = KEY_RE.match(line)
     if not m:
         return None
+    anchors = anchors or {}
     body = m.group(1)
     d = {}
     for item in split_top_level(body):
         if ':' not in item:
             # 简写形式，如 {q} / {space}
-            d.setdefault('click', unquote(item))
+            d.setdefault('click', resolve_alias(unquote(item), anchors))
             continue
         k, v = item.split(':', 1)
-        d[k.strip()] = unquote(v)
+        d[k.strip()] = resolve_alias(unquote(v), anchors)
     return d
 
 
@@ -111,20 +155,27 @@ def load_keyboards(path):
     with open(path, encoding='utf-8') as f:
         lines = f.read().splitlines()
 
+    anchors = load_anchors(lines)
     boards, cur, in_pkb, in_keys = [], None, False, False
     for raw in lines:
         line = raw.rstrip()
         stripped = line.strip()
 
-        # 顶层区块（缩进 0）。遇到就重判是否进入 preset_keyboards
-        if line and not line[0].isspace():
-            in_pkb = stripped.startswith('preset_keyboards:')
-            cur = None
+        # 注释与空行不改变当前区块。主题里 preset_keyboards 段落内部有顶格
+        # 注释（tongwenfeng.trime.yaml:1244 "#符号键盘之二"），旧实现据此退出
+        # preset_keyboards，该行之后的键盘全部被跳过。
+        if not stripped or stripped.startswith('#'):
+            continue
+
+        # 顶层区块（缩进 0）。遇到就收尾当前键盘并重判是否进入 preset_keyboards
+        if not line[0].isspace():
+            if cur:
+                boards.append(cur)
+                cur = None
+            in_pkb = re.match(r'^preset_keyboards:(\s|$)', stripped) is not None
             in_keys = False
             continue
         if not in_pkb:
-            continue
-        if not stripped or stripped.startswith('#'):
             continue
 
         # 键盘名：2 空格缩进。只在 keys 之外识别，避免把按键行的内层结构当键盘名
@@ -149,7 +200,7 @@ def load_keyboards(path):
         # 按键行：以 `- {` 开头。必须在识别键盘名之后判断，
         # 因为下一个键盘名出现时 in_keys 仍为 True。
         if re.match(r'^\s*-\s*\{', line):
-            k = parse_key(line)
+            k = parse_key(line, anchors)
             if k is not None:
                 cur['keys'].append(k)
             continue
@@ -157,7 +208,8 @@ def load_keyboards(path):
         # 其余 4 空格缩进行：keys 之前的属性
         m = PROP_RE.match(line)
         if m and not in_keys:
-            cur['props'][m.group(1)] = m.group(2).split('#')[0].strip()
+            cur['props'][m.group(1)] = resolve_alias(
+                m.group(2).split('#')[0].strip(), anchors)
 
     if cur:
         boards.append(cur)
@@ -175,10 +227,8 @@ def check_keyboard(board, verbose=False):
         v = props.get(key)
         if v in (None, ''):
             return default
-        try:
-            return float(v)
-        except ValueError:
-            return default
+        return to_float(v, default, issues,
+                        '键盘 %s 的 %s' % (name, key))
 
     # columns == -1 表示不限列数（Trime 源码：maxColumns = Int.MAX_VALUE）
     columns = int(num('columns', 30))
@@ -191,8 +241,8 @@ def check_keyboard(board, verbose=False):
         return ['键盘 %s: 没有任何按键' % name], {}
 
     # 第一行行高由首键定义（源码：rowHeight = key.height if key.height else kbHeight）
-    first_h = keys[0].get('height')
-    first_h = float(first_h) if first_h else kb_height
+    first_h = to_float(keys[0].get('height'), kb_height, issues,
+                       '键盘 %s 首键的 height' % name)
     if first_h <= 0:
         issues.append('键盘 %s: 首键没有 height，且键盘也没有 height → 行高会取到 0' % name)
 
@@ -201,7 +251,8 @@ def check_keyboard(board, verbose=False):
     cell = MAX_TOTAL_WEIGHT  # allowedWidth 归一化为 100
 
     for idx, k in enumerate(keys):
-        explicit_w = float(k['width']) if k.get('width') else 0.0
+        explicit_w = to_float(k.get('width'), 0.0, issues,
+                              '键盘 %s 第 %d 个键的 width' % (name, idx + 1))
         has_action = bool(k.get('click'))
         # 源码：width==0 且有动作 → 用键盘默认 width
         weight = kb_width if (explicit_w == 0 and has_action) else explicit_w
@@ -217,8 +268,8 @@ def check_keyboard(board, verbose=False):
             cur_h = None
 
         if cur_h is None:
-            kh = k.get('height')
-            cur_h = float(kh) if kh else kb_height
+            cur_h = to_float(k.get('height'), kb_height, issues,
+                             '键盘 %s 第 %d 个键的 height' % (name, idx + 1))
 
         # 占位键（只有 width 没有 click）用 None 作为标签，不参与重复检测
         cur_row.append((idx, k.get('click'), weight))

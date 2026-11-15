@@ -14,13 +14,24 @@ object OrphanCleaner {
         val failed: Int = 0,
     )
 
+    /**
+     * Deletes local files that the external tree does not hold.
+     *
+     * [externalPaths] and [protectPaths] are accepted in external-tree spelling and
+     * canonicalized with the same rule the import copy uses, so a name such as
+     * " test.yaml" keeps its own identity. [protectPaths] lists local paths whose
+     * copy failed this round: they are kept so an incomplete sync never destroys data.
+     */
     fun removeLocalOrphans(
         root: File,
         externalPaths: Set<String>,
         ownId: String? = null,
         syncDir: String = SyncPathPolicy.DEFAULT_SYNC_DIR,
+        protectPaths: Set<String> = emptySet(),
     ): Result {
         if (!root.exists()) return Result()
+        val expected = canonicalSet(externalPaths)
+        val protected = canonicalSet(protectPaths)
         var deleted = 0
         var failed = 0
         root
@@ -40,7 +51,9 @@ object OrphanCleaner {
                 when {
                     file.isFile && SyncPathPolicy.shouldPreserveLocal(relative, ownId, syncDir) -> Unit
 
-                    file.isFile && relative !in externalPaths -> {
+                    file.isFile && relative in protected -> Unit
+
+                    file.isFile && relative !in expected -> {
                         val deleteResult = FileUtils.delete(file)
                         if (deleteResult.isSuccess) {
                             deleted++
@@ -62,5 +75,12 @@ object OrphanCleaner {
                 }
             }
         return Result(deleted = deleted, failed = failed)
+    }
+
+    private fun canonicalSet(paths: Set<String>): Set<String> = paths.mapNotNullTo(mutableSetOf()) { path ->
+        runCatching { SyncRelativePath.normalize(path) }.getOrElse {
+            Timber.w(it, "Skip unsafe path in orphan cleanup")
+            null
+        }
     }
 }

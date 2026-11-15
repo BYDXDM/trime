@@ -367,6 +367,10 @@ class InputView(
         enterKeyDisplay.updateLabelOnEditorInfo(info)
     }
 
+    fun returnFromSymbolsAfterCommit(text: String) {
+        keyboardWindow.returnFromSymbolsAfterCommit(text)
+    }
+
     override fun handleRimeMessage(it: RimeMessage<*>) {
         when (it) {
             is RimeMessage.SchemaMessage -> {

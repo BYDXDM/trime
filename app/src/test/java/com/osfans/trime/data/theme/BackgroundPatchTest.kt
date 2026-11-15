@@ -9,6 +9,7 @@ import com.osfans.trime.data.theme.model.ColorScheme
 import com.osfans.trime.util.mapping
 import com.osfans.trime.util.pairs
 import com.osfans.trime.util.string
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -139,6 +140,77 @@ class BackgroundPatchTest :
             merged shouldNotContain "gone.gif"
             merged shouldContain "style/color_scheme: user_light"
             merged shouldContain "fresh.gif"
+        }
+
+        "patch 行带行尾注释时不再追加第二个根键（F11）" {
+            val existing =
+                """
+                # 用户自己写的
+                patch: # 这是我的 patch
+                  style/color_scheme: user_light
+                """.trimIndent()
+
+            val merged = BackgroundPatch.merge(existing, body("commented.gif"))
+
+            countTopLevelPatch(merged) shouldBe 1
+            merged shouldContain "patch: # 这是我的 patch"
+            merged shouldContain "style/color_scheme: user_light"
+            merged shouldContain "commented.gif"
+
+            // 旧实现会追加第二个 patch:，kaml 解析直接抛异常
+            val patch = Yaml.default.parseToYamlNode(merged).mapping!!.pairs["patch"]!!.mapping!!
+            patch.pairs["style/color_scheme"]!!.string shouldBe "user_light"
+            patch.pairs["preset_color_schemes"]!!.mapping!!.pairs["user_bg"]!!.mapping!!
+                .pairs["keyboard_back_color"]!!.string shouldBe "commented.gif"
+        }
+
+        "带行尾注释的 patch 重复应用仍幂等（F11）" {
+            val existing = "patch: # 用户注释\n  style/color_scheme: user_dark\n"
+
+            val once = BackgroundPatch.merge(existing, body("one.gif"))
+            val twice = BackgroundPatch.merge(once, body("two.gif"))
+
+            countTopLevelPatch(twice) shouldBe 1
+            twice shouldContain "patch: # 用户注释"
+            twice shouldContain "style/color_scheme: user_dark"
+            twice shouldContain "two.gif"
+            twice shouldNotContain "one.gif"
+            twice.lines().count { it.trim() == BackgroundPatch.MARK_BEGIN } shouldBe 1
+            Yaml.default.parseToYamlNode(twice).mapping!!.pairs.size shouldBe 1
+        }
+
+        "只有 patch: #注释 且没有子节点时也能合并成单一根键（F11）" {
+            val merged = BackgroundPatch.merge("patch: # 空 patch\n", body("empty.gif"))
+
+            countTopLevelPatch(merged) shouldBe 1
+            val patch = Yaml.default.parseToYamlNode(merged).mapping!!.pairs["patch"]!!.mapping!!
+            patch.pairs["preset_color_schemes"]!!.mapping!!.pairs["user_bg"]!!.mapping!!
+                .pairs["keyboard_back_color"]!!.string shouldBe "empty.gif"
+        }
+
+        "顶层 patch 已有值时明确报错，而不是写出非法 YAML（F11）" {
+            listOf("patch: {}\n", "patch: &anchor\n  a: 1\n").forEach { existing ->
+                shouldThrow<IllegalStateException> {
+                    BackgroundPatch.merge(existing, body("x.gif"))
+                }
+            }
+            // 正常文件不受影响：仍然只有一个 patch 根键且可解析
+            val normal = BackgroundPatch.merge("patch: # 注释\n  a: 1\n", body("y.gif"))
+            countTopLevelPatch(normal) shouldBe 1
+            Yaml.default.parseToYamlNode(normal).mapping!!.pairs.size shouldBe 1
+        }
+
+        "冒号后没有空格的 patch:#注释 也算带值，明确报错而不是追加第二个根键（R3）" {
+            // YAML 里 `patch:#x` 的 # 紧跟冒号，不是注释而是标量值 #x，与 patch: {} 同类。
+            // 旧正则两个都不匹配 → merge 当成「文件里没有 patch 根节点」，在末尾再追加一个
+            // 顶层 patch:，同一文件出现两个根键。
+            shouldThrow<IllegalStateException> {
+                BackgroundPatch.merge("patch:#用户自己写的\n", body("r3.gif"))
+            }
+            // 有空格的真注释不受影响：仍按「空 patch 根节点」合并成单一根键
+            val commented = BackgroundPatch.merge("patch: # 注释\n", body("r3b.gif"))
+            countTopLevelPatch(commented) shouldBe 1
+            Yaml.default.parseToYamlNode(commented).mapping!!.pairs.size shouldBe 1
         }
 
         "颜色值里的特殊字符不会破坏 YAML" {

@@ -79,15 +79,18 @@ class CompactCandidateDelegate(override val di: DI) :
 
     val unrolledCandidateOffset = _unrolledCandidateOffset.asSharedFlow()
 
-    fun refreshUnrolled(childCount: Int) {
-        _unrolledCandidateOffset.tryEmit(childCount)
+    fun refreshUnrolled(visiblePrefix: Int) {
+        val offset = unrolledCandidateOffset(visiblePrefix, adapter.visibleCount)
+        _unrolledCandidateOffset.tryEmit(offset)
         bar.unrollButtonStateMachine.push(
             UnrollButtonStateMachine.TransitionEvent.UnrolledCandidatesUpdated,
             UnrollButtonStateMachine.BooleanKey.UnrolledCandidatesEmpty to
-                // 栏里少了几条被过滤掉的缺字形候选，这些不会显示，算「已全显示」时要把它们补回来。
-                // total 为 -1 表示 librime 的菜单还没数完（bulk 被截断），此时必须算「还有更多」，
-                // 否则展开按钮恒被判空隐藏——用户报「无法展开其余候选词」的根因。
-                (adapter.total >= 0 && childCount + adapter.filteredOut >= adapter.total),
+                !shouldShowUnrollButton(
+                    total = adapter.total,
+                    visibleCount = adapter.visibleCount,
+                    visiblePrefix = visiblePrefix,
+                    filteredOut = adapter.filteredOut,
+                ),
         )
     }
 
@@ -224,7 +227,20 @@ class CompactCandidateDelegate(override val di: DI) :
                         secondLayoutPassNeeded = false
                     }
                 }
-                refreshUnrolled(cnt)
+                val scrollOffset = (paddingLeft - decoratedLeftEdge()).coerceAtLeast(0)
+                val viewportEnd = width - paddingRight
+                val bounds = (0 until cnt).mapNotNull { index ->
+                    getChildAt(index)?.let { child ->
+                        getDecoratedLeft(child) to getDecoratedRight(child)
+                    }
+                }
+                val visiblePrefix = fullyVisibleCandidatePrefix(
+                    decoratedBounds = bounds,
+                    viewportStart = paddingLeft,
+                    viewportEnd = viewportEnd,
+                    scrollOffset = scrollOffset,
+                )
+                refreshUnrolled(visiblePrefix)
             }
         }
     }

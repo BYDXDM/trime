@@ -270,16 +270,25 @@ object DataManager {
         val version = "${src.length()}"
         if (target.isFile && stamp.isFile && stamp.readText() == version) return
 
+        // 先编到同目录的临时文件，校验通过后再原子替换：构建失败或产物损坏时
+        // 用户原有的 predict.db 不受影响（见 PredictDbSwap）。
+        val scratch = File(userDataDir, "$PREDICT_DB_NAME.building.tmp")
         runCatching {
-            val ok = Rime.buildPredictDb(src.readText(), target.absolutePath)
-            if (ok) {
+            val ok = Rime.buildPredictDb(src.readText(), scratch.absolutePath)
+            if (!ok) {
+                Timber.w("Predict db build returned false")
+                return@runCatching
+            }
+            if (PredictDbSwap.replace(target, scratch)) {
                 stamp.writeText(version)
                 Timber.i("Predict db built: %d bytes", target.length())
             } else {
-                Timber.w("Predict db build returned false")
+                Timber.w("Predict db build rejected, keeping the previous db")
             }
         }.onFailure {
             Timber.w(it, "Failed to build predict db")
         }
+        // 失败路径可能留下半成品，不能让它下次被当成新词库。
+        if (scratch.exists()) scratch.delete()
     }
 }

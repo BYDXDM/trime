@@ -139,9 +139,12 @@ object ThemeManager {
         activeTheme = theme
     }
 
-    fun init(configuration: Configuration) {
+    fun init(
+        configuration: Configuration,
+        landscape: Boolean,
+    ) {
         ensureActiveTheme()
-        ColorManager.init(configuration)
+        ColorManager.init(configuration, landscape)
     }
 
     /**

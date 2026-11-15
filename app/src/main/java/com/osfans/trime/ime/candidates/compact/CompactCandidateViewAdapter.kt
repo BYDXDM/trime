@@ -69,25 +69,17 @@ open class CompactCandidateViewAdapter(
         total: Int,
         highlightedIndex: Int,
     ) {
-        val filtered = CandidateGlyphFilter.filter(data.toList(), CandidateGlyphFilter::canRender)
-        // 黑名单串在字形过滤之后：两层都只减少条目，下标映射必须一路带着走，
-        // 否则上屏/删除会作用到别的候选上。
-        val blacklist = BlacklistStore.words()
-        val kept = ArrayList<CandidateProto>(filtered.candidates.size)
-        val keptIndices = ArrayList<Int>(filtered.candidates.size)
-        filtered.candidates.forEachIndexed { i, candidate ->
-            if (candidate.text in blacklist) return@forEachIndexed
-            kept += candidate
-            keptIndices += filtered.indices[i]
-        }
-        originalIndices = keptIndices.toIntArray()
-        visibleCount = kept.size
-        filteredOut = data.size - kept.size
-        // total 保持 librime 的原始条数：展开面板的 CandidatesPagingSource 按下标取页，
+        // Compact 与展开分页共用同一投影规则，避免过滤后顺序和原始下标漂移。
+        val filtered =
+            CandidateGlyphFilter.filter(data.toList(), blacklist = BlacklistStore.words())
+        originalIndices = filtered.indices
+        visibleCount = filtered.candidates.size
+        filteredOut = data.size - filtered.candidates.size
+        // total 保持 librime 的原始条数：展开面板按原始下标取页，
         // 把它改成过滤后的条数会让末尾的候选永远翻不到。
         this.total = total
         this.highlightedIdx = highlightedIndex
-        super.submitList(kept, null)
+        super.submitList(filtered.candidates, null)
     }
 
     override fun onCreateViewHolder(

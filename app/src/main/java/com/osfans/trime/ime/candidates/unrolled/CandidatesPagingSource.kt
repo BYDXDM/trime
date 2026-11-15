@@ -19,50 +19,91 @@ data class IndexedCandidate(
     val proto: CandidateProto,
 )
 
+private const val OFFSET_SCAN_BATCH_SIZE = 48
+
+/**
+ * Convert the compact bar's projected item count to the raw index after its prefix.
+ * The same CandidateGlyphFilter projection is used for every scanned batch.
+ */
+internal fun rawIndexAfterProjectedCount(
+    projectedCount: Int,
+    blacklist: Set<String>,
+    fetch: (startIndex: Int, limit: Int) -> Array<CandidateProto>,
+): Int {
+    if (projectedCount <= 0) return 0
+    var cursor = 0
+    var projected = 0
+    while (projected < projectedCount) {
+        val batch = fetch(cursor, OFFSET_SCAN_BATCH_SIZE)
+        if (batch.isEmpty()) return cursor
+        val filtered = CandidateGlyphFilter.filter(batch.toList(), blacklist = blacklist)
+        val remaining = projectedCount - projected
+        if (filtered.indices.size >= remaining) {
+            return cursor + filtered.indices[remaining - 1] + 1
+        }
+        projected += filtered.indices.size
+        cursor += batch.size
+        if (batch.size < OFFSET_SCAN_BATCH_SIZE) return cursor
+    }
+    return cursor
+}
+
+internal data class ProjectedCandidatePage(
+    val candidates: List<IndexedCandidate>,
+    val nextKey: Int?,
+)
+
+/** All fetch calls must belong to the same synchronous candidate read operation. */
+internal fun loadProjectedCandidatePage(
+    key: Int?,
+    offset: Int,
+    pageSize: Int,
+    total: Int,
+    blacklist: Set<String>,
+    fetch: (startIndex: Int, limit: Int) -> Array<CandidateProto>,
+): ProjectedCandidatePage {
+    // Only the initial compact offset is projected; subsequent keys are raw indices.
+    val startIndex = key ?: rawIndexAfterProjectedCount(offset, blacklist, fetch)
+    val kept = ArrayList<IndexedCandidate>(pageSize)
+    var cursor = startIndex
+    var reachedEnd = false
+    while (kept.size < pageSize && !reachedEnd) {
+        val want = pageSize - kept.size
+        val batch = fetch(cursor, want)
+        if (batch.isEmpty()) {
+            reachedEnd = true
+            break
+        }
+        val filtered = CandidateGlyphFilter.filter(batch.toList(), blacklist = blacklist)
+        filtered.indices.forEachIndexed { i, rawIndex ->
+            kept += IndexedCandidate(cursor + rawIndex, filtered.candidates[i])
+        }
+        cursor += batch.size
+        if (batch.size < want) reachedEnd = true
+    }
+    val nextKey = when {
+        reachedEnd -> null
+        total > 0 && cursor >= total -> null
+        else -> cursor
+    }
+    return ProjectedCandidatePage(kept, nextKey)
+}
+
 class CandidatesPagingSource(
     val rime: RimeSession,
     val total: Int,
     val offset: Int,
 ) : PagingSource<Int, IndexedCandidate>() {
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, IndexedCandidate> {
-        // use candidate index for key, null means load from beginning (including offset)
-        val startIndex = params.key ?: offset
-        val pageSize = params.loadSize
         val blacklist = BlacklistStore.words()
-        val kept = ArrayList<IndexedCandidate>(pageSize)
-        // 黑名单命中的候选不下发，一页往往要跨好几批原始候选才凑够。
-        // key 始终是 librime 的原始下标，所以过滤不会让翻页错位。
-        // 缺字形的候选同样要滤掉：候选字体覆盖不到补充平面汉字（U+20000 以上），
-        // 这些词在 AutoScaleTextView 里量不出字形宽度，格子会留成一块空白，
-        // 而且窄到点不中——正是「展开面板有大量空白格、点候选没反应」的根因。
-        var cursor = startIndex
-        var reachedEnd = false
-        while (kept.size < pageSize && !reachedEnd) {
-            val want = pageSize - kept.size
-            val batch = rime.runOnReady { getCandidates(cursor, want) }
-            if (batch.isEmpty()) {
-                reachedEnd = true
-                break
+        val page = rime.runOnReady {
+            readCandidatesAtomically { fetch ->
+                loadProjectedCandidatePage(params.key, offset, params.loadSize, total, blacklist, fetch)
             }
-            batch.forEachIndexed { i, proto ->
-                if (kept.size < pageSize &&
-                    proto.text !in blacklist &&
-                    CandidateGlyphFilter.canRender(proto.text)
-                ) {
-                    kept += IndexedCandidate(cursor + i, proto)
-                }
-            }
-            cursor += batch.size
-            if (batch.size < want) reachedEnd = true
         }
-        Timber.d("getCandidates(offset=$startIndex, limit=$pageSize) -> ${kept.size}, next=$cursor")
-        val prevKey = if (startIndex >= pageSize) startIndex - pageSize else null
-        val nextKey = when {
-            reachedEnd -> null
-            total > 0 -> if (cursor >= total) null else cursor
-            else -> cursor
-        }
-        return LoadResult.Page(kept, prevKey, nextKey)
+        Timber.d("getCandidates(key=" + params.key + ", limit=" + params.loadSize + ") -> " + page.candidates.size + ", next=" + page.nextKey)
+        // Earlier expanded pages remain loaded; the compact prefix must not be prepended.
+        return LoadResult.Page(page.candidates, null, page.nextKey)
     }
 
     // always reload from beginning

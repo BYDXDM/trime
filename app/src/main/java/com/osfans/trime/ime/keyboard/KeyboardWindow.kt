@@ -117,6 +117,7 @@ class KeyboardWindow(di: DI) :
     private var currentKeyboardId = ""
     private var lastKeyboardId = ""
     private var lastLockKeyboardId = ""
+    private var symbolsReturnKeyboardId = ""
     private var tempAsciiMode: Boolean? = null
     private val cachedKeyboards = mutableMapOf<String, Pair<Keyboard, KeyboardView>>()
     private val activeKeyboard: Keyboard? get() = cachedKeyboards[currentKeyboardId]?.first
@@ -350,6 +351,26 @@ class KeyboardWindow(di: DI) :
     }
 
     /**
+     * 符号面板提交实际符号后回到当前输入方案的默认键盘。
+     *
+     * 只接受非空、非空白且不含字母或数字的文本，避免功能命令、空白和数字
+     * 等路径误触发；目标使用 `.default`，由现有键盘解析逻辑选择真实 ID。
+     */
+    fun returnFromSymbolsAfterCommit(text: String): Boolean {
+        if (currentKeyboardId !in SYMBOLS_PAGE_ORDER ||
+            text.isEmpty() ||
+            text.any { it.isWhitespace() || it.isLetterOrDigit() }
+        ) {
+            return false
+        }
+        val target = symbolsReturnKeyboardId
+        if (target.isEmpty() || target in SYMBOLS_PAGE_ORDER) return false
+        switchKeyboard(target)
+        symbolsReturnKeyboardId = ""
+        return true
+    }
+
+    /**
      * 切换键盘。
      *
      * @param syncAsciiMode 见 [attachKeyboard]；由 `ascii_mode` 变化驱动的切换
@@ -363,6 +384,13 @@ class KeyboardWindow(di: DI) :
         ContextCompat.getMainExecutor(service).execute {
             if (cachedKeyboards.containsKey(target)) {
                 if (target == currentKeyboardId) return@execute
+            }
+            val previousKeyboardId = currentKeyboardId
+            if (target in SYMBOLS_PAGE_ORDER &&
+                previousKeyboardId.isNotEmpty() &&
+                previousKeyboardId !in SYMBOLS_PAGE_ORDER
+            ) {
+                symbolsReturnKeyboardId = previousKeyboardId
             }
             // 符号分组的两页之间切换时做双页滑动（旧页滑出 + 新页滑入），
             // 否则是硬切。方向按页序表推断：目标在后面 = 从右滑入。

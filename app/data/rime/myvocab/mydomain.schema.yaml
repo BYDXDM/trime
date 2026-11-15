@@ -69,6 +69,7 @@ engine:
   # ★ 领域词排序靠词典权重对齐 essay 词频刻度（见 mydomain.dict.yaml
   #   蔚蓝档案段注释），翻译器顺序无关紧要（合并按质量逐位选举）。
   filters:
+    - lua_filter@mydomain_candidate_order
     - simplifier
     - uniquifier
 

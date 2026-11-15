@@ -48,8 +48,28 @@ internal object BackgroundPatch {
     /** 受管区块结束标记 */
     const val MARK_END = "# <<< myime background"
 
-    /** 第 0 列的 `patch:` 根节点行 */
-    private val TOP_LEVEL_PATCH = Regex("(?m)^patch:[ \t]*$")
+    /**
+     * 第 0 列的 `patch:` 根节点行。
+     *
+     * F11：必须允许行尾注释（`patch: # 用户自己写的`）。旧的正则只认「patch: 后面全是空白」，
+     * 于是带注释的合法 patch 行认不出来，merge 会在文件末尾再追加一个顶层 `patch:`，
+     * 造成重复根键（YAML 解析失败或原 patch 被丢弃）。
+     * 注释符前必须有空白：`patch:#x` 里的 `#` 紧跟冒号，不是注释而是标量值，见
+     * [TOP_LEVEL_PATCH_WITH_VALUE]。
+     */
+    private val TOP_LEVEL_PATCH = Regex("(?m)^patch:(?:[ \t]+#.*|[ \t]*)$")
+
+    /**
+     * 第 0 列但**带值**的 `patch:` 行（`patch: {}`、`patch: &a`、`patch:#x`）。
+     *
+     * 这种行后面不能再跟缩进块：YAML 要么直接非法，要么把整块折进那个标量，用户原有内容被吞掉。
+     * 也不该改写用户的值，所以 merge 直接报错。
+     *
+     * R3：`patch:#x` 的 `#` 紧跟冒号，在 YAML 里是值 `#x` 而不是注释，与 `patch: {}` 同类；
+     * 旧正则要求 `#` 前有空白，于是这种行两个正则都不匹配，merge 把它当成「文件里没有 patch
+     * 根节点」，在末尾又追加一个顶层 `patch:`，同一文件出现两个根键。
+     */
+    private val TOP_LEVEL_PATCH_WITH_VALUE = Regex("(?m)^patch:(?:[ \t]+[^# \t].*|#.*)$")
 
     /**
      * 把受管区块合并进现有内容。
@@ -71,6 +91,12 @@ internal object BackgroundPatch {
             }
 
         if (kept.isEmpty()) return "patch:\n$block\n"
+
+        if (TOP_LEVEL_PATCH_WITH_VALUE.containsMatchIn(kept)) {
+            throw IllegalStateException(
+                "custom.yaml 的顶层 patch 已有值（如 patch: {}），无法安全追加背景区块",
+            )
+        }
 
         val patchLine =
             TOP_LEVEL_PATCH.find(kept)

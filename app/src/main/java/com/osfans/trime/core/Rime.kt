@@ -78,6 +78,10 @@ class Rime :
     private val showAsciiSwitchTips by AppPrefs.defaultInstance().general.asciiSwitchTips
 
     private var asciiSwitchTipsJob: Job? = null
+
+    // R1: finalize() 会在非 rime-main 线程自增，延迟任务必须读到最新值。
+    @Volatile
+    private var asciiTipsGeneration = 0L
     private var isNullInputType = true
     private var lastAsciiTipsText = ""
     private var pagingMode = false
@@ -298,6 +302,13 @@ class Rime :
         getRimeCandidates(startIndex, limit)
     }
 
+    override suspend fun <T> readCandidatesAtomically(
+        block: (fetch: (startIndex: Int, limit: Int) -> Array<CandidateProto>) -> T,
+    ): T = withRimeContext {
+        // Direct native reads cannot yield to another queued Rime operation between batches.
+        block { startIndex, limit -> getRimeCandidates(startIndex, limit) }
+    }
+
     override suspend fun setCandidatePagingMode(enabled: Boolean) = withRimeContext {
         pagingMode = enabled
         emitResponse()
@@ -450,10 +461,29 @@ class Rime :
         messageFlow_.tryEmit(RimeMessage.CompositionMessage(tips))
         compositionCached = tips
         asciiSwitchTipsJob?.cancel()
+        val generation = ++asciiTipsGeneration
         asciiSwitchTipsJob = lifecycleScope.launch {
             delay(1000L)
-            val ctx = getRimeContext()
-            handleRimeMessage(6, arrayOf(ctx.composition))
+            // The delay above runs on Dispatchers.Default; the native context may only be
+            // read on rime-main, and only while the request is still the current one.
+            try {
+                withRimeContext {
+                    val apply = AsciiTipsGuard.shouldApply(
+                        requestedGeneration = generation,
+                        currentGeneration = asciiTipsGeneration,
+                        ready = lifecycle.currentState == RimeLifecycle.State.READY,
+                        requestedTips = tipsText,
+                        currentTips = lastAsciiTipsText,
+                    )
+                    if (!apply) {
+                        Timber.d("Drop stale ascii tips restore: $tipsText")
+                        return@withRimeContext
+                    }
+                    handleRimeMessage(6, arrayOf(getRimeContext().composition))
+                }
+            } catch (e: IllegalStateException) {
+                Timber.d("Skip ascii tips restore, rime is not running: " + e.message)
+            }
         }
     }
 
@@ -490,6 +520,10 @@ class Rime :
             Timber.w("Skip stopping rime: not at ready state!")
             return
         }
+        // Invalidate any pending tips restore before the engine goes away.
+        asciiTipsGeneration++
+        asciiSwitchTipsJob?.cancel()
+        asciiSwitchTipsJob = null
         lifecycleRegistry.emitEvent(RimeLifecycle.Event.ON_STOP)
         Timber.i("Rime finalize()")
         dispatcher.stop().let {

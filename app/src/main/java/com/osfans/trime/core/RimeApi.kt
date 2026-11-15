@@ -88,5 +88,14 @@ interface RimeApi {
         limit: Int,
     ): Array<CandidateProto>
 
+    /**
+     * Read candidates within one Rime dispatcher task. Neither block nor fetch may suspend.
+     * The fetch function is valid only during block; do not retain it or use it on another thread.
+     * This does not retain a snapshot across separate calls.
+     */
+    suspend fun <T> readCandidatesAtomically(
+        block: (fetch: (startIndex: Int, limit: Int) -> Array<CandidateProto>) -> T,
+    ): T
+
     suspend fun setCandidatePagingMode(enabled: Boolean)
 }

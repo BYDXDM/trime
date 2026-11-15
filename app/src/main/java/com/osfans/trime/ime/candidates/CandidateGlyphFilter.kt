@@ -9,20 +9,13 @@ package com.osfans.trime.ime.candidates
 import com.osfans.trime.core.CandidateProto
 
 /**
- * 候选栏里的「空白词条」其实是缺字形：候选文本是补充平面汉字（CJK 扩展 B/C/D，
- * U+20000 以上），而 `candidate_font` 覆盖不到这些码位，[AutoScaleTextView] 自绘时
- * 只能画出 `.notdef` 豆腐块（窄长的方框打叉）。
- *
- * 实测：`luna_pinyin.dict.yaml` 70803 条词条里有 15822 条含补充平面码位；编码 `a` 的
- * 13 条候选里有 3 条是这种，滑到第二屏就能看到 3 个豆腐块。`stroke.dict.yaml` 更严重
- * （111510 行里 68937 行）。词库本身是合法的，删数据会连生僻字一起删掉，所以在显示层过滤。
+ * 候选显示层采用保守的码位策略：BMP 文本放行，补充平面码位过滤。
+ * 这不是设备字体覆盖检测；它只保证紧凑栏和展开分页使用同一稳定投影规则。
  */
 object CandidateGlyphFilter {
     /**
-     * 判据用「码位是否在补充平面」而不是 `Paint.hasGlyph`：`hasGlyph` 只查当前 Typeface
-     * 自己的字形表、**不查系统 fallback 链**，而候选字体在用户没放 `han.ttf` 时就是
-     * `Typeface.DEFAULT`——那样连「你」都会被判成 false，整栏中文候选全被滤掉。
-     * 按码位判断没有这个风险：BMP 汉字一律放行，只拦 U+FFFF 以上（本机必然画成豆腐的那批）。
+     * 保留现有保守码位政策：文本含 U+FFFF 以上码位即过滤，其他文本放行。
+     * 此方法不检查 Typeface、系统 fallback 或实际字形，不能保证设备上的字体覆盖。
      */
     fun canRender(text: String): Boolean {
         var i = 0
@@ -35,19 +28,23 @@ object CandidateGlyphFilter {
     }
 
     /**
-     * 过滤掉画不出来的候选，同时记下「保留下来的候选在原始列表里的下标」。
+     * 按保守码位策略过滤候选，同时记下「保留下来的候选在原始列表里的下标」。
      *
      * 下标必须保留：[com.osfans.trime.core.RimeApi.selectCandidate] 收的是 librime 的候选
      * 下标，过滤后列表位置和它不再相同，直接用位置会选中错误的词。
+     *
+     * 按同一稳定规则生成显示投影；[Filtered.indices] 始终指向传入列表的原始下标。
+     * 黑名单和字形过滤都只删除条目，不改变其余候选的相对顺序。
      */
     fun filter(
         candidates: List<CandidateProto>,
-        canRender: (String) -> Boolean,
+        canRender: (String) -> Boolean = ::canRender,
+        blacklist: Set<String> = emptySet(),
     ): Filtered {
         val kept = ArrayList<CandidateProto>(candidates.size)
         val indices = ArrayList<Int>(candidates.size)
         candidates.forEachIndexed { index, candidate ->
-            if (canRender(candidate.text)) {
+            if (candidate.text !in blacklist && canRender(candidate.text)) {
                 kept += candidate
                 indices += index
             }

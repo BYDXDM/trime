@@ -11,13 +11,22 @@ object SyncRelativePath {
         relativePath: String,
     ) : RuntimeException("Relative path escapes sync root: $relativePath")
 
+    /**
+     * Canonical form of a sync-relative path. Leading/trailing spaces belong to the
+     * file name and are preserved; only separators and "./" prefixes are rewritten.
+     */
     fun normalize(relativePath: String): String {
-        val normalized = relativePath.trim().replace('\\', '/').trimStart('/').removePrefix("./")
+        if (relativePath.isBlank()) {
+            throw PathEscapeException(relativePath)
+        }
+        var normalized = relativePath.replace('\\', '/')
+        while (normalized.startsWith('/')) normalized = normalized.removePrefix("/")
+        while (normalized.startsWith("./")) normalized = normalized.removePrefix("./")
         if (normalized.isEmpty()) {
             throw PathEscapeException(relativePath)
         }
         val segments = normalized.split('/')
-        if (segments.any { it == ".." || it.isEmpty() }) {
+        if (segments.any { it == ".." || it == "." || it.isEmpty() }) {
             throw PathEscapeException(relativePath)
         }
         return segments.joinToString("/")

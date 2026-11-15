@@ -264,6 +264,21 @@ object EnglishCorrector {
     var enabled: Boolean = false
 
     /**
+     * 当前编辑框是否允许纠错（密码框、声明不要建议/不要个性化学习的字段为 false）。
+     * 由输入法服务在进入编辑框时按 [CorrectionPolicy] 设置。
+     */
+    @Volatile
+    var inputAllowsCorrection: Boolean = true
+
+    /**
+     * 纠错的唯一许可判据：既在英文模式，又允许改写当前编辑框。
+     *
+     * 所有入口（[correct]、[correctWord]、[EnglishInputBuffer]）都只读这一个属性，
+     * 避免「改了一处、另一处仍在改写密码框」的漏口。
+     */
+    val active: Boolean get() = enabled && inputAllowsCorrection
+
+    /**
      * 用户"撤销纠错"过的词。撤销过的词不再纠，尊重用户意图。
      * 用并发集合，因为输入和撤销可能来自不同线程。
      */
@@ -286,7 +301,7 @@ object EnglishCorrector {
      * 例如 `cat` → 可能是 `car`/`cut`/`can`，歧义太大，宁可不纠。
      */
     fun correctWord(word: String): String? {
-        if (!enabled) return null
+        if (!active) return null
         if (word.length < MIN_LENGTH) return null
 
         val lower = word.lowercase()
@@ -319,7 +334,7 @@ object EnglishCorrector {
      * 这样调用方（commitText）不需要自己切词，逻辑集中在这里。
      */
     fun correct(committed: String): String? {
-        if (!enabled) return null
+        if (!active) return null
         val trimmed = committed.trim()
         if (trimmed.isEmpty()) return null
         // 只处理 ASCII 字母（允许词内撇号和连字符）。

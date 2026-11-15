@@ -39,7 +39,6 @@ class FlexboxUnrolledCandidateWindow(di: DI) : BaseUnrolledCandidateWindow(di) {
                     layoutParams =
                         FlexboxLayoutManager
                             .LayoutParams(wrapContent, itemHeight)
-                            .apply { flexGrow = 1f }
                 }
             }
 
@@ -55,7 +54,7 @@ class FlexboxUnrolledCandidateWindow(di: DI) : BaseUnrolledCandidateWindow(di) {
 
     override val layoutManager by lazy {
         FlexboxLayoutManager(context).apply {
-            justifyContent = JustifyContent.SPACE_AROUND
+            justifyContent = JustifyContent.FLEX_START
             alignItems = AlignItems.FLEX_START
         }
     }

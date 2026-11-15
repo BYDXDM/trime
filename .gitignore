@@ -493,3 +493,7 @@ __pycache__/
 #   *.jks 规则匹配不到 .txt，所以必须单独忽略整个目录。
 dist/
 
+
+# local build scratch (2026-11-15)
+.tmp-kotlin-check/
+_commit_msg.txt

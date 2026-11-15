@@ -10,6 +10,7 @@ import android.content.Intent
 import android.os.SystemClock
 import android.view.ContextThemeWrapper
 import android.view.KeyEvent
+import android.view.inputmethod.InputConnection
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.osfans.trime.R
@@ -144,6 +145,7 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
                 val shouldHandle = when {
                     action.commit.isNotEmpty() -> {
                         service.commitText(action.commit)
+                        keyboardWindow.returnFromSymbolsAfterCommit(action.commit)
                         false
                     }
 
@@ -218,20 +220,51 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
              *    这个语义不依赖输入框对 Ctrl+A 的支持，各输入框行为一致。
              */
             private fun clearInputAndComposition() {
+                // 绑定发起时的输入目标。launchOnReady 排队 + 下面的 delay 期间，
+                // 焦点可能已经换到另一个编辑框；那时再读 currentInputConnection
+                // 拿到的是**新编辑框**，照删就会把别人的内容删掉。
+                val requestedSession = service.inputSessionId
+                val requestedConnection = service.currentInputConnection
                 rime.launchOnReady { api ->
                     service.lifecycleScope.launch {
+                        // 排队期间目标就变了 → 连预编辑串都不要动
+                        if (!isSameInputTarget(
+                                requestedSession,
+                                service.inputSessionId,
+                                requestedConnection,
+                                service.currentInputConnection,
+                            )
+                        ) {
+                            Timber.d("clear_all: 输入目标已切换，放弃清空")
+                            return@launch
+                        }
                         // 1) 清 Rime 的预编辑串
                         api.clearComposition()
                         // 2) 等清空结果落到输入框，再清正文 —— 否则拼音会混在待删内容里
                         delay(CLEAR_SETTLE_MS)
-                        clearInputBox()
+                        clearInputBox(requestedSession, requestedConnection)
                     }
                 }
             }
 
             /** 把输入框里的内容整体删掉（光标移到末尾 → 删除光标前全部）。 */
-            private fun clearInputBox() {
-                val ic = service.currentInputConnection ?: return
+            private fun clearInputBox(
+                requestedSession: Long,
+                requestedConnection: InputConnection?,
+            ) {
+                val ic = service.currentInputConnection
+                // 挂起返回后再复核一次：delay 窗口内切走编辑框同样要放弃
+                if (!isSameInputTarget(
+                        requestedSession,
+                        service.inputSessionId,
+                        requestedConnection,
+                        ic,
+                    )
+                ) {
+                    Timber.d("clear_all: 输入目标已切换，放弃删除正文")
+                    return
+                }
+                if (ic == null) return
                 ic.beginBatchEdit()
                 ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MOVE_END))
                 ic.sendKeyEvent(KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MOVE_END))
@@ -564,8 +597,9 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
                             handleAction(KeyActionManager.getAction(token), allowAutoPair = false)
                         } else if (!value[0].isAsciiPrintable()) {
                             service.commitText(value)
-                        } else {
-                            simulateKeySequence(value)
+                            keyboardWindow.returnFromSymbolsAfterCommit(value)
+                        } else if (simulateKeySequence(value)) {
+                            keyboardWindow.returnFromSymbolsAfterCommit(value)
                         }
                     }
 
@@ -590,7 +624,9 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
                 isComposing = status.isComposing,
                 hasLocalComposition = service.hasComposition(),
             ) ?: return false
-        return service.commitPairedText(text, close)
+        val committed = service.commitPairedText(text, close)
+        if (committed) keyboardWindow.returnFromSymbolsAfterCommit(text + close)
+        return committed
     }
 
     companion object {

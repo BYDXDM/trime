@@ -39,7 +39,7 @@ class EnglishInputBuffer {
      */
     fun onCommit(text: String): Result? {
         // 模式切换可能没有先提交任何字符，在下一次提交时清掉旧模式残留。
-        val enabled = EnglishCorrector.enabled
+        val enabled = EnglishCorrector.active
         if (enabled != lastEnabled) {
             letters.setLength(0)
             lastEnabled = enabled
@@ -74,7 +74,7 @@ class EnglishInputBuffer {
         val word = letters.toString()
         letters.setLength(0)
 
-        if (!EnglishCorrector.enabled) return null
+        if (!EnglishCorrector.active) return null
 
         val fixed = EnglishCorrector.correct(word) ?: return null
         Timber.d("English corrector: %s -> %s", word, fixed)

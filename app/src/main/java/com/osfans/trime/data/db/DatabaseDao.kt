@@ -56,8 +56,8 @@ interface DatabaseDao {
     @Query("DELETE FROM ${DatabaseBean.TABLE_NAME} WHERE NOT pinned")
     suspend fun deleteAllUnpinned()
 
-    @Query("DELETE FROM ${DatabaseBean.TABLE_NAME} WHERE time<:timestamp AND pinned=0")
-    suspend fun deletedUnpinnedEarlierThan(timestamp: Long)
+    @Query("DELETE FROM ${DatabaseBean.TABLE_NAME} WHERE pinned=0 AND id IN (:ids)")
+    suspend fun deleteUnpinnedByIds(ids: List<Int>)
 
     @Query("SELECT * FROM ${DatabaseBean.TABLE_NAME} ORDER BY pinned DESC, time DESC")
     fun allBeans(): PagingSource<Int, DatabaseBean>
@@ -71,8 +71,8 @@ interface DatabaseDao {
     @Query("SELECT EXISTS(SELECT 1 FROM ${DatabaseBean.TABLE_NAME} WHERE pinned=0)")
     suspend fun haveUnpinned(): Boolean
 
-    @Query("SELECT * FROM ${DatabaseBean.TABLE_NAME} WHERE pinned=0")
-    suspend fun getAllUnpinned(): List<DatabaseBean>
+    @Query("SELECT * FROM ${DatabaseBean.TABLE_NAME} WHERE pinned=0 ORDER BY time DESC, id DESC")
+    suspend fun getUnpinnedByRecency(): List<DatabaseBean>
 
     @Query("SELECT * FROM ${DatabaseBean.TABLE_NAME} WHERE text=:text LIMIT 1")
     suspend fun find(text: String): DatabaseBean?

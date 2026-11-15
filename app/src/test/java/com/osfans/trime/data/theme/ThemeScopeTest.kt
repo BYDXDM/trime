@@ -60,6 +60,22 @@ class ThemeScopeTest :
                 s.colors.candidateTextColor shouldBe 0x445566
             }
         }
+        Given("a scope activated in landscape with a landscape variant") {
+            val s = scope()
+            s.updateScheme(
+                ColorScheme(
+                    "l",
+                    mapOf(
+                        "candidate_text_color" to "#112233",
+                        "candidate_text_color_land" to "#445566",
+                    ),
+                ),
+                landscape = true,
+            )
+            Then("the landscape value wins over the base value") {
+                s.colors.candidateTextColor shouldBe 0x445566
+            }
+        }
         Given("a scope with an unresolvable scheme key") {
             val s = scope()
             s.updateScheme(ColorScheme("c", mapOf("candidate_text_color" to "not-a-color")))

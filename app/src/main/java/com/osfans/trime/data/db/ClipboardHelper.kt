@@ -252,13 +252,15 @@ object ClipboardHelper :
 
     private suspend fun removeOutdated() {
         val limit = limitPref.getValue()
-        val unpinned = clbDao.getAllUnpinned()
-        if (unpinned.size > limit) {
-            val outdated =
-                unpinned
-                    .sortedBy { it.id }
-                    .getOrNull(unpinned.size - limit)
-            clbDao.deletedUnpinnedEarlierThan(outdated?.time ?: System.currentTimeMillis())
+        clbDb.withTransaction {
+            val expired =
+                ClipboardRetention.expiredIds(
+                    clbDao.getUnpinnedByRecency().map {
+                        ClipboardRetention.Row(it.id, it.time, it.pinned)
+                    },
+                    limit,
+                )
+            if (expired.isNotEmpty()) clbDao.deleteUnpinnedByIds(expired)
         }
     }
 }

@@ -67,6 +67,48 @@ class RimeDataProvider : DocumentsProvider() {
          *
          * Returns null when the external files dir is not ready yet (for example early after reboot).
          */
+        /**
+         * F07: whether [documentId] is a descendant of [parentDocumentId].
+         *
+         * Document ids are paths relative to the documents root ("files/folder/file.yaml"), so the
+         * relation has to be decided per path segment: a bare `startsWith` also accepts the
+         * sibling "files/folder-sibling/file" and the document itself.
+         */
+        internal fun isChildDocumentId(
+            parentDocumentId: String,
+            documentId: String,
+        ): Boolean {
+            val parent = normalizeDocId(parentDocumentId)
+            val child = normalizeDocId(documentId)
+            if (parent.isEmpty() || child.isEmpty()) return false
+            if (parent == child) return false
+            return child.startsWith("$parent/")
+        }
+
+        private fun normalizeDocId(docId: String): String = docId.replace('\\', '/').trimEnd('/')
+
+        /**
+         * F08: move [source] onto [target] and only report success when the file really moved.
+         *
+         * A failed `renameTo` used to be ignored, so renameDocument/moveDocument returned the id of
+         * a document that does not exist while the source stayed where it was. The target is never
+         * overwritten silently either.
+         */
+        internal fun moveOrFail(
+            source: File,
+            target: File,
+            describe: () -> String,
+        ): File {
+            if (target.exists()) {
+                throw FileNotFoundException("${describe()}: target ${target.name} exists")
+            }
+            val moved = source.renameTo(target) && target.exists() && !source.exists()
+            if (!moved) {
+                throw FileNotFoundException("${describe()}: rename failed")
+            }
+            return target
+        }
+
         internal fun resolveDocumentsRoot(externalFilesDir: File?): Pair<File, String>? {
             val base = externalFilesDir ?: return null
             val parentPath = base.parent ?: return null
@@ -200,7 +242,7 @@ class RimeDataProvider : DocumentsProvider() {
     override fun isChildDocument(
         parentDocumentId: String,
         documentId: String,
-    ): Boolean = documentId.startsWith(parentDocumentId)
+    ): Boolean = isChildDocumentId(parentDocumentId, documentId)
 
     @Throws(FileNotFoundException::class)
     override fun copyDocument(
@@ -234,11 +276,9 @@ class RimeDataProvider : DocumentsProvider() {
     ): String {
         val oldFile = fileFromDocId(documentId)
         val newFile = oldFile.resolveSibling(displayName)
-        if (newFile.exists()) {
-            throw FileNotFoundException("renameDocument id=$documentId to $displayName failed: target exists")
-        }
-        oldFile.renameTo(newFile)
-        return newFile.docId
+        return moveOrFail(oldFile, newFile) {
+            "renameDocument id=$documentId to $displayName failed"
+        }.docId
     }
 
     @Throws(FileNotFoundException::class)
@@ -249,8 +289,9 @@ class RimeDataProvider : DocumentsProvider() {
     ): String {
         val oldFile = fileFromDocId(sourceDocumentId)
         val newFile = createAbstractFile(targetParentDocumentId, oldFile.name)
-        oldFile.renameTo(newFile)
-        return newFile.docId
+        return moveOrFail(oldFile, newFile) {
+            "moveDocument id=$sourceDocumentId to $targetParentDocumentId failed"
+        }.docId
     }
 
     @Throws(FileNotFoundException::class)

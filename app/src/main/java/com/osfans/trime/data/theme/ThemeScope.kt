@@ -41,10 +41,20 @@ class ThemeScope internal constructor(
     val colors: ThemeColors
         get() = requireNotNull(colorsValue) { "ThemeScope is not initialized" }
 
-    /** Activates [scheme], rebuilding the color table and [colors]. */
-    internal fun updateScheme(scheme: ColorScheme) {
+    /**
+     * Activates [scheme], rebuilding the color table and [colors].
+     *
+     * When [landscape] is true the scheme's `_land` keys override their base
+     * keys first (see [LandscapeOverlay]), so the table reflects the current
+     * orientation.
+     */
+    internal fun updateScheme(
+        scheme: ColorScheme,
+        landscape: Boolean = false,
+    ) {
         activeColorScheme = scheme
-        val table = ColorTable.resolve(scheme, theme.fallbackColors, parseColor)
+        val effective = if (landscape) scheme.copy(colors = LandscapeOverlay.apply(scheme.colors)) else scheme
+        val table = ColorTable.resolve(effective, theme.fallbackColors, parseColor)
         colorTable = table
         colorsValue = ThemeColors(table)
         // Values the theme file cannot resolve are reported once at load, per

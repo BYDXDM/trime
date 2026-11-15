@@ -21,7 +21,7 @@ import com.osfans.trime.data.theme.ColorManager
 import com.osfans.trime.ime.core.ImeSwitchHint
 import com.osfans.trime.receiver.RimeIntentReceiver
 import com.osfans.trime.ui.main.LogActivity
-import com.osfans.trime.util.isNightMode
+import com.osfans.trime.util.isLandscapeBySize
 import com.osfans.trime.worker.BackgroundSyncWork
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.MainScope
@@ -160,7 +160,7 @@ class TrimeApplication : Application() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         try {
-            ColorManager.onSystemNightModeChange(newConfig.isNightMode())
+            ColorManager.onConfigurationChanged(newConfig, resources.isLandscapeBySize())
         } catch (e: Exception) {
             Timber.w(e, "Something wrong on configuration changed")
         }

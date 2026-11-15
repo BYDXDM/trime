@@ -117,7 +117,7 @@ abstract class BaseUnrolledCandidateWindow(di: DI) :
         offsetJob =
             lifecycleCoroutineScope.launch {
                 compactCandidate.unrolledCandidateOffset.collect {
-                    if (it <= 0) {
+                    if (it < 0) {
                         windowManager.attachWindow(KeyboardWindow)
                     } else {
                         candidateLayout.resetPosition()
@@ -156,8 +156,6 @@ abstract class BaseUnrolledCandidateWindow(di: DI) :
     override fun onDetached() {
         bar.unrollButtonStateMachine.push(
             UnrollButtonStateMachine.TransitionEvent.UnrolledCandidatesDetached,
-            UnrollButtonStateMachine.BooleanKey.UnrolledCandidatesEmpty to
-                (compactCandidate.adapter.total == adapter.offset),
         )
         offsetJob?.cancel()
         candidatesSubmitJob?.cancel()
