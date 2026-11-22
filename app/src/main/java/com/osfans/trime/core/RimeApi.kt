@@ -72,6 +72,15 @@ interface RimeApi {
 
     suspend fun clearComposition()
 
+    /**
+     * 丢弃当前组合段（含预测插件造的 rawInput 为空的「联想」伪组合段）。
+     *
+     * 与 [clearComposition] 的区别：这里会先给 Rime 发一个 Escape 让预测插件收手，
+     * 但那条 Escape **不会**被转发成客户端按键事件 —— 转发会让把 ESC 当「退出」的应用
+     * 自己 finish（华为文件管理一获得输入焦点就弹回，见 HANDOFF-20261122.md）。
+     */
+    suspend fun discardComposition()
+
     suspend fun getRawInput(): String
 
     suspend fun setRuntimeOption(

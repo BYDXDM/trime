@@ -274,12 +274,8 @@ class Rime :
         // （predictor.cc:56-90 的 OnContextUpdate）。它不是用户正在输入的内容，不能提交：
         // 切符号页会先 commitComposition（KeyboardWindow.kt:275），一提交就把「请问」「我们」
         // 这类联想词写进编辑框 —— 用户报的「第一次点输入框打 ? 带出我们」正是这条路径。
-        // 先发 Escape 让 predictor 置 last_action_ = kDelete（predictor.cc:37-38）再清，
-        // 否则 clear 会触发 update 通知，predictor 见组合段为空又立刻把联想段重建回来。
         if (statusCached.isComposing && getRimeRawInput().isEmpty()) {
-            processKeyInner(RimeKeyMapping.RimeKey_Escape, 0, true)
-            clearRimeComposition()
-            emitResponse()
+            discardCompositionInner()
             false
         } else {
             commitRimeComposition().also { if (it) emitResponse() }
@@ -287,6 +283,24 @@ class Rime :
     }
 
     override suspend fun clearComposition() = withRimeContext {
+        clearRimeComposition()
+        emitResponse()
+    }
+
+    override suspend fun discardComposition() = withRimeContext {
+        discardCompositionInner()
+    }
+
+    /**
+     * 丢弃当前组合段。先发 Escape 让 predictor 置 last_action_ = kDelete（predictor.cc:37-38）再清，
+     * 否则 clear 会触发 update 通知，predictor 见组合段为空又立刻把联想段重建回来。
+     *
+     * 这条 Escape 只在 Rime 内部生效（`forwardToClient = false`）。转发出去它会变成客户端应用收到的
+     * 一记真实 ESC 键：把 ESC 当「退出」的应用会自己 finish —— 华为文件管理一获得输入焦点就弹回桌面
+     * 正是这条路径（见 HANDOFF-20261122.md）。
+     */
+    private fun discardCompositionInner() {
+        processKeyInner(RimeKeyMapping.RimeKey_Escape, 0, true, forwardToClient = false)
         clearRimeComposition()
         emitResponse()
     }
@@ -344,11 +358,16 @@ class Rime :
         startupRime(sharedDataDir, userDataDir, BuildConfig.BUILD_VERSION_NAME, fullCheck)
     }
 
-    private fun processKeyInner(value: Int, modifiers: Int, isVirtual: Boolean): Boolean {
+    private fun processKeyInner(
+        value: Int,
+        modifiers: Int,
+        isVirtual: Boolean,
+        forwardToClient: Boolean = true,
+    ): Boolean {
         lastAsciiTipsText = asciiTipsText(getRimeStatus())
         val handled = processRimeKey(value, modifiers)
         emitResponse()
-        if (!handled) {
+        if (!handled && forwardToClient) {
             handleRimeMessage(
                 10, // RimeMessage.MessageType.Key,
                 arrayOf(value, modifiers, isVirtual),

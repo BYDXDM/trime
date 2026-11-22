@@ -641,14 +641,11 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         Timber.d("onStartInput: restarting=$restarting")
         val isNullType = attribute.inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_NULL
         postRimeJob {
-            // 进入/重启编辑框都丢弃上一个编辑框残留的组合段，**绝不 commit**：
-            // 一 commit 就会把 A 编辑框里打了一半的词改写进 B（跨框误改）。
-            // 必须先发 Escape 再 clear：clear 走 Context::Clear()，它会无条件触发 update 通知，
-            // predictor（处理器链首位）见组合段为空就用 commit_history 重建 "$" 联想段，
-            // 候选栏立刻又挂上「我们」；Escape 让 predictor 置 last_action_ = kDelete 并吞掉预测段，
-            // 压住这次重建。last_action_ 在下一个按键时复位，只抑制「刚进编辑框」这一瞬。
-            processKey(RimeKeyMapping.RimeKey_Escape)
-            clearComposition()
+            // 新编辑框一律丢弃上一轮残留（含预测插件造的「联想」伪组合段），
+            // 否则候选栏会挂着上一处的「请问」「我们」。
+            // 必须走 discardComposition 而不是 processKey(Escape)：后者会把 ESC 转发成客户端按键，
+            // 华为文件管理收到 ESC 当「退出」，一获得输入焦点就自己 finish 弹回桌面。
+            discardComposition()
             setNullInputType(isNullType)
         }
     }
@@ -735,8 +732,8 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         postRimeJob {
             // 与 onStartInput 同理：先 Escape 再 clear，否则 predictor 见组合段为空会用
             // commit_history 重建「联想」伪组合段，键盘收起后候选栏仍挂着「请问」「我们」。
-            processKey(RimeKeyMapping.RimeKey_Escape)
-            clearComposition()
+            // 同样不能把 ESC 转发给客户端，见 onStartInput 的注释。
+            discardComposition()
         }
         InputFeedbackManager.finishInput()
     }
