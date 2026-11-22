@@ -1,0 +1,18 @@
+diff --git a/src/rime/gear/editor.cc b/src/rime/gear/editor.cc
+index 37b3dda6..3d260341 100644
+--- a/src/rime/gear/editor.cc
++++ b/src/rime/gear/editor.cc
+@@ -123,6 +123,13 @@ bool Editor::CommitComposition(Context* ctx) {
+ }
+ 
+ bool Editor::RevertLastEdit(Context* ctx) {
++  // trime 定制：已经选过词、后面还留着没选的输入时，退格应该删一个输入字符，
++  // 而不是像上游那样先撤销上次选词（用户打长拼音选一个词后连按退格，
++  // 期望的是把剩下的拼音一个个删掉，不是把选好的词退回去）。
++  size_t confirmed_pos = ctx->composition().GetConfirmedPosition();
++  if (confirmed_pos > 0 && confirmed_pos < ctx->caret_pos() && ctx->PopInput()) {
++    return true;
++  }
+   // revert last selection or delete last input character
+   // depending on recent operation type
+   ctx->ReopenPreviousSelection() ||
