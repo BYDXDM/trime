@@ -35,6 +35,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import com.osfans.trime.R
+import com.osfans.trime.api.LocalApiServer
 import com.osfans.trime.core.KeyModifiers
 import com.osfans.trime.core.KeyValue
 import com.osfans.trime.core.RimeApi
@@ -99,6 +100,9 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     private val rimeIntentReceiver = RimeIntentReceiver()
 
     private var lastCommittedText: String = ""
+
+    /** 本地 HTTP API 服务；启动失败时为 null，不影响输入法本体。 */
+    private var localApiServer: LocalApiServer? = null
 
     /**
      * 英文纠错缓冲。
@@ -200,6 +204,18 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
      */
     fun postRimeJob(block: suspend RimeApi.() -> Unit) = postJob(rime.lifecycleScope) { rime.runOnReady(block) }
 
+    /** 本地 HTTP API 用：当前输入视图（未创建时为 null）。 */
+    val apiInputView: InputView?
+        get() = inputView
+
+    /** 本地 HTTP API 用：最近一次上屏文本的只读副本（只在主线程写）。 */
+    val apiLastCommittedText: String
+        get() = lastCommittedText
+
+    /** 本地 HTTP API 用：Rime 是否已就绪；会话已销毁时按未就绪处理。 */
+    val apiRimeReady: Boolean
+        get() = runCatching { rime.run { isReady } }.getOrDefault(false)
+
     private suspend fun updateRimeOption(api: RimeApi) {
         try {
             api.setRuntimeOption("soft_cursor", prefs.keyboard.useSoftCursor.getValue()) // 軟光標
@@ -261,6 +277,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         decorView = window.window!!.decorView
         contentView = decorView.findViewById(android.R.id.content)
         lastKnownConfig = Configuration(resources.configuration)
+        localApiServer = LocalApiServer(this).also { it.start() }
     }
 
     private fun handleRimeMessage(it: RimeMessage<*>) {
@@ -379,6 +396,8 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
     }
 
     override fun onDestroy() {
+        localApiServer?.stop()
+        localApiServer = null
         beginNewInputSession()
         InputFeedbackManager.destroy()
         inputView = null
@@ -622,10 +641,14 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         Timber.d("onStartInput: restarting=$restarting")
         val isNullType = attribute.inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_NULL
         postRimeJob {
-            if (restarting) {
-                // when input restarts in the same editor, clear previous composition
-                clearComposition()
-            }
+            // 进入/重启编辑框都丢弃上一个编辑框残留的组合段，**绝不 commit**：
+            // 一 commit 就会把 A 编辑框里打了一半的词改写进 B（跨框误改）。
+            // 必须先发 Escape 再 clear：clear 走 Context::Clear()，它会无条件触发 update 通知，
+            // predictor（处理器链首位）见组合段为空就用 commit_history 重建 "$" 联想段，
+            // 候选栏立刻又挂上「我们」；Escape 让 predictor 置 last_action_ = kDelete 并吞掉预测段，
+            // 压住这次重建。last_action_ 在下一个按键时复位，只抑制「刚进编辑框」这一瞬。
+            processKey(RimeKeyMapping.RimeKey_Escape)
+            clearComposition()
             setNullInputType(isNullType)
         }
     }
@@ -710,6 +733,9 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         }
         composingText = ""
         postRimeJob {
+            // 与 onStartInput 同理：先 Escape 再 clear，否则 predictor 见组合段为空会用
+            // commit_history 重建「联想」伪组合段，键盘收起后候选栏仍挂着「请问」「我们」。
+            processKey(RimeKeyMapping.RimeKey_Escape)
             clearComposition()
         }
         InputFeedbackManager.finishInput()
@@ -742,6 +768,11 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         // （拼音候选、直接上屏的标点、成对符号都从这里过）。
         TypedCharCounter.record(this, text)
         InputFeedbackManager.textCommitSpeak(text)
+        // 符号面板里「, . ? !」这类键在主题里是 send 值，会被解析成 10000+ 的符号码
+        // （KeyAction.kt:210-216 只填 code、text 留空），既不进 onText 也不是标准键码，
+        // 两条返回钩子都到不了。commitText 是所有上屏文本的唯一收口点，这里补一次；
+        // 非符号页时 returnFromSymbolsAfterCommit 的守卫直接返回 false。
+        inputView?.returnFromSymbolsAfterCommit(text)
     }
 
     /**

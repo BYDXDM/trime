@@ -40,6 +40,7 @@ import com.osfans.trime.util.buildIntentFromArgument
 import com.osfans.trime.util.customFormatDateTime
 import com.osfans.trime.util.isAsciiPrintable
 import com.osfans.trime.util.toast
+import com.osfans.trime.util.virtualKeyCharacterMap
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.kodein.di.DI
@@ -169,6 +170,18 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
                         if (open != null && commitAutoPair(open)) return
                     }
 
+                    // 符号面板里能打出字符的按键（`,` `.` `;` `-` 等）会被解析成标准
+                    // Android 键码、`text` 留空，既不走上面的 `commit` 分支也不走 `onText`。
+                    // 这类键交给 Rime 时，ascii_mode 下 Rime 只回 kNoop、由 Trime 把原始按键
+                    // 转发给目标应用，目标应用不一定接收（MuMu 桌面搜索框就整个吞掉），
+                    // 表现为点了半角符号既不上屏也不返回。符号面板本来就是照字面打字符，
+                    // 这里直接上屏并返回，与全角符号的 onText 路径一致。
+                    val printable = printableCharOf(action)
+                    if (printable != null && keyboardWindow.isOnSymbolsPage) {
+                        service.commitQuickSymbol(printable)
+                        return
+                    }
+
                     when (action.code) {
                         KeyEvent.KEYCODE_SWITCH_CHARSET -> handleSwitchCharset(action)
 
@@ -200,6 +213,7 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
 
                         else -> handleDefaultKeyAction(action)
                     }
+
                 }
             }
 
@@ -598,7 +612,10 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
                         } else if (!value[0].isAsciiPrintable()) {
                             service.commitText(value)
                             keyboardWindow.returnFromSymbolsAfterCommit(value)
-                        } else if (simulateKeySequence(value)) {
+                        } else {
+                            // simulateKeySequence 在 Rime 没有对应键映射时会走 CommitProto 兜底直接上屏
+                            // 并返回 false（Rime.kt:222-237），上屏仍然发生了，所以返回符号页不能挂在返回值上。
+                            simulateKeySequence(value)
                             keyboardWindow.returnFromSymbolsAfterCommit(value)
                         }
                     }
@@ -663,6 +680,37 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
 
         /** @return [code] 对应的成对左半符号；该键码不是左半符号时为 null。 */
         internal fun autoPairTextForCode(code: Int): String? = AUTO_PAIR_BY_KEYCODE[code]
+
+        /**
+         * @return [action] 按下去会产生的单个 ASCII 可打印字符；不是这种情况时返回 null。
+         *
+         * 符号面板里的 `@` `#` `,` `[` 这类按键会被 [KeyCode.parse] 解析成标准
+         * Android 键码，`text` 留空、只剩 `code`，于是绕过了 `commit` / `onText`
+         * 两条会返回键盘的分支（见 [KeyboardWindow.returnFromSymbolsAfterCommit]）。
+         * 判定沿用 [KeyCode.getDisplayLabel] 取字符的那套映射（标准键码 + 虚拟键盘
+         * 字符表），只是不打印它每次调用都会打的调试日志。
+         *
+         * 排除：带修饰键的按键；非标准键码（`!` `~` 等走 text 路径）；非打印键
+         * —— 退格、回车、123、返回、分组页签、∧/∨ 翻组都落在这一类。
+         */
+        private fun printableCharOf(action: KeyAction): String? {
+            if (action.modifier != 0 ||
+                action.command.isNotEmpty() ||
+                action.select.isNotEmpty() ||
+                action.toggle.isNotEmpty()
+            ) {
+                return null
+            }
+            val code = action.code
+            if (!KeyCode.isStandardKey(code) || !virtualKeyCharacterMap.isPrintingKey(code)) {
+                return null
+            }
+            val charCode = virtualKeyCharacterMap.get(code, 0)
+            if (charCode <= 0) return null
+            val ch = charCode.toChar()
+            if (!ch.isAsciiPrintable() || ch.isLetterOrDigit()) return null
+            return ch.toString()
+        }
 
         /**
          * 判定 [text] 要不要自动补全，返回该补的右半符号；不该补时返回 null。

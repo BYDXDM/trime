@@ -269,7 +269,22 @@ class Rime :
         RimeSchema(getCurrentRimeSchema())
     }
 
-    override suspend fun commitComposition(): Boolean = withRimeContext { commitRimeComposition().also { if (it) emitResponse() } }
+    override suspend fun commitComposition(): Boolean = withRimeContext {
+        // 预测插件（librime-predict）在组合段为空时会塞一个 rawInput 为空的「联想」伪组合段
+        // （predictor.cc:56-90 的 OnContextUpdate）。它不是用户正在输入的内容，不能提交：
+        // 切符号页会先 commitComposition（KeyboardWindow.kt:275），一提交就把「请问」「我们」
+        // 这类联想词写进编辑框 —— 用户报的「第一次点输入框打 ? 带出我们」正是这条路径。
+        // 先发 Escape 让 predictor 置 last_action_ = kDelete（predictor.cc:37-38）再清，
+        // 否则 clear 会触发 update 通知，predictor 见组合段为空又立刻把联想段重建回来。
+        if (statusCached.isComposing && getRimeRawInput().isEmpty()) {
+            processKeyInner(RimeKeyMapping.RimeKey_Escape, 0, true)
+            clearRimeComposition()
+            emitResponse()
+            false
+        } else {
+            commitRimeComposition().also { if (it) emitResponse() }
+        }
+    }
 
     override suspend fun clearComposition() = withRimeContext {
         clearRimeComposition()

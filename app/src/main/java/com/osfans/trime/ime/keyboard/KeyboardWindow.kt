@@ -7,6 +7,7 @@ package com.osfans.trime.ime.keyboard
 import android.graphics.Point
 import android.os.Build
 import android.text.InputType
+import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.inputmethod.EditorInfo
@@ -122,6 +123,18 @@ class KeyboardWindow(di: DI) :
     private val cachedKeyboards = mutableMapOf<String, Pair<Keyboard, KeyboardView>>()
     private val activeKeyboard: Keyboard? get() = cachedKeyboards[currentKeyboardId]?.first
     private val currentKeyboardView: KeyboardView? get() = cachedKeyboards[currentKeyboardId]?.second
+
+    /** 本地 HTTP API 用：当前键盘 id 的只读副本（只在主线程写，读取也应在主线程）。 */
+    val apiCurrentKeyboardId: String
+        get() = currentKeyboardId
+
+    /** 本地 HTTP API 用：进入符号面板前记下的键盘 id 的只读副本。 */
+    val apiSymbolsReturnKeyboardId: String
+        get() = symbolsReturnKeyboardId
+
+    /** 当前是否停在符号面板的某一页（[SYMBOLS_PAGE_ORDER] 里的一页）。 */
+    val isOnSymbolsPage: Boolean
+        get() = currentKeyboardId in SYMBOLS_PAGE_ORDER
 
     private val keyboardActionListener = commonKeyboardActionListener.listener
 
@@ -363,11 +376,29 @@ class KeyboardWindow(di: DI) :
         ) {
             return false
         }
-        val target = symbolsReturnKeyboardId
-        if (target.isEmpty() || target in SYMBOLS_PAGE_ORDER) return false
+        val target = resolveSymbolsReturnTarget() ?: return false
+        if (target == currentKeyboardId) return false
         switchKeyboard(target)
         symbolsReturnKeyboardId = ""
         return true
+    }
+
+    /**
+     * 解析「从符号面板返回」的目标键盘。
+     *
+     * 优先用进入符号面板时记下的键盘；没有记录时（进程刚起、第一个挂上的就是
+     * 符号面板，从未 attach 过普通键盘）按当前方案推导默认键盘。两条路都必须
+     * 排除符号分组本身，否则「返回」只是从一页符号跳到另一页符号。
+     */
+    private fun resolveSymbolsReturnTarget(): String? {
+        symbolsReturnKeyboardId
+            .takeIf { it.isNotEmpty() && it !in SYMBOLS_PAGE_ORDER }
+            ?.let { return it }
+        val matched = smartMatchKeyboard()
+        if (matched !in SYMBOLS_PAGE_ORDER) return matched
+        return presetKeyboardIds.firstOrNull { id ->
+            id !in SYMBOLS_PAGE_ORDER && (theme.presetKeyboards[id]?.keys?.size ?: 0) > 0
+        }
     }
 
     /**
@@ -411,6 +442,39 @@ class KeyboardWindow(di: DI) :
             }
         }
         Timber.d("Switched to keyboard: $target")
+    }
+
+    /**
+     * 测试入口：按标签在当前键盘里找键，并复刻 [KeyView] 的点击分派顺序。
+     *
+     * 与手点等价的两步（见 [KeyView] 的 onPress / processKeyAction）：
+     * 1. `key.getCode(KeyBehavior.CLICK)` 交给 `onPress`；
+     * 2. `key.getAction(KeyBehavior.CLICK)` 交给 `onAction`；修饰键走键盘级状态机。
+     *
+     * 必须在主线程调用；键盘未挂载或找不到该标签时返回 false。
+     */
+    fun pressKeyByLabelForApi(label: String): Boolean {
+        val keyboard = activeKeyboard ?: return false
+        val key =
+            keyboard.keys.firstOrNull { candidate ->
+                candidate.getAction(KeyBehavior.CLICK) != null && candidate.getLabel() == label
+            } ?: return false
+        val action = key.getAction(KeyBehavior.CLICK) ?: return false
+        keyboardActionListener.onPress(key.getCode(KeyBehavior.CLICK))
+        if (action.isModifierKey) {
+            if (action.modifierKeyOnMask == KeyEvent.META_SHIFT_ON) {
+                keyboard.cycleShiftState()
+            } else {
+                keyboard.clickModifierKey(action.isShiftLock, action.modifierKeyOnMask)
+            }
+            currentKeyboardView?.invalidateAllKeys()
+            return true
+        }
+        keyboardActionListener.onAction(action)
+        if (keyboard.refreshModifier()) {
+            currentKeyboardView?.invalidateAllKeys()
+        }
+        return true
     }
 
     /**

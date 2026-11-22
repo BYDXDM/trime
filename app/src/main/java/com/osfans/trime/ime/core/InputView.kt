@@ -137,6 +137,10 @@ class InputView(
     private val liquidWindow: LiquidWindow by instance()
     private val compactCandidate: CompactCandidateDelegate by instance()
 
+    /** 本地 HTTP API 用：只读暴露键盘窗口，供按标签点键与读取当前键盘 id。 */
+    val apiKeyboardWindow: KeyboardWindow
+        get() = keyboardWindow
+
     private val candidatesMode by AppPrefs.defaultInstance().candidates.mode
 
     private val keyboardSidePadding = theme.generalStyle.keyboardPadding
