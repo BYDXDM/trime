@@ -63,11 +63,6 @@ class RimeDataProvider : DocumentsProvider() {
         private const val SEARCH_RESULTS_LIMIT = 50
 
         /**
-         * Resolve the documents root from [externalFilesDir].
-         *
-         * Returns null when the external files dir is not ready yet (for example early after reboot).
-         */
-        /**
          * F07: whether [documentId] is a descendant of [parentDocumentId].
          *
          * Document ids are paths relative to the documents root ("files/folder/file.yaml"), so the

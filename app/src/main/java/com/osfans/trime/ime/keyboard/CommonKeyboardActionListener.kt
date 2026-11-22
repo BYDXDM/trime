@@ -213,7 +213,6 @@ class CommonKeyboardActionListener(override val di: DI) : DIAware {
 
                         else -> handleDefaultKeyAction(action)
                     }
-
                 }
             }
 

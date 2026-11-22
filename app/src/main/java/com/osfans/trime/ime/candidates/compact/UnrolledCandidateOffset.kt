@@ -22,5 +22,4 @@ internal fun shouldShowUnrollButton(
     filteredOut: Int,
 ): Boolean = visibleCount > 0 && (total < 0 || visiblePrefix + filteredOut < total)
 
-internal fun unrolledCandidateOffset(visiblePrefix: Int, visibleCount: Int): Int =
-    if (visibleCount == 0) -1 else visiblePrefix
+internal fun unrolledCandidateOffset(visiblePrefix: Int, visibleCount: Int): Int = if (visibleCount == 0) -1 else visiblePrefix

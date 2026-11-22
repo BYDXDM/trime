@@ -49,6 +49,7 @@ class LocalApiServer(
         const val CANDIDATE_LIMIT = 10
         const val SETTLE_TRIES = 5
         const val SETTLE_INTERVAL_MS = 40L
+
         // 只等很短一下：监听线程是 daemon，收尾不阻塞 onDestroy
         const val STOP_JOIN_TIMEOUT_MS = 300L
         const val LF = 0x0A
@@ -211,18 +212,16 @@ class LocalApiServer(
         output.flush()
     }
 
-    private fun statusText(status: Int): String =
-        when (status) {
-            200 -> "OK"
-            400 -> "Bad Request"
-            404 -> "Not Found"
-            else -> "Internal Server Error"
-        }
+    private fun statusText(status: Int): String = when (status) {
+        200 -> "OK"
+        400 -> "Bad Request"
+        404 -> "Not Found"
+        else -> "Internal Server Error"
+    }
 
-    private fun errorJson(message: String): JSONObject =
-        JSONObject()
-            .put("ok", false)
-            .put("error", message)
+    private fun errorJson(message: String): JSONObject = JSONObject()
+        .put("ok", false)
+        .put("error", message)
 
     // endregion
 
