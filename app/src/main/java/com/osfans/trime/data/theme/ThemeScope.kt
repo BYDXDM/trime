@@ -53,7 +53,8 @@ class ThemeScope internal constructor(
         landscape: Boolean = false,
     ) {
         activeColorScheme = scheme
-        val effective = if (landscape) scheme.copy(colors = LandscapeOverlay.apply(scheme.colors)) else scheme
+        val own = if (landscape) LandscapeOverlay.apply(scheme.colors) else scheme.colors
+        val effective = scheme.copy(colors = inheritUnresolved(own))
         val table = ColorTable.resolve(effective, theme.fallbackColors, parseColor)
         colorTable = table
         colorsValue = ThemeColors(table)
@@ -62,6 +63,29 @@ class ThemeScope internal constructor(
         if (table.unresolvedKeys.isNotEmpty()) {
             Timber.w("Unknown color key: %s", table.unresolvedKeys.joinToString { it.key })
         }
+    }
+
+    /**
+     * 以主题的 default 配色补齐 [colors] 里解析不到的键。
+     *
+     * 只写少量键的自建配色（例如「键盘背景」生成器产出的 user_bg）常缺
+     * `text_color` / `back_color` 这类链终点；缺了它们 [ThemeColors] 一读就抛
+     * IllegalArgumentException，输入法在创建输入视图时直接崩溃。这里只补「本来就
+     * 解析不到」的键——能解析的键一个都不动，因此不会改变任何已有外观。
+     */
+    private fun inheritUnresolved(colors: Map<String, String>): Map<String, String> {
+        val base =
+            (theme.colorSchemes.find { it.id == DEFAULT_SCHEME } ?: theme.colorSchemes.firstOrNull())
+                ?.colors
+                ?: return colors
+        val missing = ColorKey.entries.filter { ColorTable.resolveRaw(it.key, colors, theme.fallbackColors) == null }
+        if (missing.isEmpty()) return colors
+        val merged = LinkedHashMap(colors)
+        for (key in missing) {
+            val value = base[key.key]
+            if (!value.isNullOrEmpty()) merged[key.key] = value
+        }
+        return merged
     }
 
     /** Resolves a color key through this scope; theme-only keys resolve via the fallback chain. */
@@ -82,3 +106,5 @@ class ThemeScope internal constructor(
         alpha: Int = 255,
     ): Drawable? = ColorManager.resolveDecorDrawable(this, colorKey, borderColorKey, borderPx, cornerRadius, alpha)
 }
+
+private const val DEFAULT_SCHEME = "default"

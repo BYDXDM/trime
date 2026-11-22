@@ -46,7 +46,22 @@ class ThemeScopeTest :
             Then("colors resolves through the scheme") {
                 s.activeColorScheme shouldBe schemeA
                 s.colors.candidateTextColor shouldBe 0x112233
-                shouldThrow<IllegalArgumentException> { s.colors.backColor }
+            }
+            Then("keys the scheme omits are inherited from the theme's default scheme") {
+                s.colors.backColor shouldBe 0xF2F3F5
+                s.colors.textColor shouldBe 0x1A1A1A
+            }
+        }
+        Given("a partial scheme that only sets a landscape key") {
+            val s = scope()
+            s.updateScheme(
+                ColorScheme("user_bg", mapOf("keyboard_back_color_land" to "#00FF00")),
+                landscape = true,
+            )
+            Then("the landscape value wins and the rest still resolves instead of throwing") {
+                s.colors.keyboardBackground shouldBe 0x00FF00
+                s.colors.textColor shouldBe 0x1A1A1A
+                s.colors.keyBackColor shouldBe 0x00000000
             }
         }
         Given("a scope whose scheme switches from A to B") {
