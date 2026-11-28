@@ -280,9 +280,12 @@ object RimeDaemon {
                     val pendingIntent =
                         PendingIntent.getActivity(
                             appContext,
-                            0,
+                            1,
                             intent,
-                            PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE,
+                            // 每次部署失败都要能重新点开看新的栈：FLAG_ONE_SHOT 会让首次点击后
+                            // 这个 PendingIntent 作废，第二次失败点通知就毫无反应；
+                            // 改用 UPDATE_CURRENT 让 extra 也跟着刷新。
+                            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                         )
                     DeployNotification.showFailure(pendingIntent)
                 }

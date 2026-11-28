@@ -58,7 +58,7 @@ internal object BackgroundPalette {
     }
 
     const val KEYBOARD_BACK = "keyboard_back_color"
-    const val CANDIDATE_BACK = "candidate_back_color"
+    const val CANDIDATE_BACK = "candidate_background"
     const val ROOT_BACKGROUND = "root_background"
     const val KEY_BACK = "key_back_color"
 

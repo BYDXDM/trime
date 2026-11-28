@@ -28,6 +28,9 @@ class ClipEditActivity : Activity() {
     private lateinit var editText: EditText
     private var clipType: String? = null
 
+    /** 点击确定后置位：此时不能再由 onStop 抢先 finish，否则保存协程会被 onDestroy 取消 */
+    private var saving = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.attributes.gravity = Gravity.TOP
@@ -44,14 +47,16 @@ class ClipEditActivity : Activity() {
 
     private fun finishEditing() {
         val str = editText.editableText.toString()
+        saving = true
         scope.launch {
             when (clipType) {
                 FROM_CLIPBOARD -> ClipboardHelper.updateText(beanId, str)
                 FROM_COLLECTION -> CollectionHelper.updateText(beanId, str)
                 else -> {}
             }
+            // 保存完成后再关闭，避免 onDestroy 取消 scope 把挂起的 UPDATE 一起取消掉
+            finish()
         }
-        finish()
     }
 
     private fun setBean(bean: DatabaseBean) {
@@ -84,7 +89,7 @@ class ClipEditActivity : Activity() {
 
     override fun onStop() {
         super.onStop()
-        finish()
+        if (!saving) finish()
     }
 
     override fun onDestroy() {

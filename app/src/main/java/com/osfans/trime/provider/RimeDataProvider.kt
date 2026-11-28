@@ -113,10 +113,20 @@ class RimeDataProvider : DocumentsProvider() {
 
     private var baseDir: File? = null
     private var docIdPrefix: String? = null
+
+    /**
+     * [docIdPrefix] 的规范化（canonical）形式，即文档根目录本身。
+     *
+     * `canonicalPath` 会展开符号链接与 `..`，文档 id 也一律先 canonicalize 再与它比较：
+     * 只和未规范化的前缀比，含 `..` 的 id 仍可能落到目录外。
+     */
+    private var canonicalRootPath: String? = null
     private var textFilePaths: Array<String> = emptyArray()
 
+    // 根目录自身的路径以分隔符结尾，去掉后才能还原成 "files/<id>" 形式的文档 id；
+    // 也保证子项 id 不会以 "files//" 这种带双斜杠的形式暴露给调用方。
     private val File.docId
-        get() = absolutePath.removePrefix(docIdPrefix())
+        get() = absolutePath.removePrefix(docIdPrefix()).trimStart(File.separatorChar)
 
     private fun docIdPrefix(): String {
         if (!ensureBaseDir()) {
@@ -125,14 +135,27 @@ class RimeDataProvider : DocumentsProvider() {
         return docIdPrefix!!
     }
 
-    private fun fileFromDocId(docId: String) = File(docIdPrefix(), docId)
+    // docId 来自外部 URI，未归一化时含 `..` 就能越出应用目录去读写任意文件：
+    // 先归一化再断言结果仍在 docIdPrefix 对应的目录之内，越界按「文件不存在」处理。
+    private fun fileFromDocId(docId: String): File {
+        val prefix = docIdPrefix()
+        val rootPath = canonicalRootPath ?: throw FileNotFoundException("App files dir is not available")
+        val file = File(prefix, docId).canonicalFile
+        // 比前缀时必须带分隔符，否则 ".../files-evil" 会被当成目录内的路径。
+        if (!file.path.startsWith(rootPath + File.separator)) {
+            throw FileNotFoundException("Document id $docId escapes the app files dir")
+        }
+        return file
+    }
 
     private fun ensureBaseDir(): Boolean {
-        if (baseDir != null && docIdPrefix != null) return true
+        if (baseDir != null && docIdPrefix != null && canonicalRootPath != null) return true
         val (base, prefix) =
             resolveDocumentsRoot(context!!.getExternalFilesDir(null)) ?: return false
         baseDir = base
         docIdPrefix = prefix
+        canonicalRootPath = runCatching { File(prefix).canonicalPath }
+            .getOrElse { return false }
         textFilePaths = Array(TEXT_FILES.size) { base.resolve(TEXT_FILES[it]).absolutePath }
         return true
     }
@@ -142,7 +165,7 @@ class RimeDataProvider : DocumentsProvider() {
     override fun queryRoots(projection: Array<String>?): Cursor {
         val cursor = MatrixCursor(projection ?: DEFAULT_ROOT_PROJECTION)
         if (!ensureBaseDir()) return cursor
-        val root = baseDir!!
+        val root = File(docIdPrefix())
         cursor.newRow().apply {
             add(Root.COLUMN_ROOT_ID, root.docId)
             add(
@@ -296,11 +319,18 @@ class RimeDataProvider : DocumentsProvider() {
         projection: Array<String>?,
     ) = MatrixCursor(projection ?: DEFAULT_DOCUMENT_PROJECTION).apply {
         val q = query.lowercase()
+        var matched = 0
         fileFromDocId(rootId)
             .walk()
             .filter { it.name.lowercase().contains(q) }
-            .take(SEARCH_RESULTS_LIMIT)
-            .forEach { newRowFromFile(it) }
+            .forEach { file ->
+                // 先按结果上限截断再取列：newRowFromFile 会跳过落在根目录外的条目，
+                // 在它之后再 take 会少给结果。
+                if (matched >= SEARCH_RESULTS_LIMIT) return@forEach
+                val before = count
+                newRowFromFile(file)
+                if (count > before) matched += 1
+            }
     }
 
     private val File.mimeType: String
@@ -317,11 +347,16 @@ class RimeDataProvider : DocumentsProvider() {
         displayName: String,
     ): File {
         val parent = fileFromDocId(parentDocumentId)
+        // 新建出来的文件同样要落在文档根目录内，否则 displayName 里的 `../` 就能写到目录外。
+        val canonicalParent = parent.canonicalPath + File.separator
         var newFile = parent.resolve(displayName)
         var noConflictId = 2
         while (newFile.exists()) {
             newFile = parent.resolve("$displayName ($noConflictId)")
             noConflictId += 1
+        }
+        if (!newFile.canonicalPath.startsWith(canonicalParent)) {
+            throw FileNotFoundException("Document name $displayName escapes parent $parentDocumentId")
         }
         return newFile
     }
@@ -331,6 +366,9 @@ class RimeDataProvider : DocumentsProvider() {
         if (!file.exists()) {
             throw FileNotFoundException("File(path=${file.absolutePath}) not found")
         }
+        // 搜索或列目录时跳过落在文档根目录之外的条目（例如指向别处的符号链接）。
+        val rootPath = canonicalRootPath ?: throw FileNotFoundException("App files dir is not available")
+        if (!file.canonicalPath.startsWith(rootPath + File.separator)) return
 
         val mimeType = file.mimeType
         var flags =

@@ -77,9 +77,9 @@ constructor(
     }
 
     private fun buildColoredString(str: String) {
-        val color =
-            ContextCompat.getColor(
-                context,
+        // 不足 20 字符的行没有 logcat 的优先级列，直接按默认色输出
+        val colorRes =
+            runCatching {
                 when (str.codePointAt(19).toChar()) {
                     'V' -> R.color.grey_700
                     'D' -> R.color.grey_700
@@ -88,8 +88,9 @@ constructor(
                     'E' -> R.color.red_400
                     'F' -> R.color.red_A700
                     else -> R.color.colorPrimary
-                },
-            )
+                }
+            }.getOrDefault(R.color.colorPrimary)
+        val color = ContextCompat.getColor(context, colorRes)
         logAdapter.append(
             buildSpannedString {
                 color(color) { append(str) }

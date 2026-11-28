@@ -61,7 +61,7 @@ class BackgroundPaletteTest :
                 BackgroundPalette.forImage("w.jpg", 200.0).keys.toList() shouldBe
                     listOf(
                         "keyboard_back_color",
-                        "candidate_back_color",
+                        "candidate_background",
                         "root_background",
                         "key_back_color",
                         "key_text_color",

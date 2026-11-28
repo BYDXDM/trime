@@ -89,6 +89,10 @@ object CustomPhraseStore {
 
     /**
      * 覆盖写入短语表。空列表时删除文件，让 librime 回到「无自定义短语」的状态。
+     *
+     * 写入必须原子：直接 writeText 会在失败时留下半截文件，而 [load] 把读不懂的内容
+     * 当空表，下一次保存就用空表覆盖掉整张表。改为先写同目录临时文件再 rename，
+     * 任何一步失败都保留原文件。
      */
     fun save(phrases: List<CustomPhrase>): Result<Unit> = runCatching {
         val target = file
@@ -97,8 +101,18 @@ object CustomPhraseStore {
             return@runCatching
         }
         target.parentFile?.mkdirs()
-        target.writeText(serialize(phrases), Charsets.UTF_8)
+        writeAtomically(target, serialize(phrases))
     }.onFailure { Timber.w(it, "Failed to write custom phrase file") }
+
+    private fun writeAtomically(target: File, content: String) {
+        val temp = File(target.parentFile, "${target.name}.tmp")
+        try {
+            temp.writeText(content, Charsets.UTF_8)
+            if (!temp.renameTo(target)) error("Failed to move ${temp.path} onto ${target.path}")
+        } finally {
+            if (temp.exists()) temp.delete()
+        }
+    }
 
     /**
      * 追加一条并返回新列表；同编码同短语已存在时覆盖权重。

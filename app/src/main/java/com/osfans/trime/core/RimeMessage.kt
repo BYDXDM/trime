@@ -138,7 +138,10 @@ sealed class RimeMessage<T>(
             params: Array<Any>,
         ) = when (types[type]) {
             MessageType.Schema -> {
-                val (id, name) = (params[0] as String).split('/', limit = 2)
+                // schema id 不一定带 '/' 分隔的显示名，硬解构会抛 IndexOutOfBoundsException。
+                val parts = (params[0] as String).split('/', limit = 2)
+                val id = parts[0]
+                val name = parts.getOrNull(1) ?: id
                 SchemaMessage(SchemaItem(id, name))
             }
 

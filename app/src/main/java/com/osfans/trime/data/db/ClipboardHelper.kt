@@ -75,20 +75,26 @@ object ClipboardHelper :
         launch { removeOutdated() }
     }
 
+    // 用户在设置里填的规则可能是非法正则：编译失败必须退化成「没有规则」，不能让
+    // PatternSyntaxException 从 lazy 初值抛出协程（复制任意文本就崩溃）。
     private val compareRules: Set<Regex> by lazy {
         val rules by clipPref.clipboardCompareRules
-        rules
-            .split('\n')
-            .map { Regex(it.trim()) }
-            .toSet()
+        runCatching {
+            rules
+                .split('\n')
+                .map { Regex(it.trim()) }
+                .toSet()
+        }.getOrNull() ?: emptySet()
     }
 
     private val outputRules: Set<Regex> by lazy {
         val rules by clipPref.clipboardOutputRules
-        rules
-            .split('\n')
-            .map { Regex(it) }
-            .toSet()
+        runCatching {
+            rules
+                .split('\n')
+                .map { Regex(it) }
+                .toSet()
+        }.getOrNull() ?: emptySet()
     }
 
     var lastBean: DatabaseBean? = null
@@ -156,6 +162,8 @@ object ClipboardHelper :
      * 如果两次处理过的内容不变，则不通知。
      *
      * - [outputRules] 输出规则。如果剪贴板内容与规则匹配，则不通知剪贴板管理器。
+     * - [compareRules] / [outputRules] 规则可能因为用户填了非法正则而整组不可用，
+     * 那时只能当作「没有规则」跳过匹配，不能在复制文本的路径上抛异常。
      */
     override fun onPrimaryClipChanged() {
         val clip = clipboardManager.primaryClip ?: return
@@ -220,15 +228,13 @@ object ClipboardHelper :
                     Timber.d("ingest: clip produced no bean")
                     return@withLock
                 }
-                if (bean.text.isNullOrBlank()) return@withLock
-                if (bean.text.matchesAny(outputRules) ||
-                    bean.text.removeRegexSet(compareRules).isEmpty()
-                ) {
-                    Timber.d("ingest: filtered by output/compare rules: %s", bean.text.take(48))
+                val text = bean.text.takeUnless { it.isNullOrBlank() } ?: return@withLock
+                if (text.matchesAny(outputRules) || text.removeRegexSet(compareRules).isEmpty()) {
+                    Timber.d("ingest: filtered by output/compare rules: %s", text.take(48))
                     return@withLock
                 }
                 try {
-                    clbDao.find(bean.text)?.let {
+                    clbDao.find(text)?.let {
                         updateLastBean(it.copy(time = bean.time))
                         clbDao.updateTime(it.id, bean.time)
                         return@withLock

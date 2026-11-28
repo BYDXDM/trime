@@ -19,6 +19,7 @@ import com.osfans.trime.data.theme.model.Window
 import com.osfans.trime.util.mapping
 import com.osfans.trime.util.pairs
 import com.osfans.trime.util.string
+import com.osfans.trime.util.yamlMapOf
 import kotlinx.parcelize.Parcelize
 
 /** 主题和样式配置  */
@@ -59,9 +60,11 @@ data class Theme(
                 "fallback_colors",
             )
 
+        // 缺 name/style（或 style 不是映射）时宁可退化成默认值也不要让整个主题加载失败：
+        // 一抛异常就会一路传导到 ThemeManager 的 "No valid theme available"，键盘直接空白且无法降级。
         fun decode(node: YamlMap): Theme = Theme(
-            name = node.pairs["name"]?.string!!,
-            generalStyle = GeneralStyle.decode(node.pairs["style"]!!),
+            name = node.pairs["name"]?.string ?: "",
+            generalStyle = GeneralStyle.decode(node.pairs["style"] ?: yamlMapOf()),
             preedit = Preedit.decode(node.pairs["preedit"]?.mapping),
             window = Window.decode(node.pairs["window"]?.mapping),
             liquidKeyboard = LiquidKeyboard.decode(node.pairs["liquid_keyboard"]?.mapping),

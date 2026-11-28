@@ -643,6 +643,17 @@ class KeyboardWindow(di: DI) :
         }
     }
 
+    /**
+     * 回车键标签变了必须让键盘重绘：[KeyboardView.labelEnter] 是绘制时读
+     * `enterKeyDisplay.keyLabel` 的，没人触发 invalidate 的话，切换 App 后回车键
+     * 会残留上一个 App 的动作名。
+     */
+    override fun onEnterKeyLabelUpdate(label: String) {
+        currentKeyboardView?.invalidateAllKeys()
+        // 广播可能早于 onCreateView 到达，keyboardView 是 lateinit，必须判空。
+        if (::keyboardView.isInitialized) keyboardView.invalidate()
+    }
+
     override fun onSelectionUpdate(
         start: Int,
         end: Int,

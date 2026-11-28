@@ -56,6 +56,9 @@ object BlacklistStore {
 
     /**
      * 覆盖写入黑名单。空列表时删除文件，回到「没有黑名单」的状态。
+     *
+     * 与 [CustomPhraseStore] 一样必须原子写：半截文件会被 [load] 当成空表，
+     * 之后任何一次 add/remove 都会用这个空表覆盖掉用户原有的黑名单。
      */
     fun save(words: List<String>): Result<Unit> = runCatching {
         val target = file
@@ -65,9 +68,20 @@ object BlacklistStore {
             return@runCatching
         }
         target.parentFile?.mkdirs()
-        target.writeText(serialize(words), Charsets.UTF_8)
+        writeAtomically(target, serialize(words))
         cached = words.toHashSet()
     }.onFailure { Timber.w(it, "Failed to write blacklist file") }
+
+    /** 先写同目录临时文件再 rename：失败时原文件保持不动。 */
+    private fun writeAtomically(target: File, content: String) {
+        val temp = File(target.parentFile, "${target.name}.tmp")
+        try {
+            temp.writeText(content, Charsets.UTF_8)
+            if (!temp.renameTo(target)) error("Failed to move ${temp.path} onto ${target.path}")
+        } finally {
+            if (temp.exists()) temp.delete()
+        }
+    }
 
     /** 当前黑名单集合，首次访问时从文件读入。 */
     fun words(): Set<String> = cached ?: load().toHashSet().also { cached = it }

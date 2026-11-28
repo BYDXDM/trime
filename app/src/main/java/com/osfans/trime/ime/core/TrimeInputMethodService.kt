@@ -416,7 +416,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         // 拿不到 EditorInfo 就退化成普通回车，别让整个输入法崩掉。
         val info =
             currentInputEditorInfo ?: run {
-                Timber.i("returnKey: no EditorInfo -> raw ENTER")
+                Timber.d("returnKey: no EditorInfo -> raw ENTER")
                 sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
                 return
             }
@@ -425,16 +425,17 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                 " actionId=${info.actionId} actionLabel=${info.actionLabel}",
         )
         info.run {
+            val ic = currentInputConnection
             // 自定义动作优先：App 用 NO_ENTER_ACTION + actionId/actionLabel 声明的「发送」，
             // 必须在下面的 NO_ENTER_ACTION 早退之前处理。否则这个分支永远走不到，
             // 按下只插入换行、发不出去（发送键被显示成换行的同一个根因）。
             if (actionId != EditorInfo.IME_ACTION_UNSPECIFIED && !actionLabel.isNullOrEmpty()) {
-                Timber.i("returnKey: custom action actionId=$actionId")
-                currentInputConnection.performEditorAction(actionId)
+                Timber.d("returnKey: custom action actionId=$actionId")
+                if (ic != null) ic.performEditorAction(actionId) else sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
                 return
             }
             if (inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_NULL) {
-                Timber.i("returnKey: TYPE_NULL -> raw ENTER")
+                Timber.d("returnKey: TYPE_NULL -> raw ENTER")
                 sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
                 return
             }
@@ -442,9 +443,7 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
             // 但 App 声明的 SEND/DONE/SEARCH 仍然是想让用户按的「发送」。只有完全
             // 没有动作（UNSPECIFIED/NONE）时才退回真回车。
             when (val action = imeOptions and EditorInfo.IME_MASK_ACTION) {
-                EditorInfo.IME_ACTION_UNSPECIFIED,
-                EditorInfo.IME_ACTION_NONE,
-                -> {
+                EditorInfo.IME_ACTION_UNSPECIFIED -> {
                     // 多行文本框 + App 没声明动作（框架补的 NO_ENTER_ACTION）：
                     // 聊天类 App 期待的是「发送」，回车键标签也显示「发送」，
                     // 这里派发 IME_ACTION_SEND 与之对应，而不是插一个换行。
@@ -452,17 +451,28 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                         inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_CLASS_TEXT &&
                             inputType and InputType.TYPE_TEXT_FLAG_MULTI_LINE != 0
                     if (multiLineText && imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) {
-                        Timber.i("returnKey: multiline w/o action -> performEditorAction SEND")
-                        currentInputConnection.performEditorAction(EditorInfo.IME_ACTION_SEND)
+                        Timber.d("returnKey: multiline w/o action -> performEditorAction SEND")
+                        if (ic != null) {
+                            ic.performEditorAction(EditorInfo.IME_ACTION_SEND)
+                        } else {
+                            sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
+                        }
                     } else {
-                        Timber.i("returnKey: action unspecified/none -> raw ENTER")
+                        Timber.d("returnKey: action unspecified -> raw ENTER")
                         sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
                     }
                 }
 
+                // IME_ACTION_NONE 是 App 显式声明的「没有动作」，绝不能当发送：
+                // 多行输入框里按下就应该老老实实插一个换行。
+                EditorInfo.IME_ACTION_NONE -> {
+                    Timber.d("returnKey: action none -> raw ENTER")
+                    sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
+                }
+
                 else -> {
-                    Timber.i("returnKey: performEditorAction action=$action")
-                    currentInputConnection.performEditorAction(action)
+                    Timber.d("returnKey: performEditorAction action=$action")
+                    if (ic != null) ic.performEditorAction(action) else sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
                 }
             }
         }
@@ -472,7 +482,10 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
      * https://github.com/fcitx5-android/fcitx5-android/blob/fe3a618c8fd18842305d2f8ec2880fcc67ec1679/app/src/main/java/org/fcitx/fcitx5/android/input/FcitxInputMethodService.kt#L523-#L547
      */
     override fun onConfigurationChanged(newConfig: Configuration) {
-        postRimeJob { clearComposition() }
+        // 用 discardComposition 而不是 clearComposition：后者只清 Rime 内部组合段，
+        // predictor 会在旋转后把「联想伪组合段」重建出来；前者才是彻底丢弃，且它
+        // 带 forwardToClient = false，不会把 Escape 发给客户端。
+        postRimeJob { discardComposition() }
         // 旋转后必须重建配色表，否则横屏仍用竖屏那张背景图。
         // 这里也调一次而不只依赖 Application 的回调：输入法服务一定收得到，
         // 重复调用由 ColorManager 内部的方向比较挡掉。

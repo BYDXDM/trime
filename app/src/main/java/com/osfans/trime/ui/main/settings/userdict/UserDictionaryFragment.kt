@@ -27,11 +27,43 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class UserDictionaryFragment : Fragment() {
-    private lateinit var restoreLauncher: ActivityResultLauncher<String>
+    // 必须在 Fragment 进入 STARTED 之前注册，因此放在字段初始化而不是 onCreateView 里
+    private val restoreLauncher: ActivityResultLauncher<String> =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri == null) return@registerForActivityResult
+            importFromUri(uri, merge = true)
+        }
 
-    private lateinit var importLauncher: ActivityResultLauncher<String>
+    private val importLauncher: ActivityResultLauncher<String> =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri == null) return@registerForActivityResult
+            importFromUri(uri)
+        }
 
-    private lateinit var exportLauncher: ActivityResultLauncher<String>
+    private val exportLauncher: ActivityResultLauncher<String> =
+        registerForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+            if (uri == null) return@registerForActivityResult
+            val ctx = requireContext()
+            val cr = ctx.contentResolver
+            val dictName = beingExported ?: return@registerForActivityResult
+            beingExported = null
+            lifecycleScope.launch {
+                val fileName = cr.queryFileName(uri) ?: return@launch
+                try {
+                    val count = withContext(Dispatchers.IO) {
+                        val outputStream = cr.openOutputStream(uri)!!
+                        UserDictManager.exportUserDict(
+                            outputStream,
+                            dictName,
+                            fileName,
+                        ).getOrThrow()
+                    }
+                    ui.showSnackBar(ctx.getString(R.string.exported_n_entries, count))
+                } catch (e: Exception) {
+                    ctx.toast(e)
+                }
+            }
+        }
 
     private var popupMenu: PopupMenu? = null
 
@@ -88,44 +120,7 @@ class UserDictionaryFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View {
-        registerLauncher()
-        return ui.root
-    }
-
-    private fun registerLauncher() {
-        restoreLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            if (uri == null) return@registerForActivityResult
-            importFromUri(uri, merge = true)
-        }
-        importLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            if (uri == null) return@registerForActivityResult
-            importFromUri(uri)
-        }
-        exportLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
-            if (uri == null) return@registerForActivityResult
-            val ctx = requireContext()
-            val cr = ctx.contentResolver
-            val dictName = beingExported ?: return@registerForActivityResult
-            beingExported = null
-            lifecycleScope.launch {
-                val fileName = cr.queryFileName(uri) ?: return@launch
-                try {
-                    val count = withContext(Dispatchers.IO) {
-                        val outputStream = cr.openOutputStream(uri)!!
-                        UserDictManager.exportUserDict(
-                            outputStream,
-                            dictName,
-                            fileName,
-                        ).getOrThrow()
-                    }
-                    ui.showSnackBar(ctx.getString(R.string.exported_n_entries, count))
-                } catch (e: Exception) {
-                    ctx.toast(e)
-                }
-            }
-        }
-    }
+    ): View = ui.root
 
     private fun importFromUri(uri: Uri, merge: Boolean = false) {
         val ctx = requireContext()

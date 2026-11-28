@@ -61,9 +61,18 @@ class EnterKeyDisplayDelegate(override val di: DI) : DIAware {
         // 旧逻辑一律显示成 enter_labels.default（本主题是「换行」），回车键于是
         // 既显示成换行、按下也真插一个换行，发送不出去。
         val preferCustom = mode == Mode.ACTION_LABEL_ONLY || mode == Mode.ACTION_LABEL_PREFERRED
-        if (preferCustom && !actionLabel.isNullOrEmpty()) return actionLabel.toString()
+        // 显示与行为的判定条件必须同步：handleReturnKey 只在 actionId != UNSPECIFIED 时
+        // 才 performEditorAction，这里也必须带上同一条件，否则键面写「发送」、按下插换行。
+        if (preferCustom && info.actionId != EditorInfo.IME_ACTION_UNSPECIFIED && !actionLabel.isNullOrEmpty()) {
+            return actionLabel.toString()
+        }
         if (actionText != null) return actionText
-        if (mode != Mode.ACTION_LABEL_NEVER && !actionLabel.isNullOrEmpty()) return actionLabel.toString()
+        if (mode != Mode.ACTION_LABEL_NEVER &&
+            info.actionId != EditorInfo.IME_ACTION_UNSPECIFIED &&
+            !actionLabel.isNullOrEmpty()
+        ) {
+            return actionLabel.toString()
+        }
         // 多行文本框且 App 没声明任何动作：框架会自动补 NO_ENTER_ACTION，落到这里就是
         // 主题的 default（「换行」）。聊天类 App 的输入框正是这种形态（真机实测
         // com.openai.chatgpt 的 inputType=0x2c001、imeOptions=0x42000000、actionId=0），
@@ -71,7 +80,12 @@ class EnterKeyDisplayDelegate(override val di: DI) : DIAware {
         val multiLineText =
             info.inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_CLASS_TEXT &&
                 info.inputType and InputType.TYPE_TEXT_FLAG_MULTI_LINE != 0
-        if (multiLineText && info.imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) {
+        // IME_ACTION_NONE 是 App 显式声明「没有动作」，行为侧会发真回车，这里也必须显示「换行」，
+        // 否则键面写「发送」、按下去插换行（显示与行为的判定条件必须同步）。
+        if (multiLineText &&
+            info.imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0 &&
+            action != EditorInfo.IME_ACTION_NONE
+        ) {
             return theme.generalStyle.enterLabel.send
         }
         return theme.generalStyle.enterLabel.default
@@ -80,8 +94,8 @@ class EnterKeyDisplayDelegate(override val di: DI) : DIAware {
     fun updateLabelOnEditorInfo(info: EditorInfo) {
         val computed = labelFromEditorInfo(info)
         // 诊断：回车键显示成「换行/发送」时，这一行能直接指出是哪个 EditorInfo 字段决定的。
-        // release 版也输出（Timber 的 release tree 只丢弃 VERBOSE/DEBUG）。
-        Timber.i(
+        // 用 debug 级别：release 只丢 VERBOSE/DEBUG，避免每次切换编辑框都往正式版日志里刷一行。
+        Timber.d(
             "enterLabel: inputType=0x${info.inputType.toString(16)} imeOptions=0x${info.imeOptions.toString(16)}" +
                 " actionId=${info.actionId} actionLabel=${info.actionLabel} mode=$mode -> $computed",
         )
