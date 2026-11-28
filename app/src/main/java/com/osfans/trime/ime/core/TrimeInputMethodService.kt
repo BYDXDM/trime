@@ -1,4 +1,4 @@
-﻿/*
+/*
  * SPDX-FileCopyrightText: 2015 - 2025 Rime community
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -445,8 +445,19 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
                 EditorInfo.IME_ACTION_UNSPECIFIED,
                 EditorInfo.IME_ACTION_NONE,
                 -> {
-                    Timber.i("returnKey: action unspecified/none -> raw ENTER")
-                    sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
+                    // 多行文本框 + App 没声明动作（框架补的 NO_ENTER_ACTION）：
+                    // 聊天类 App 期待的是「发送」，回车键标签也显示「发送」，
+                    // 这里派发 IME_ACTION_SEND 与之对应，而不是插一个换行。
+                    val multiLineText =
+                        inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_CLASS_TEXT &&
+                            inputType and InputType.TYPE_TEXT_FLAG_MULTI_LINE != 0
+                    if (multiLineText && imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) {
+                        Timber.i("returnKey: multiline w/o action -> performEditorAction SEND")
+                        currentInputConnection.performEditorAction(EditorInfo.IME_ACTION_SEND)
+                    } else {
+                        Timber.i("returnKey: action unspecified/none -> raw ENTER")
+                        sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
+                    }
                 }
 
                 else -> {

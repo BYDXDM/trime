@@ -5,6 +5,7 @@
 
 package com.osfans.trime.ime.broadcast
 
+import android.text.InputType
 import android.view.inputmethod.EditorInfo
 import com.osfans.trime.data.theme.Theme
 import org.kodein.di.DI
@@ -63,6 +64,16 @@ class EnterKeyDisplayDelegate(override val di: DI) : DIAware {
         if (preferCustom && !actionLabel.isNullOrEmpty()) return actionLabel.toString()
         if (actionText != null) return actionText
         if (mode != Mode.ACTION_LABEL_NEVER && !actionLabel.isNullOrEmpty()) return actionLabel.toString()
+        // 多行文本框且 App 没声明任何动作：框架会自动补 NO_ENTER_ACTION，落到这里就是
+        // 主题的 default（「换行」）。聊天类 App 的输入框正是这种形态（真机实测
+        // com.openai.chatgpt 的 inputType=0x2c001、imeOptions=0x42000000、actionId=0），
+        // 用户期待的是「发送」。这里统一按「发送」呈现，行为端见 handleReturnKey。
+        val multiLineText =
+            info.inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_CLASS_TEXT &&
+                info.inputType and InputType.TYPE_TEXT_FLAG_MULTI_LINE != 0
+        if (multiLineText && info.imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) {
+            return theme.generalStyle.enterLabel.send
+        }
         return theme.generalStyle.enterLabel.default
     }
 
