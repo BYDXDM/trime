@@ -78,6 +78,10 @@ class TrimeApplication : Application() {
                 sharedPrefs.edit(commit = true) {
                     putLong(lastCrashTimePrefKey, crashTime)
                 }
+                // release 版不把栈打进 logcat，崩溃现场只能靠 LogActivity 弹窗看，
+                // 而弹窗里的长行会被屏幕截断、重启后就没了。这里逐帧打一遍，
+                // 保证 `adb logcat` 能拿到完整栈。
+                e.stackTraceToString().lineSequence().forEach { Log.e("TrimeCrash", it) }
                 if (crashTime - lastCrashTime <= 10_000L) {
                     // continuous crashes within 10 seconds, maybe in a crash loop. just bail
                     exitProcess(10)

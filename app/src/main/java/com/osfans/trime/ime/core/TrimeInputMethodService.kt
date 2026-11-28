@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SPDX-FileCopyrightText: 2015 - 2025 Rime community
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -69,7 +69,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
-import splitties.bitflags.hasFlag
 import splitties.systemservices.clipboardManager
 import splitties.systemservices.inputMethodManager
 import timber.log.Timber
@@ -417,26 +416,43 @@ open class TrimeInputMethodService : LifecycleInputMethodService() {
         // 拿不到 EditorInfo 就退化成普通回车，别让整个输入法崩掉。
         val info =
             currentInputEditorInfo ?: run {
+                Timber.i("returnKey: no EditorInfo -> raw ENTER")
                 sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
                 return
             }
+        Timber.i(
+            "returnKey: inputType=0x${info.inputType.toString(16)} imeOptions=0x${info.imeOptions.toString(16)}" +
+                " actionId=${info.actionId} actionLabel=${info.actionLabel}",
+        )
         info.run {
-            if (inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_NULL ||
-                imeOptions.hasFlag(EditorInfo.IME_FLAG_NO_ENTER_ACTION)
-            ) {
-                sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
-                return
-            }
-            if (!actionLabel.isNullOrEmpty() && actionId != EditorInfo.IME_ACTION_UNSPECIFIED) {
+            // 自定义动作优先：App 用 NO_ENTER_ACTION + actionId/actionLabel 声明的「发送」，
+            // 必须在下面的 NO_ENTER_ACTION 早退之前处理。否则这个分支永远走不到，
+            // 按下只插入换行、发不出去（发送键被显示成换行的同一个根因）。
+            if (actionId != EditorInfo.IME_ACTION_UNSPECIFIED && !actionLabel.isNullOrEmpty()) {
+                Timber.i("returnKey: custom action actionId=$actionId")
                 currentInputConnection.performEditorAction(actionId)
                 return
             }
+            if (inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_NULL) {
+                Timber.i("returnKey: TYPE_NULL -> raw ENTER")
+                sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
+                return
+            }
+            // 不再因 IME_FLAG_NO_ENTER_ACTION 早退：多行输入框会被框架自动补上该标志，
+            // 但 App 声明的 SEND/DONE/SEARCH 仍然是想让用户按的「发送」。只有完全
+            // 没有动作（UNSPECIFIED/NONE）时才退回真回车。
             when (val action = imeOptions and EditorInfo.IME_MASK_ACTION) {
                 EditorInfo.IME_ACTION_UNSPECIFIED,
                 EditorInfo.IME_ACTION_NONE,
-                -> sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
+                -> {
+                    Timber.i("returnKey: action unspecified/none -> raw ENTER")
+                    sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
+                }
 
-                else -> currentInputConnection.performEditorAction(action)
+                else -> {
+                    Timber.i("returnKey: performEditorAction action=$action")
+                    currentInputConnection.performEditorAction(action)
+                }
             }
         }
     }
